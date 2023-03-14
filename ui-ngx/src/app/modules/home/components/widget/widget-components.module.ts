@@ -42,6 +42,7 @@ import { JsonInputWidgetComponent } from '@home/components/widget/lib/json-input
 import { QrCodeWidgetComponent } from '@home/components/widget/lib/qrcode-widget.component';
 import { MarkdownWidgetComponent } from '@home/components/widget/lib/markdown-widget.component';
 import { SelectEntityDialogComponent } from '@home/components/widget/lib/maps/dialogs/select-entity-dialog.component';
+import { ThreedViewWidgetComponent } from './threed-view-widget/threed-view-widget.component';
 
 @NgModule({
   declarations:
@@ -64,7 +65,8 @@ import { SelectEntityDialogComponent } from '@home/components/widget/lib/maps/di
       NavigationCardWidgetComponent,
       QrCodeWidgetComponent,
       MarkdownWidgetComponent,
-      SelectEntityDialogComponent
+      SelectEntityDialogComponent,
+      ThreedViewWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -88,7 +90,8 @@ import { SelectEntityDialogComponent } from '@home/components/widget/lib/maps/di
     NavigationCardsWidgetComponent,
     NavigationCardWidgetComponent,
     QrCodeWidgetComponent,
-    MarkdownWidgetComponent
+    MarkdownWidgetComponent,
+    ThreedViewWidgetComponent
   ],
   providers: [
     CustomDialogService,
