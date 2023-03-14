@@ -20,6 +20,8 @@ import { WidgetContext } from '@app/modules/home/models/widget-component.models'
 import { PageComponent } from '@app/shared/public-api';
 import { Store } from '@ngrx/store';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 @Component({
   selector: 'tb-threed-view-widget',
@@ -35,25 +37,17 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
   @ViewChild('rendererContainer') rendererContainer: ElementRef;
 
-  renderer = new THREE.WebGLRenderer();
-  scene = null;
-  camera = null;
-  mesh = null;
+  private renderer = new THREE.WebGLRenderer();
+  private scene?: THREE.Scene;
+  private controls?: OrbitControls;
+  private camera?: THREE.PerspectiveCamera;
+  private initialized = false;
 
   constructor(protected store: Store<AppState>,
     protected cd: ChangeDetectorRef) {
     super(store);
 
-    this.scene = new THREE.Scene();
-
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-    this.camera.position.z = 1000;
-
-    const geometry = new THREE.BoxGeometry(200, 200, 200);
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
-    this.mesh = new THREE.Mesh(geometry, material);
-
-    this.scene.add(this.mesh);
+    this.createScene();
   }
 
   ngOnInit(): void {
@@ -63,20 +57,68 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   ngAfterViewInit() {
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
     this.animate();
   }
 
-  animate() {
-    window.requestAnimationFrame(() => this.animate());
-    this.mesh.rotation.x += 0.01;
-    this.mesh.rotation.y += 0.02;
-    this.renderer.render(this.scene, this.camera);
+  private createScene() {
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0xcccccc);
+    //this.scene.fog = new THREE.FogExp2(0xcccccc, 0.002);
+
+    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    this.camera.position.set(400, 200, 0);
+
+    // controls
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.listenToKeyEvents(window); // optional
+    this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    this.controls.dampingFactor = 0.05;
+    this.controls.screenSpacePanning = false;
+    this.controls.minDistance = 100;
+    this.controls.maxDistance = 500;
+    this.controls.maxPolarAngle = Math.PI / 2;
+
+    // model
+    const _this = this;
+    const loader = new GLTFLoader().setPath( 'assets/models/gltf/' );
+    loader.load( 'classroom.glb', function ( gltf ) {
+      _this.scene.add( gltf.scene );
+      _this.render();
+    } );
+
+    // lights
+    
+    const dirLight1 = new THREE.DirectionalLight(0xffffff);
+    dirLight1.position.set(1, 1, 1);
+    this.scene.add(dirLight1);
+    const ambientLight = new THREE.AmbientLight(0x222222);
+    this.scene.add(ambientLight);
+    
+
+    this.initialized = true;
   }
 
-  public onResize() : void {
-    console.log("onresize!!");
+  private animate() {
+    window.requestAnimationFrame(() => this.animate());
+    this.controls.update();
+    this.render();
+  }
+
+  public onResize(width: number, height: number): void {
+    if (!this.initialized) return;
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
+
+    this.render();
+  }
+
+  public render(): void {
+    this.renderer.render(this.scene, this.camera);
   }
 
 }
