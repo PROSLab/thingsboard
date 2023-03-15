@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { AppState } from '@app/core/core.state';
 import { WidgetContext } from '@app/modules/home/models/widget-component.models';
 import { PageComponent } from '@app/shared/public-api';
@@ -22,6 +22,7 @@ import { Store } from '@ngrx/store';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 
 @Component({
   selector: 'tb-threed-view-widget',
@@ -35,16 +36,37 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   @Input()
   ctx: WidgetContext;
 
-  @ViewChild('rendererContainer') rendererContainer: ElementRef;
+  @ViewChild('rendererContainer') rendererContainer?: ElementRef;
+
+  public pointerLocked: boolean = false;
 
   private renderer = new THREE.WebGLRenderer();
   private scene?: THREE.Scene;
-  private controls?: OrbitControls;
   private camera?: THREE.PerspectiveCamera;
+  private objects: any[] = [];
+  private controls?: PointerLockControls;
   private initialized = false;
 
-  constructor(protected store: Store<AppState>,
-    protected cd: ChangeDetectorRef) {
+  private raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
+  private pointerRaycaster = new THREE.Raycaster();
+  private moveForward = false;
+  private moveBackward = false;
+  private moveLeft = false;
+  private moveRight = false;
+  private canJump = false;
+  private prevTime = performance.now();
+  private velocity = new THREE.Vector3();
+  private direction = new THREE.Vector3();
+  private INTERSECTED: any;
+
+  private readonly gravity = 9.8;
+  private readonly mass = 30;
+  private readonly speed = 400;
+
+  constructor(
+    protected store: Store<AppState>,
+    protected cd: ChangeDetectorRef
+    ) {
     super(store);
 
     this.createScene();
@@ -63,62 +85,220 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.animate();
   }
 
+  lockCursor() {
+    this.controls?.lock();
+  }
+
   private createScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xcccccc);
-    //this.scene.fog = new THREE.FogExp2(0xcccccc, 0.002);
 
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-    this.camera.position.set(400, 200, 0);
+    this.camera.position.set(0, 20, 0);
+
+    const this_ = this;
 
     // controls
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.listenToKeyEvents(window); // optional
-    this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-    this.controls.dampingFactor = 0.05;
-    this.controls.screenSpacePanning = false;
-    this.controls.minDistance = 100;
-    this.controls.maxDistance = 500;
-    this.controls.maxPolarAngle = Math.PI / 2;
+    this.controls = new PointerLockControls(this.camera, document.body);
+    this.controls.addEventListener('lock', function () {
+      this_.pointerLocked = true;
+      this_.cd.detectChanges();
+    });
+    this.controls.addEventListener('unlock', function () {
+      this_.pointerLocked = false;
+      this_.cd.detectChanges();
+    });
+    this.scene.add(this.controls.getObject());
 
     // model
-    const _this = this;
-    const loader = new GLTFLoader().setPath( 'assets/models/gltf/' );
-    loader.load( 'classroom.glb', function ( gltf ) {
-      _this.scene.add( gltf.scene );
-      _this.render();
-    } );
+    const loader = new GLTFLoader().setPath('assets/models/gltf/');
+    loader.load('classroom.glb', function (gltf) {
+      gltf.scene.scale.set(0.1, 0.1, 0.1);
+      const root = gltf.scene;
+      this_.scene!.add(root);
+
+      this_.listChildren(this_.scene!.children);
+      this_.render();
+    });
 
     // lights
-    
-    const dirLight1 = new THREE.DirectionalLight(0xffffff);
-    dirLight1.position.set(1, 1, 1);
-    this.scene.add(dirLight1);
-    const ambientLight = new THREE.AmbientLight(0x222222);
+    const ambientLight = new THREE.AmbientLight(0xFEFEFE, 1);
+    ambientLight.position.set(0, 0, 0);
     this.scene.add(ambientLight);
-    
+    const directionalLight = new THREE.DirectionalLight(0xFEFEFE, 1);
+    directionalLight.position.set(70, 30, 0);
+    this.scene.add(directionalLight);
 
     this.initialized = true;
   }
 
+  listChildren(children: any) {
+    //console.log(children);
+    let child;
+    for (let i = 0; i < children.length; i++) {
+      child = children[i];
+      //console.log(child);
+
+      // Calls this function again if the child has children
+      if (child.children && child.children.length > 0) {
+        this.listChildren(child.children);
+      }
+      // Logs if this child last in recursion
+      else {
+        console.log('Reached bottom with: ', child);
+        if (child.type == "Mesh")
+          this.objects.push(child);
+      }
+    }
+  }
+
+
   private animate() {
     window.requestAnimationFrame(() => this.animate());
-    this.controls.update();
+
+    this.tick();
+
     this.render();
+  }
+
+  private tick() {
+    const time = performance.now();
+
+    if (this.controls && this.controls.isLocked === true) {
+
+      this.raycaster.ray.origin.copy(this.controls.getObject().position);
+      //this.raycaster.ray.origin.y -= 10;
+
+      const intersections = this.raycaster.intersectObjects(this.objects, false);
+      const onObject = intersections.length > 0;
+
+      this.pointerRaycaster.setFromCamera(new THREE.Vector2(0,0), this.camera!);
+      const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true);
+      if (intersects.length > 0) {
+        if (this.INTERSECTED != intersects[0].object) {
+          if (this.INTERSECTED) this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
+
+          this.INTERSECTED = intersects[0].object;
+          this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive.getHex();
+          this.INTERSECTED.material.emissive.setHex(0xff0000);
+        }
+      } else {
+        if (this.INTERSECTED) this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
+
+        this.INTERSECTED = null;
+      }
+
+      const delta = (time - this.prevTime) / 1000;
+
+      this.velocity.x -= this.velocity.x * 10.0 * delta;
+      this.velocity.z -= this.velocity.z * 10.0 * delta;
+
+      this.velocity.y -= this.gravity * this.mass * delta; // 100.0 = mass
+
+      this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+      this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+      this.direction.normalize(); // this ensures consistent movements in all directions
+
+      if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * this.speed * delta;
+      if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * this.speed * delta;
+
+      if (onObject === true) {
+
+        this.velocity.y = Math.max(0, this.velocity.y);
+        this.canJump = true;
+
+      }
+
+      this.controls.moveRight(- this.velocity.x * delta);
+      this.controls.moveForward(- this.velocity.z * delta);
+
+      this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
+
+      if (this.controls.getObject().position.y < 10) {
+
+        this.velocity.y = 0;
+        this.controls.getObject().position.y = 10;
+
+        this.canJump = true;
+
+      }
+    }
+
+    this.prevTime = time;
   }
 
   public onResize(width: number, height: number): void {
     if (!this.initialized) return;
 
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+    this.camera!.aspect = width / height;
+    this.camera!.updateProjectionMatrix();
     this.renderer.setSize(width, height);
 
     this.render();
   }
 
   public render(): void {
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene!, this.camera!);
   }
 
+  
+  @HostListener('window:keyup', ['$event'])
+  keyUpEvent(event: KeyboardEvent) {
+    switch (event.code) {
+
+      case 'ArrowUp':
+      case 'KeyW':
+        this.moveForward = false;
+        break;
+
+      case 'ArrowLeft':
+      case 'KeyA':
+        this.moveLeft = false;
+        break;
+
+      case 'ArrowDown':
+      case 'KeyS':
+        this.moveBackward = false;
+        break;
+
+      case 'ArrowRight':
+      case 'KeyD':
+        this.moveRight = false;
+        break;
+
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  keyDownEvent(event: KeyboardEvent) {
+
+    switch (event.code) {
+
+      case 'ArrowUp':
+      case 'KeyW':
+        this.moveForward = true;
+        break;
+
+      case 'ArrowLeft':
+      case 'KeyA':
+        this.moveLeft = true;
+        break;
+
+      case 'ArrowDown':
+      case 'KeyS':
+        this.moveBackward = true;
+        break;
+
+      case 'ArrowRight':
+      case 'KeyD':
+        this.moveRight = true;
+        break;
+
+      case 'Space':
+        if (this.canJump === true) this.velocity.y += 3 * this.mass;
+        this.canJump = false;
+        break;
+
+    }
+  }
 }

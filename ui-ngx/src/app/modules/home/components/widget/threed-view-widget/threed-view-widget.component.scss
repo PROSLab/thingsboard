@@ -13,3 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ #blocker {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(155, 155, 155, 0.5);
+}
+
+#instructions {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.crosshair {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.horizontal,
+.vertical {
+    position: absolute;
+    background-color: white;
+    border-radius: 2px;
+}
+
+.horizontal {
+    width: 20px;
+    height: 5px;
+}
+
+.vertical {
+    width: 5px;
+    height: 20px;
+}
