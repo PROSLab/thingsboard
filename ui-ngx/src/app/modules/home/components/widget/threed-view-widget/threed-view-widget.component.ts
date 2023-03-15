@@ -15,15 +15,27 @@
 ///
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import { AppState } from '@app/core/core.state';
-import { WidgetContext } from '@app/modules/home/models/widget-component.models';
-import { PageComponent } from '@app/shared/public-api';
 import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { PageComponent } from '@shared/components/page.component';
+import { WidgetContext } from '@home/models/widget-component.models';
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 
+interface ThreedViewWidgetSettings {
+  hexColor: string;
+}
+
+/*
+Widget Type: Ultimi Valori
+Widget settings: 
+  1) tb-simple-card-widget-settings (from Simple Card)
+  2) tb-map-widget-settings (from Image Map)
+
+*/
 @Component({
   selector: 'tb-threed-view-widget',
   templateUrl: './threed-view-widget.component.html',
@@ -31,7 +43,7 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 })
 export class ThreedViewWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
 
-  //settings: MarkdownWidgetSettings;
+  settings: ThreedViewWidgetSettings;
 
   @Input()
   ctx: WidgetContext;
@@ -74,8 +86,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
   ngOnInit(): void {
     this.ctx.$scope.threedViewWidget = this;
-    //this.settings = this.ctx.settings;
-    //this.qrCodeTextFunction = this.settings.useQrCodeTextFunction ? parseFunction(this.settings.qrCodeTextFunction, ['data']) : null;
+    this.settings = this.ctx.settings;
   }
 
   ngAfterViewInit() {
@@ -87,6 +98,14 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
   lockCursor() {
     this.controls?.lock();
+  }
+
+  public onDataUpdated(){
+    console.log(this.ctx.datasources);
+    if (this.ctx.datasources.length > 0) {
+      var tbDatasource = this.ctx.datasources[0];
+      // TODO...
+    }
   }
 
   private createScene() {
@@ -180,7 +199,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
           this.INTERSECTED = intersects[0].object;
           this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive.getHex();
-          this.INTERSECTED.material.emissive.setHex(0xff0000);
+          const hexColor = this.ctx.settings.hexColor || 0xff0000;
+          this.INTERSECTED.material.emissive.setHex(hexColor);
         }
       } else {
         if (this.INTERSECTED) this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
