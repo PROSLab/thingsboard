@@ -42,14 +42,14 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   protected defaultSettings(): WidgetSettings {
     return {
       hexColor: 0xff0000,
-      imageMapProviderSettings: defaultThreedModelSettings
+      threeModelSettings: defaultThreedModelSettings
     };
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
     this.threedViewWidgetSettingsForm = this.fb.group({
       hexColor: [settings.hexColor, [Validators.required]],
-      imageMapProviderSettings: [settings.imageMapProviderSettings, []],
+      threeModelSettings: [settings.threeModelSettings, []],
     });
   }
 }

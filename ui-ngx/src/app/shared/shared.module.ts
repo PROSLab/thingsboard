@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { NgModule, SecurityContext } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FooterComponent } from '@shared/components/footer.component';
 import { LogoComponent } from '@shared/components/logo.component';
@@ -504,6 +504,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     PhoneInputComponent,
     TbScriptLangComponent,
     ThreedModelInputComponent
-  ]
+  ],
+  schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })
 export class SharedModule { }

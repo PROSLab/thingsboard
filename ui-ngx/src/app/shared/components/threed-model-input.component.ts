@@ -114,7 +114,8 @@ export class ThreedModelInputComponent extends PageComponent implements AfterVie
           console.log(reader);
           if (typeof reader.result === 'string' && reader.result.startsWith('data:application/octet-stream')) {
             this.imageUrl = reader.result;
-            this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
+
+            this.safeImageUrl = this.imageUrl;//this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
             this.updateModel();
           }
         };
@@ -141,7 +142,7 @@ export class ThreedModelInputComponent extends PageComponent implements AfterVie
   writeValue(value: string): void {
     this.imageUrl = value;
     if (this.imageUrl) {
-      this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
+      this.safeImageUrl = this.imageUrl;//this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
     } else {
       this.safeImageUrl = null;
     }

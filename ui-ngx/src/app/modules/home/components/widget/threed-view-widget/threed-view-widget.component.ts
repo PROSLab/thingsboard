@@ -19,14 +19,23 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
+import { DataSet, DatasourceType, widgetType } from '@shared/models/widget.models';
+import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { WidgetSubscriptionOptions } from '@core/api/widget-api.models';
+import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, parseFunction } from '@core/utils';
+import { EntityDataPageLink } from '@shared/models/query/query.models';
+import { Observable, ReplaySubject } from 'rxjs';
+import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { ThreedModelSettings } from './threed-models';
 
 interface ThreedViewWidgetSettings {
   hexColor: string;
+  threeModelSettings: ThreedModelSettings;
 }
 
 /*
@@ -80,7 +89,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef
-    ) {
+  ) {
     super(store);
 
     this.createScene();
@@ -89,6 +98,116 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   ngOnInit(): void {
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
+
+    this.loadModel();
+  }
+
+  private loadModel() {
+    const modelUrl = this.settings.threeModelSettings.modelUrl;
+    const modelEntityAlias = this.settings.threeModelSettings.modelEntityAlias;
+    const modelUrlAttribute = this.settings.threeModelSettings.modelUrlAttribute;
+    if (!modelEntityAlias || !modelUrlAttribute) {
+      return this.loadModelFromBase64(modelUrl);
+    }
+    const entityAliasId = this.ctx.aliasController.getEntityAliasId(modelEntityAlias);
+    if (!entityAliasId) {
+      return this.loadModelFromBase64(modelUrl);
+    }
+
+    // Retrive the modelUrl from the entity Alias & Attribute
+    const datasources = [
+      {
+        type: DatasourceType.entity,
+        name: modelEntityAlias,
+        aliasName: modelEntityAlias,
+        entityAliasId,
+        dataKeys: [
+          {
+            type: DataKeyType.attribute,
+            name: modelUrlAttribute,
+            label: modelUrlAttribute,
+            settings: {},
+            _hash: Math.random()
+          }
+        ]
+      }
+    ];
+    const result = new ReplaySubject<[DataSet, boolean]>();
+    let isUpdate = false;
+    const imageUrlSubscriptionOptions: WidgetSubscriptionOptions = {
+      datasources,
+      hasDataPageLink: true,
+      singleEntity: true,
+      useDashboardTimewindow: false,
+      type: widgetType.latest,
+      callbacks: {
+        onDataUpdated: (subscription) => {
+          if (isNotEmptyStr(subscription.data[0]?.data[0]?.[1])) {
+            result.next([subscription.data[0].data, isUpdate]);
+          } else {
+            result.next([[[0, modelUrl]], isUpdate]);
+          }
+          isUpdate = true;
+        }
+      }
+    };
+    this.ctx.subscriptionApi.createSubscription(imageUrlSubscriptionOptions, true).subscribe((subscription) => {
+      const pageLink: EntityDataPageLink = {
+        page: 0,
+        pageSize: 1,
+        textSearch: null,
+        dynamic: true
+      };
+      subscription.subscribeAllForPaginatedData(pageLink, null);
+    });
+    this.loadModelFromAlias(result);
+  }
+
+  private loadModelFromBase64(modelBase64: string) {
+    console.log("Loading model from base64...");
+    const this_ = this;
+    fetch(modelBase64)
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        new GLTFLoader().parse(buffer, "/", /*gltf => {
+          gltf.scene.scale.set(0.1, 0.1, 0.1);
+          const root = gltf.scene;
+          this_.scene!.add(root);
+
+          this_.listChildren(this_.scene!.children);
+          this_.render();
+        }*/gltf => this_.onLoadModel(gltf));
+      })
+      .catch(e => {
+        // TODO: change with defaultThreedModelSettings.modelUrl
+        this_.loadModelFromUrl('assets/models/gltf/classroom.glb');
+      });
+  }
+
+  private loadModelFromUrl(modelUrl: string) {
+    console.log("Loading model from url " + modelUrl + "...");
+    const this_ = this;
+    new GLTFLoader()
+      .load(modelUrl, gltf => this_.onLoadModel(gltf));
+  }
+
+  private loadModelFromAlias(alias: Observable<[DataSet, boolean]>) {
+    const this_ = this;
+    alias.subscribe(res => {
+      const modelUrl = res[0][0][1];
+      this_.loadModelFromUrl(modelUrl);
+    });
+  }
+
+  private onLoadModel(gltf: GLTF) {
+    //gltf.scene.scale.set(0.1, 0.1, 0.1);
+    const this_ = this;
+
+    const root = gltf.scene;
+    this_.scene!.add(root);
+
+    this_.listChildren(this_.scene!.children);
+    this_.render();
   }
 
   ngAfterViewInit() {
@@ -102,7 +221,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.controls?.lock();
   }
 
-  public onDataUpdated(){
+  public onDataUpdated() {
     console.log(this.ctx.datasources);
     if (this.ctx.datasources.length > 0) {
       var tbDatasource = this.ctx.datasources[0];
@@ -130,17 +249,6 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       this_.cd.detectChanges();
     });
     this.scene.add(this.controls.getObject());
-
-    // model
-    const loader = new GLTFLoader().setPath('assets/models/gltf/');
-    loader.load('classroom.glb', function (gltf) {
-      gltf.scene.scale.set(0.1, 0.1, 0.1);
-      const root = gltf.scene;
-      this_.scene!.add(root);
-
-      this_.listChildren(this_.scene!.children);
-      this_.render();
-    });
 
     // lights
     const ambientLight = new THREE.AmbientLight(0xFEFEFE, 1);
@@ -193,7 +301,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       const intersections = this.raycaster.intersectObjects(this.objects, false);
       const onObject = intersections.length > 0;
 
-      this.pointerRaycaster.setFromCamera(new THREE.Vector2(0,0), this.camera!);
+      this.pointerRaycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera!);
       const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true);
       if (intersects.length > 0) {
         if (this.INTERSECTED != intersects[0].object) {
@@ -263,7 +371,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.renderer.render(this.scene!, this.camera!);
   }
 
-  
+
   @HostListener('window:keyup', ['$event'])
   keyUpEvent(event: KeyboardEvent) {
     switch (event.code) {

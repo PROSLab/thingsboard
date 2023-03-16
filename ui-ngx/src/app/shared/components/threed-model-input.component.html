@@ -22,9 +22,16 @@
       <div class="tb-image-select-container">
         <div class="image-container" *ngIf="showPreview">
           <div class="image-content-container" [ngClass]="{'no-padding': disabled}">
-            <div class="tb-image-preview-container">
+            <div class="tb-image-preview-container" style="border:0px!important;">
               <div *ngIf="!safeImageUrl; else elseBlock">{{ (disabled ? 'dashboard.empty-image' : 'dashboard.no-image') | translate }}</div>
-              <ng-template #elseBlock><img class="tb-image-preview" [src]="safeImageUrl" /></ng-template>
+              <ng-template #elseBlock>
+                <!--
+                  [attr.src]="safeImageUrl"
+                  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                -->
+                <model-viewer class="tb-image-preview" style="width:100%;height:100%" alt="3D Model" 
+                [attr.src]="safeImageUrl" shadow-intensity="1" camera-controls touch-action="pan-y"></model-viewer>
+              </ng-template>
             </div>
             <div *ngIf="showClearButton && !disabled" class="tb-image-clear-container">
               <button mat-button mat-icon-button color="primary"

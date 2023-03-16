@@ -66,6 +66,7 @@ export class ImageMap extends LeafletMap {
     private mapImage(options: WidgetUnitedMapSettings): Observable<MapImage> {
       const imageEntityAlias = options.imageEntityAlias;
       const imageUrlAttribute = options.imageUrlAttribute;
+
       if (!imageEntityAlias || !imageUrlAttribute) {
         return this.imageFromUrl(options.mapImageUrl);
       }
