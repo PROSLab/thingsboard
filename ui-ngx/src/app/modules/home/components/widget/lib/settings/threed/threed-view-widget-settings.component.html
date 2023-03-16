@@ -15,14 +15,19 @@
     limitations under the License.
 
 -->
-<section [formGroup]="threedViewWidgetSettingsForm" fxLayout="column">
 
-    <mat-form-field>
-        <mat-label translate>widgets.qr-code.qr-code-text-pattern</mat-label>
-        <input required matInput formControlName="hexColor">
-        <mat-hint>0xff0000</mat-hint>
-        <mat-error *ngIf="threedViewWidgetSettingsForm.get('hexColor').hasError('required')">
-          {{ 'widgets.qr-code.qr-code-text-pattern-required' | translate }}
-        </mat-error>
-      </mat-form-field>
+
+<section class="tb-widget-settings" [formGroup]="threedViewWidgetSettingsForm">
+
+  <tb-threed-model-settings [aliasController]="aliasController" formControlName="imageMapProviderSettings">
+  </tb-threed-model-settings>
+
+  <mat-form-field>
+    <mat-label translate>widgets.qr-code.qr-code-text-pattern</mat-label>
+    <input required matInput formControlName="hexColor">
+    <mat-hint>0xff0000</mat-hint>
+    <mat-error *ngIf="threedViewWidgetSettingsForm.get('hexColor').hasError('required')">
+      {{ 'widgets.qr-code.qr-code-text-pattern-required' | translate }}
+    </mat-error>
+  </mat-form-field>
 </section>

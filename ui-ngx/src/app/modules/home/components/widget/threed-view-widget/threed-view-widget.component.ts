@@ -35,6 +35,8 @@ Widget settings:
   1) tb-simple-card-widget-settings (from Simple Card)
   2) tb-map-widget-settings (from Image Map)
 
+Per navigare tra le dashboard (ex click su un sensore) mettere a disposizione un Azione click (vedi Image Map -> Azioni) 
+Per modificare la posizione , scala... vedi Markers Placement - Image Map (anche se forse è meglio aggiungere qualcosa sui settings anzichè utilizzare un altro widget)
 */
 @Component({
   selector: 'tb-threed-view-widget',

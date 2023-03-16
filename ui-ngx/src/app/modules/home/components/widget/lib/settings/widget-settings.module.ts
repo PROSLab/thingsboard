@@ -262,6 +262,7 @@ import {
 import {
   ThreedViewWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-view-widget-settings.component';
+import { ThreedModelSettingsComponent } from './threed/threed-model-settings.component';
 
 @NgModule({
   declarations: [
@@ -361,7 +362,8 @@ import {
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
-    ThreedViewWidgetSettingsComponent
+    ThreedViewWidgetSettingsComponent,
+    ThreedModelSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -465,7 +467,8 @@ import {
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
-    ThreedViewWidgetSettingsComponent
+    ThreedViewWidgetSettingsComponent,
+    ThreedModelSettingsComponent
   ]
 })
 export class WidgetSettingsModule {

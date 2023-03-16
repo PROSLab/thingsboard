@@ -19,6 +19,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { defaultThreedModelSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
 
 @Component({
   selector: 'tb-threed-view-widget-settings',
@@ -41,12 +42,14 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   protected defaultSettings(): WidgetSettings {
     return {
       hexColor: 0xff0000,
+      imageMapProviderSettings: defaultThreedModelSettings
     };
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
     this.threedViewWidgetSettingsForm = this.fb.group({
-      hexColor: [settings.hexColor, [Validators.required]]
+      hexColor: [settings.hexColor, [Validators.required]],
+      imageMapProviderSettings: [settings.imageMapProviderSettings, []],
     });
   }
 }
