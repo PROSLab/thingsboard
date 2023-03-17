@@ -19,7 +19,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { defaultThreedModelSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
+import { defaultThreedModelSettings, defaultThreedSceneSettings, ThreedViewWidgetSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
 
 @Component({
   selector: 'tb-threed-view-widget-settings',
@@ -42,14 +42,19 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   protected defaultSettings(): WidgetSettings {
     return {
       hexColor: 0xff0000,
-      threeModelSettings: defaultThreedModelSettings
-    };
+      threedModelSettings: defaultThreedModelSettings,
+      threedSceneSettings: defaultThreedSceneSettings
+    } as ThreedViewWidgetSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
+    const t_settings = settings as ThreedViewWidgetSettings;
+    console.log("[MYDEBUG] onSettingsSet", settings);
+
     this.threedViewWidgetSettingsForm = this.fb.group({
-      hexColor: [settings.hexColor, [Validators.required]],
-      threeModelSettings: [settings.threeModelSettings, []],
+      hexColor: [t_settings.hexColor, [Validators.required]],
+      threedModelSettings: [t_settings.threedModelSettings, []],
+      threedSceneSettings: [t_settings.threedSceneSettings, []],
     });
   }
 }

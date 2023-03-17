@@ -151,7 +151,7 @@ export class ThreedModelSettingsComponent extends PageComponent implements OnIni
 
   public validate(c: FormControl) {
     return this.threedModelSettingsFormGroup.valid ? null : {
-      imageMapProviderSettings: {
+      threedModelSettings: {
         valid: false,
       },
     };

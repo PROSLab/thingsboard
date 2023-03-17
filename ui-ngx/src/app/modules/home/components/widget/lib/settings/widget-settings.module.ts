@@ -262,7 +262,15 @@ import {
 import {
   ThreedViewWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-view-widget-settings.component';
-import { ThreedModelSettingsComponent } from './threed/threed-model-settings.component';
+import { 
+  ThreedModelSettingsComponent 
+} from '@home/components/widget/lib/settings/threed/threed-model-settings.component';
+import { 
+  ThreedSceneSettingsComponent 
+} from '@home/components/widget/lib/settings/threed/threed-scene-settings.component';
+import { 
+  ThreedVectorSettingsComponent 
+} from '@home/components/widget/lib/settings/threed/threed-vector-settings.component';
 
 @NgModule({
   declarations: [
@@ -363,7 +371,9 @@ import { ThreedModelSettingsComponent } from './threed/threed-model-settings.com
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     ThreedViewWidgetSettingsComponent,
-    ThreedModelSettingsComponent
+    ThreedModelSettingsComponent,
+    ThreedSceneSettingsComponent,
+    ThreedVectorSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -468,13 +478,15 @@ import { ThreedModelSettingsComponent } from './threed/threed-model-settings.com
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     ThreedViewWidgetSettingsComponent,
-    ThreedModelSettingsComponent
+    ThreedModelSettingsComponent,
+    ThreedSceneSettingsComponent,
+    ThreedVectorSettingsComponent
   ]
 })
 export class WidgetSettingsModule {
 }
 
-export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsComponent>} = {
+export const widgetSettingsComponentsMap: { [key: string]: Type<IWidgetSettingsComponent> } = {
   'tb-qrcode-widget-settings': QrCodeWidgetSettingsComponent,
   'tb-timeseries-table-widget-settings': TimeseriesTableWidgetSettingsComponent,
   'tb-timeseries-table-key-settings': TimeseriesTableKeySettingsComponent,

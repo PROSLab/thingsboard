@@ -22,21 +22,14 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { DataSet, DatasourceType, widgetType } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { WidgetSubscriptionOptions } from '@core/api/widget-api.models';
-import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, parseFunction } from '@core/utils';
+import { isNotEmptyStr } from '@core/utils';
 import { EntityDataPageLink } from '@shared/models/query/query.models';
 import { Observable, ReplaySubject } from 'rxjs';
-import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
-import { ThreedModelSettings } from './threed-models';
-
-interface ThreedViewWidgetSettings {
-  hexColor: string;
-  threeModelSettings: ThreedModelSettings;
-}
+import { ThreedViewWidgetSettings } from './threed-models';
 
 /*
 Widget Type: Ultimi Valori
@@ -103,9 +96,9 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   private loadModel() {
-    const modelUrl = this.settings.threeModelSettings.modelUrl;
-    const modelEntityAlias = this.settings.threeModelSettings.modelEntityAlias;
-    const modelUrlAttribute = this.settings.threeModelSettings.modelUrlAttribute;
+    const modelUrl = this.settings.threedModelSettings.modelUrl;
+    const modelEntityAlias = this.settings.threedModelSettings.modelEntityAlias;
+    const modelUrlAttribute = this.settings.threedModelSettings.modelUrlAttribute;
     if (!modelEntityAlias || !modelUrlAttribute) {
       return this.loadModelFromBase64(modelUrl);
     }
@@ -169,14 +162,12 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     fetch(modelBase64)
       .then(res => res.arrayBuffer())
       .then(buffer => {
-        new GLTFLoader().parse(buffer, "/", /*gltf => {
-          gltf.scene.scale.set(0.1, 0.1, 0.1);
-          const root = gltf.scene;
-          this_.scene!.add(root);
-
-          this_.listChildren(this_.scene!.children);
-          this_.render();
-        }*/gltf => this_.onLoadModel(gltf));
+        try {
+          new GLTFLoader().parse(buffer, "/", gltf => this_.onLoadModel(gltf));
+        } catch (error) {
+          // TODO: change with defaultThreedModelSettings.modelUrl
+          this_.loadModelFromUrl('assets/models/gltf/classroom.glb');
+        }
       })
       .catch(e => {
         // TODO: change with defaultThreedModelSettings.modelUrl
@@ -187,8 +178,13 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   private loadModelFromUrl(modelUrl: string) {
     console.log("Loading model from url " + modelUrl + "...");
     const this_ = this;
-    new GLTFLoader()
-      .load(modelUrl, gltf => this_.onLoadModel(gltf));
+    try {
+      new GLTFLoader()
+        .load(modelUrl, gltf => this_.onLoadModel(gltf));
+    } catch (error) {
+      // TODO: change with defaultThreedModelSettings.modelUrl
+      this_.loadModelFromUrl('assets/models/gltf/classroom.glb');
+    }
   }
 
   private loadModelFromAlias(alias: Observable<[DataSet, boolean]>) {
@@ -201,13 +197,15 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
   private onLoadModel(gltf: GLTF) {
     //gltf.scene.scale.set(0.1, 0.1, 0.1);
-    const this_ = this;
 
     const root = gltf.scene;
-    this_.scene!.add(root);
+    this.scene!.add(root);
 
-    this_.listChildren(this_.scene!.children);
-    this_.render();
+    const box = new THREE.BoxHelper(root, 0xffff00);
+    this.scene.add(box);
+
+    this.listChildren(this.scene!.children);
+    this.render();
   }
 
   ngAfterViewInit() {
@@ -274,7 +272,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       }
       // Logs if this child last in recursion
       else {
-        console.log('Reached bottom with: ', child);
+        //console.log('Reached bottom with: ', child);
         if (child.type == "Mesh")
           this.objects.push(child);
       }
@@ -305,15 +303,15 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true);
       if (intersects.length > 0) {
         if (this.INTERSECTED != intersects[0].object) {
-          if (this.INTERSECTED) this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
+          if (this.INTERSECTED) this.INTERSECTED.material.emissive?.setHex(this.INTERSECTED.currentHex);
 
           this.INTERSECTED = intersects[0].object;
-          this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive.getHex();
+          this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive?.getHex();
           const hexColor = this.ctx.settings.hexColor || 0xff0000;
-          this.INTERSECTED.material.emissive.setHex(hexColor);
+          this.INTERSECTED.material.emissive?.setHex(hexColor);
         }
       } else {
-        if (this.INTERSECTED) this.INTERSECTED.material.emissive.setHex(this.INTERSECTED.currentHex);
+        if (this.INTERSECTED) this.INTERSECTED.material.emissive?.setHex(this.INTERSECTED.currentHex);
 
         this.INTERSECTED = null;
       }
