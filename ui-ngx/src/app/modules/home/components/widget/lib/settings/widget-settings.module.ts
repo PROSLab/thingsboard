@@ -373,7 +373,7 @@ import {
     ThreedViewWidgetSettingsComponent,
     ThreedModelSettingsComponent,
     ThreedSceneSettingsComponent,
-    ThreedVectorSettingsComponent
+    ThreedVectorSettingsComponent,
   ],
   imports: [
     CommonModule,

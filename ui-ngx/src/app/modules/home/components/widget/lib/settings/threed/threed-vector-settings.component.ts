@@ -30,7 +30,6 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
-import { isNumber } from '@core/utils';
 import { ThreedVectorSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
 
 @Component({

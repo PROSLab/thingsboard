@@ -40,16 +40,21 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected defaultSettings(): WidgetSettings {
+    console.log("defaultSettings", {
+      hexColor: 0xff0000,
+      threedModelSettings: defaultThreedModelSettings,
+      threedSceneSettings: defaultThreedSceneSettings
+    });
+    
     return {
       hexColor: 0xff0000,
       threedModelSettings: defaultThreedModelSettings,
       threedSceneSettings: defaultThreedSceneSettings
-    } as ThreedViewWidgetSettings;
+    };
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
     const t_settings = settings as ThreedViewWidgetSettings;
-    console.log("[MYDEBUG] onSettingsSet", settings);
 
     this.threedViewWidgetSettingsForm = this.fb.group({
       hexColor: [t_settings.hexColor, [Validators.required]],

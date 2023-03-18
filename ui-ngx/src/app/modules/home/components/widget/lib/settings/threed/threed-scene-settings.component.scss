@@ -1,0 +1,23 @@
+::ng-deep canvas {
+    border: 1px groove rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+}
+
+.rendererContainer {
+    position: relative;
+    margin-right: auto;
+    margin-left: auto;
+    width: 90%;
+    height: 500px;
+}
+
+.btn {
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+}
+
+::ng-deep .zero-size {
+    width: 0 !important;
+    height: 0 !important;
+}

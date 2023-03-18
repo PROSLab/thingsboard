@@ -19,13 +19,23 @@
     <fieldset class="fields-group">
         <legend class="group-title">Scene settings</legend>
 
-        <tb-threed-vector-settings [label]="'Scale'" [positiveOnly]=true
-            formControlName="threedScaleVectorSettings"></tb-threed-vector-settings>
+        <div class="tb-container">
+            <div class="rendererContainer" #rendererContainer>
+                <button class="btn" mat-icon-button (click)="enterFullscreen()" *ngIf="!fullscreen">
+                    <mat-icon>fullscreen</mat-icon>
+                </button>
+                <button class="btn" mat-icon-button (click)="exitFullscreen()" *ngIf="fullscreen">
+                    <mat-icon>fullscreen_exit</mat-icon>
+                </button>
+            </div>
+        </div>
 
-        <tb-threed-vector-settings [label]="'Position'"
+
+        <tb-threed-vector-settings label="Position"
             formControlName="threedPositionVectorSettings"></tb-threed-vector-settings>
-
-        <tb-threed-vector-settings [label]="'Rotation'"
+        <tb-threed-vector-settings label="Rotation"
             formControlName="threedRotationVectorSettings"></tb-threed-vector-settings>
+        <tb-threed-vector-settings label="Scale" [positiveOnly]=true
+            formControlName="threedScaleVectorSettings"></tb-threed-vector-settings>
     </fieldset>
 </section>

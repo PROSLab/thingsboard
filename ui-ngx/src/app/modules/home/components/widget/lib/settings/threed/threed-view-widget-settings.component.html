@@ -25,6 +25,8 @@
   </tb-threed-model-settings>
 
   <tb-threed-scene-settings 
+    [aliasController]="aliasController" 
+    [threedModelSettingsFormGroup]="threedViewWidgetSettingsForm.get('threedModelSettings')"
     formControlName="threedSceneSettings">
   </tb-threed-scene-settings>
 

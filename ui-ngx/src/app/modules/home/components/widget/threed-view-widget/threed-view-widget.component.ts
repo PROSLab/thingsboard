@@ -96,6 +96,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   private loadModel() {
+    console.log(this.settings);
+    
     const modelUrl = this.settings.threedModelSettings.modelUrl;
     const modelEntityAlias = this.settings.threedModelSettings.modelEntityAlias;
     const modelUrlAttribute = this.settings.threedModelSettings.modelUrlAttribute;

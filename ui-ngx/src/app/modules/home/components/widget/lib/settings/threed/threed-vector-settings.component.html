@@ -17,21 +17,30 @@
 -->
 <section class="tb-widget-settings" [formGroup]="threedVectorSettingsFormGroup">
   <fieldset class="fields-group">
-    <legend class="group-title">Vector {{label}}</legend>
+    <legend class="group-title">{{label}} Vector</legend>
     <div fxLayout="column" fxLayoutGap="0.33em">
       <section class="tb-widget-settings" fxLayout="column">
         <section class="row-fill" fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
           <mat-form-field fxFlex>
             <mat-label>{{label}} X</mat-label>
             <input matInput type="number" formControlName="x">
+            <mat-error *ngIf="threedVectorSettingsFormGroup.get('x').hasError('min')">
+              Must be a positive number
+            </mat-error>
           </mat-form-field>
           <mat-form-field fxFlex>
             <mat-label>{{label}} Y</mat-label>
             <input matInput type="number" formControlName="y">
+            <mat-error *ngIf="threedVectorSettingsFormGroup.get('y').hasError('min')">
+              Must be a positive number
+            </mat-error>
           </mat-form-field>
           <mat-form-field fxFlex>
             <mat-label>{{label}} Z</mat-label>
             <input matInput type="number" formControlName="z">
+            <mat-error *ngIf="threedVectorSettingsFormGroup.get('z').hasError('min')">
+              Must be a positive number
+            </mat-error>
           </mat-form-field>
         </section>
       </section>
