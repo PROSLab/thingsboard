@@ -39,13 +39,7 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
     return this.threedViewWidgetSettingsForm;
   }
 
-  protected defaultSettings(): WidgetSettings {
-    console.log("defaultSettings", {
-      hexColor: 0xff0000,
-      threedModelSettings: defaultThreedModelSettings,
-      threedSceneSettings: defaultThreedSceneSettings
-    });
-    
+  protected defaultSettings(): WidgetSettings {    
     return {
       hexColor: 0xff0000,
       threedModelSettings: defaultThreedModelSettings,

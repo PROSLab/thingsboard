@@ -195,7 +195,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.threedSceneSettingsFormGroup.patchValue(
       formValue, { emitEvent: false }
     );
-    this.updateValidators(false);
+    //this.updateValidators(false);
   }
 
   private updateModel() {
@@ -207,6 +207,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.propagateChange(this.modelValue);
   }
 
+  /*
   private updateValidators(emitEvent?: boolean): void {
 
     //See .../settings/map/map-settings.component.ts
@@ -215,6 +216,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     //this.threedSceneSettingsFormGroup.get('threedPositionVectorSettings').updateValueAndValidity({emitEvent});
     //this.threedSceneSettingsFormGroup.get('threedRotationVectorSettings').updateValueAndValidity({emitEvent});
   }
+  */
 
   @HostListener('window:resize')
   public detectResize(): void {

@@ -18,7 +18,7 @@
 
 
 <section class="tb-widget-settings" [formGroup]="threedViewWidgetSettingsForm">
-
+  
   <tb-threed-model-settings 
     [aliasController]="aliasController" 
     formControlName="threedModelSettings">
@@ -29,6 +29,7 @@
     [threedModelSettingsFormGroup]="threedViewWidgetSettingsForm.get('threedModelSettings')"
     formControlName="threedSceneSettings">
   </tb-threed-scene-settings>
+
 
   <mat-form-field>
     <mat-label translate>widgets.qr-code.qr-code-text-pattern</mat-label>

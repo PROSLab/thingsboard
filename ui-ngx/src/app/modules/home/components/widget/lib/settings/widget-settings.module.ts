@@ -269,7 +269,7 @@ import {
   ThreedSceneSettingsComponent 
 } from '@home/components/widget/lib/settings/threed/threed-scene-settings.component';
 import { 
-  ThreedVectorSettingsComponent 
+  ThreedVectorSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-vector-settings.component';
 
 @NgModule({

@@ -15,10 +15,10 @@
 ///
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 import { DataSet, DatasourceType, widgetType } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { WidgetSubscriptionOptions } from '@core/api/widget-api.models';
@@ -31,6 +31,7 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { ThreedViewWidgetSettings } from './threed-models';
 
+
 /*
 Widget Type: Ultimi Valori
 Widget settings: 
@@ -39,6 +40,11 @@ Widget settings:
 
 Per navigare tra le dashboard (ex click su un sensore) mettere a disposizione un Azione click (vedi Image Map -> Azioni) 
 Per modificare la posizione , scala... vedi Markers Placement - Image Map (anche se forse è meglio aggiungere qualcosa sui settings anzichè utilizzare un altro widget)
+
+UNA VOLTA CREATO IL WIDGET-CODE:
+Per aggiungere in automatico il widget quando si installa thingsboard, aggiungere un file json con le varie properties alla posizione (path assoluto): 'thingsboard-3.4.4\application\src\main\data\json\system\widget_bundles'
+Altrimenti, se si aggiunge il widget a mano (tramite librertia widget/amministratore) è necessario premere su modifica (edit / icon penna) ed aggiornare i vari settings (in avanzate).
+
 */
 @Component({
   selector: 'tb-threed-view-widget',
@@ -92,12 +98,11 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
 
-    this.loadModel();
+    console.log(this.ctx);
+    console.log(this.settings);
   }
 
   private loadModel() {
-    console.log(this.settings);
-    
     const modelUrl = this.settings.threedModelSettings.modelUrl;
     const modelEntityAlias = this.settings.threedModelSettings.modelEntityAlias;
     const modelUrlAttribute = this.settings.threedModelSettings.modelUrlAttribute;
@@ -215,6 +220,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
     this.animate();
+
+    this.loadModel();
   }
 
   lockCursor() {
@@ -303,6 +310,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
       this.pointerRaycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera!);
       const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true);
+
       if (intersects.length > 0) {
         if (this.INTERSECTED != intersects[0].object) {
           if (this.INTERSECTED) this.INTERSECTED.material.emissive?.setHex(this.INTERSECTED.currentHex);
