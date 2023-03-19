@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { BoxHelper, Quaternion, Vector3 } from 'three';
+import { BoxHelper, Vector3 } from 'three';
 import {
     ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
@@ -22,7 +22,7 @@ export class ThreedSceneEditor {
     private initialValue?: ThreedSceneSettings;
 
     public positionChanged = new EventEmitter<Vector3>();
-    public rotationChanged = new EventEmitter<Quaternion>();
+    public rotationChanged = new EventEmitter<Vector3>();
     public scaleChanged = new EventEmitter<Vector3>();
 
     constructor(canvas?: ElementRef) {
@@ -55,7 +55,12 @@ export class ThreedSceneEditor {
             this.orbit.enabled = !event.value;
             if (this.orbit.enabled) {
                 const newPosition = this.transformControl.object?.position;
-                const newRotation = this.transformControl.object?.quaternion;
+                const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
+                const newRotation = new THREE.Vector3(
+                    THREE.MathUtils.radToDeg(euler.x),
+                    THREE.MathUtils.radToDeg(euler.y),
+                    THREE.MathUtils.radToDeg(euler.z)
+                );
                 const newScale = this.transformControl.object?.scale;
 
                 this.positionChanged.emit(newPosition);
@@ -97,10 +102,15 @@ export class ThreedSceneEditor {
 
     private animate() {
         window.requestAnimationFrame(() => this.animate());
-        // this.tick();
-        this.boxHelper?.update();
+
+        this.tick();
 
         this.render();
+    }
+
+    private tick() {
+        this.boxHelper?.update();
+
     }
 
     public render(): void {
@@ -119,13 +129,13 @@ export class ThreedSceneEditor {
     }
 
     public replaceModel(gltf: GLTF): void {
-        console.log("Replace model", gltf);
+        //console.log("Replace model", gltf);
         this.removeModel(gltf.scene.uuid);
         this.addModel(gltf)
     }
 
     public addModel(gltf: GLTF): void {
-        console.log("Add model", gltf);
+        //console.log("Add model", gltf);
 
         const root = gltf.scene;
         this.models.set(root.uuid, gltf);
@@ -144,7 +154,7 @@ export class ThreedSceneEditor {
     }
 
     public removeModel(uuid: string): void {
-        console.log("Remove model", uuid);
+        //console.log("Remove model", uuid);
         if (!this.models.has(uuid)) return;
 
         this.scene!.remove(this.models.get(uuid).scene);
@@ -165,7 +175,7 @@ export class ThreedSceneEditor {
         const position = this.initialValue.threedPositionVectorSettings;
         const rotation = this.initialValue.threedRotationVectorSettings;
         const scale = this.initialValue.threedScaleVectorSettings;
-        console.log(position, rotation, scale);
+        //console.log(position, rotation, scale);
 
         model.scene.position.set(position.x, position.y, position.z);
         model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
@@ -188,4 +198,47 @@ export class ThreedSceneEditor {
         }
       }
     }*/
+
+    public onKeyDown(event: KeyboardEvent): void {
+        switch (event.code) {
+            case "ShiftLeft":
+            case "ShiftRight": // Shift
+                this.transformControl?.setTranslationSnap(100);
+                this.transformControl?.setRotationSnap(THREE.MathUtils.degToRad(15));
+                this.transformControl?.setScaleSnap(0.25);
+                break;
+
+            case "KeyT":
+                this.changeTransformControlMode('translate');
+                break;
+
+            case "KeyR":
+                this.changeTransformControlMode('rotate');
+                break;
+
+            case "KeyS":
+                this.changeTransformControlMode('scale');
+                break;
+
+            case "Backquote":
+                this.transformControl?.reset();
+                break;
+        }
+    }
+
+    public onKeyUp(event: KeyboardEvent): void {
+        switch (event.code) {
+            case "ShiftLeft":
+            case "ShiftRight":
+                this.transformControl?.setTranslationSnap(null);
+                this.transformControl?.setRotationSnap(null);
+                this.transformControl?.setScaleSnap(null);
+                break;
+
+        }
+    }
+
+    public changeTransformControlMode(mode: "translate" | "rotate" | "scale") {
+        this.transformControl?.setMode(mode);
+    }
 }

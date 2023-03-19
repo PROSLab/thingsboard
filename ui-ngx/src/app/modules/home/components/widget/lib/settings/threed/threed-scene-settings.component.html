@@ -21,12 +21,42 @@
 
         <div class="tb-container">
             <div class="rendererContainer" #rendererContainer>
-                <button class="btn" mat-icon-button (click)="enterFullscreen()" *ngIf="!fullscreen">
-                    <mat-icon>fullscreen</mat-icon>
-                </button>
-                <button class="btn" mat-icon-button (click)="exitFullscreen()" *ngIf="fullscreen">
-                    <mat-icon>fullscreen_exit</mat-icon>
-                </button>
+                <div class="position-absolute w-100">
+                    <div fxLayout="row">
+
+                        <div fxFlex fxLayoutAlign="end center">
+                            <button mat-icon-button (click)="enterFullscreen()" *ngIf="!fullscreen">
+                                <mat-icon>fullscreen</mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="exitFullscreen()" *ngIf="fullscreen">
+                                <mat-icon>fullscreen_exit</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="position-absolute w-100" style="bottom:0!important">
+                    <div fxLayout="row" *ngIf="fullscreen">
+                        <div fxFlex="66" fxLayoutAlign="center center" fxFlexOffset="17">
+                            <button mat-icon-button (click)="changeControlMode('translate')">
+                                <mat-icon>open_with</mat-icon>
+                            </button>
+
+                            <button mat-icon-button (click)="changeControlMode('rotate')">
+                                <mat-icon>rotate_left</mat-icon>
+                            </button>
+
+                            <button mat-icon-button (click)="changeControlMode('scale')">
+                                <mat-icon>open_in_full</mat-icon>
+                            </button>
+
+
+                            <button mat-icon-button>
+                                <mat-icon>pan_tool</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

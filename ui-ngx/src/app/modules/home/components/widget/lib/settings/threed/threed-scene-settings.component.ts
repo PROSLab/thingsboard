@@ -77,6 +77,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   public threedSceneSettingsFormGroup: FormGroup;
 
   private threedSceneEditor: ThreedSceneEditor;
+  private isVisible: boolean = false;
   fullscreen: boolean = false;
 
   constructor(protected store: Store<AppState>,
@@ -109,12 +110,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     });
 
     this.threedSceneEditor.positionChanged.subscribe(v => this.threedSceneSettingsFormGroup.get("threedPositionVectorSettings").setValue(v));
-    this.threedSceneEditor.rotationChanged.subscribe(v => {
-      const x = THREE.MathUtils.radToDeg(v.x) % 360;
-      const y = THREE.MathUtils.radToDeg(v.y) % 360;
-      const z = THREE.MathUtils.radToDeg(v.z) % 360;
-      this.threedSceneSettingsFormGroup.get("threedRotationVectorSettings").setValue({ x, y, z });
-    });
+    this.threedSceneEditor.rotationChanged.subscribe(v => this.threedSceneSettingsFormGroup.get("threedRotationVectorSettings").setValue(v));
     this.threedSceneEditor.scaleChanged.subscribe(v => this.threedSceneSettingsFormGroup.get("threedScaleVectorSettings").setValue(v));
 
 
@@ -137,7 +133,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     }
   }
 
-  private isVisible: boolean = false;
   ngAfterContentChecked(): void {
     if (this.isVisible == false && this.rendererContainer?.nativeElement.offsetParent != null) {
       console.log('isVisible switched from false to true (now is visible)');
@@ -218,14 +213,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   }
   */
 
-  @HostListener('window:resize')
-  public detectResize(): void {
-    this.threedSceneEditor?.resize();
-    setTimeout(() => {
-      this.threedSceneEditor?.resize();
-    }, 1000);
-  }
-
   public enterFullscreen() {
     this.rendererContainer.nativeElement.requestFullscreen();
     this.fullscreen = true;
@@ -248,6 +235,18 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.fullscreen = false;
   }
 
+  public changeControlMode(mode: "translate" | "rotate" | "scale") {
+    this.threedSceneEditor?.changeTransformControlMode(mode);
+  }
+
+  @HostListener('window:resize')
+  public detectResize(): void {
+    this.threedSceneEditor?.resize();
+    setTimeout(() => {
+      this.threedSceneEditor?.resize();
+    }, 1000);
+  }
+
   @HostListener('document:fullscreenchange', ['$event'])
   @HostListener('document:webkitfullscreenchange', ['$event'])
   @HostListener('document:mozfullscreenchange', ['$event'])
@@ -257,5 +256,15 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
       // Leaving fullscreen mode
       this.onExitFullscreen();
     }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  public keydown(event: KeyboardEvent): void {
+    this.threedSceneEditor?.onKeyDown(event);
+  }
+
+  @HostListener('window:keyup', ['$event'])
+  public keyup(event: KeyboardEvent): void {
+    this.threedSceneEditor?.onKeyUp(event);
   }
 }
