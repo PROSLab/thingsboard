@@ -4,6 +4,9 @@ import { ThreedAbstractScene } from './threed-abstract-scene';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { Object3D } from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { WidgetContext } from '@home/models/widget-component.models';
+
 
 export class ThreedFpsScene extends ThreedAbstractScene {
 
@@ -12,6 +15,7 @@ export class ThreedFpsScene extends ThreedAbstractScene {
     private readonly speed = 400;
 
     private controls?: PointerLockControls;
+    private labelRenderer?: CSS2DRenderer;
 
     private velocity = new THREE.Vector3();
     private direction = new THREE.Vector3();
@@ -26,6 +30,9 @@ export class ThreedFpsScene extends ThreedAbstractScene {
 
     private prevTime = performance.now();
 
+    private earthMassDiv: HTMLDivElement;
+    private earthMassLabel: CSS2DObject;
+
     public onPointerLockedChanged: EventEmitter<boolean> = new EventEmitter();
 
     constructor(canvas?: ElementRef) {
@@ -35,70 +42,128 @@ export class ThreedFpsScene extends ThreedAbstractScene {
     protected override initialize(canvas?: ElementRef<any>): void {
         super.initialize(canvas);
 
+        this.labelRenderer = new CSS2DRenderer();
+        this.labelRenderer.domElement.style.position = 'absolute';
+        this.labelRenderer.domElement.style.top = '0px';
+
+        this.initializeControls();
+        this.initializeLabels();
+
+        this.camera?.layers.enableAll();
+    }
+
+    public override attachToElement(rendererContainer: ElementRef<any>): void {
+        super.attachToElement(rendererContainer);
+
+        rendererContainer.nativeElement.appendChild(this.labelRenderer.domElement);
+        const rect = rendererContainer.nativeElement.getBoundingClientRect();
+        this.labelRenderer.setSize(rect.width, rect.height);
+    }
+
+    private initializeControls() {
         const this_ = this;
 
         // controls
         this.controls = new PointerLockControls(this.camera, document.body);
         this.controls.addEventListener('lock', function () {
-          this_.pointerLocked = true;
-          this_.onPointerLockedChanged.emit(this_.pointerLocked);
+            this_.pointerLocked = true;
+            this_.onPointerLockedChanged.emit(this_.pointerLocked);
         });
         this.controls.addEventListener('unlock', function () {
-          this_.pointerLocked = false;
-          this_.onPointerLockedChanged.emit(this_.pointerLocked);
+            this_.pointerLocked = false;
+            this_.onPointerLockedChanged.emit(this_.pointerLocked);
         });
         this.scene.add(this.controls.getObject());
+    }
+
+    private initializeLabels() {
+        this.earthMassDiv = document.createElement('div');
+        this.earthMassDiv.className = 'label';
+        this.earthMassDiv.textContent = '5.97237e24 kg';
+        this.earthMassDiv.style.marginTop = '-1em';
+        this.earthMassLabel = new CSS2DObject(this.earthMassDiv);
+        this.earthMassLabel.layers.set(0);
+    }
+
+    public override addModel(gltf: GLTF): void {
+        super.addModel(gltf);
+
+        const model = this.models.get(gltf.scene.uuid);
+        this.earthMassLabel.position.set(0, 0, 0);
+        model.scene.add(this.earthMassLabel);
+        model.scene.layers.enableAll();
+    }
+
+    public override resize(width?: number, height?: number): void {
+        super.resize(width, height);
+
+        this.labelRenderer.setSize(width, height);
+    }
+
+    public override render(): void {
+        super.render();
+
+        this.labelRenderer?.render(this.scene!, this.camera!);
     }
 
     protected tick(): void {
         const time = performance.now();
 
         if (this.controls && this.controls.isLocked === true) {
-    
-          this.raycaster.ray.origin.copy(this.controls.getObject().position);
-          //this.raycaster.ray.origin.y -= 10;
-    
-          const intersections = this.raycaster.intersectObjects(this.objects, false);
-          const onObject = intersections.length > 0;    
-          const delta = (time - this.prevTime) / 1000;
-    
-          this.velocity.x -= this.velocity.x * 10.0 * delta;
-          this.velocity.z -= this.velocity.z * 10.0 * delta;
-    
-          this.velocity.y -= this.gravity * this.mass * delta; // 100.0 = mass
-    
-          this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-          this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-          this.direction.normalize(); // this ensures consistent movements in all directions
-    
-          if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * this.speed * delta;
-          if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * this.speed * delta;
-    
-          if (onObject === true) {
-    
-            this.velocity.y = Math.max(0, this.velocity.y);
-            this.canJump = true;
-    
-          }
-    
-          this.controls.moveRight(- this.velocity.x * delta);
-          this.controls.moveForward(- this.velocity.z * delta);
-    
-          this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
-    
-          if (this.controls.getObject().position.y < 10) {
-    
-            this.velocity.y = 0;
-            this.controls.getObject().position.y = 10;
-    
-            this.canJump = true;
-    
-          }
+
+            this.raycaster.ray.origin.copy(this.controls.getObject().position);
+            //this.raycaster.ray.origin.y -= 10;
+
+            const intersections = this.raycaster.intersectObjects(this.objects, false);
+            const onObject = intersections.length > 0;
+            const delta = (time - this.prevTime) / 1000;
+
+            this.velocity.x -= this.velocity.x * 10.0 * delta;
+            this.velocity.z -= this.velocity.z * 10.0 * delta;
+
+            this.velocity.y -= this.gravity * this.mass * delta; // 100.0 = mass
+
+            this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+            this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+            this.direction.normalize(); // this ensures consistent movements in all directions
+
+            if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * this.speed * delta;
+            if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * this.speed * delta;
+
+            if (onObject === true) {
+
+                this.velocity.y = Math.max(0, this.velocity.y);
+                this.canJump = true;
+
+            }
+
+            this.controls.moveRight(- this.velocity.x * delta);
+            this.controls.moveForward(- this.velocity.z * delta);
+
+            this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
+
+            if (this.controls.getObject().position.y < 10) {
+
+                this.velocity.y = 0;
+                this.controls.getObject().position.y = 10;
+
+                this.canJump = true;
+
+            }
         }
-    
+
         this.prevTime = time;
     }
-    
+
+    public override onDataChanged(ctx: WidgetContext): void {
+        super.onDataChanged(ctx);
+    }
+
+    public updateLabelContent(content: string) {
+        this.earthMassDiv.innerHTML = content;
+        //this.earthMassDiv.textContent = content;
+    }
+
     public lockControls(): void {
         this.controls?.lock();
     }

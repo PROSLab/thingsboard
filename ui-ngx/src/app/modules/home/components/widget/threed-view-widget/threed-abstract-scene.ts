@@ -5,6 +5,7 @@ import {
     ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { Object3D } from 'three';
+import { WidgetContext } from '@home/models/widget-component.models';
 
 export abstract class ThreedAbstractScene {
 
@@ -79,6 +80,8 @@ export abstract class ThreedAbstractScene {
     public render(): void {
         this.renderer.render(this.scene!, this.camera!);
     }
+
+    public onDataChanged(ctx: WidgetContext): void{}
 
     public resize(width?: number, height?: number) {
         const rect = this.rendererContainer?.nativeElement.getBoundingClientRect();

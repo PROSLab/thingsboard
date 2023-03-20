@@ -140,7 +140,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       console.log(replaceInfoTooltipMarker);
       const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
       console.log(content);
-
+      this.threedFpsScene.updateLabelContent(content);
     });
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
