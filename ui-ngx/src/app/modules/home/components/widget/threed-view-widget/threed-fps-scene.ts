@@ -14,8 +14,7 @@ export class ThreedFpsScene extends ThreedAbstractScene {
     private readonly mass = 30;
     private readonly speed = 400;
 
-    private controls?: PointerLockControls;
-    private labelRenderer?: CSS2DRenderer;
+    protected controls?: PointerLockControls;
 
     private velocity = new THREE.Vector3();
     private direction = new THREE.Vector3();
@@ -30,9 +29,6 @@ export class ThreedFpsScene extends ThreedAbstractScene {
 
     private prevTime = performance.now();
 
-    private earthMassDiv: HTMLDivElement;
-    private earthMassLabel: CSS2DObject;
-
     public onPointerLockedChanged: EventEmitter<boolean> = new EventEmitter();
 
     constructor(canvas?: ElementRef) {
@@ -42,22 +38,7 @@ export class ThreedFpsScene extends ThreedAbstractScene {
     protected override initialize(canvas?: ElementRef<any>): void {
         super.initialize(canvas);
 
-        this.labelRenderer = new CSS2DRenderer();
-        this.labelRenderer.domElement.style.position = 'absolute';
-        this.labelRenderer.domElement.style.top = '0px';
-
         this.initializeControls();
-        this.initializeLabels();
-
-        this.camera?.layers.enableAll();
-    }
-
-    public override attachToElement(rendererContainer: ElementRef<any>): void {
-        super.attachToElement(rendererContainer);
-
-        rendererContainer.nativeElement.appendChild(this.labelRenderer.domElement);
-        const rect = rendererContainer.nativeElement.getBoundingClientRect();
-        this.labelRenderer.setSize(rect.width, rect.height);
     }
 
     private initializeControls() {
@@ -74,36 +55,6 @@ export class ThreedFpsScene extends ThreedAbstractScene {
             this_.onPointerLockedChanged.emit(this_.pointerLocked);
         });
         this.scene.add(this.controls.getObject());
-    }
-
-    private initializeLabels() {
-        this.earthMassDiv = document.createElement('div');
-        this.earthMassDiv.className = 'label';
-        this.earthMassDiv.textContent = '5.97237e24 kg';
-        this.earthMassDiv.style.marginTop = '-1em';
-        this.earthMassLabel = new CSS2DObject(this.earthMassDiv);
-        this.earthMassLabel.layers.set(0);
-    }
-
-    public override addModel(gltf: GLTF): void {
-        super.addModel(gltf);
-
-        const model = this.models.get(gltf.scene.uuid);
-        this.earthMassLabel.position.set(0, 0, 0);
-        model.scene.add(this.earthMassLabel);
-        model.scene.layers.enableAll();
-    }
-
-    public override resize(width?: number, height?: number): void {
-        super.resize(width, height);
-
-        this.labelRenderer.setSize(width, height);
-    }
-
-    public override render(): void {
-        super.render();
-
-        this.labelRenderer?.render(this.scene!, this.camera!);
     }
 
     protected tick(): void {
@@ -153,15 +104,6 @@ export class ThreedFpsScene extends ThreedAbstractScene {
         }
 
         this.prevTime = time;
-    }
-
-    public override onDataChanged(ctx: WidgetContext): void {
-        super.onDataChanged(ctx);
-    }
-
-    public updateLabelContent(content: string) {
-        this.earthMassDiv.innerHTML = content;
-        //this.earthMassDiv.textContent = content;
     }
 
     public lockControls(): void {

@@ -2,7 +2,7 @@ import { ElementRef, HostListener } from '@angular/core';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
-    ThreedSceneSettings,
+    ThreedSceneSettings, ThreedViewWidgetSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
@@ -17,7 +17,7 @@ export abstract class ThreedAbstractScene {
 
     protected models: Map<string, GLTF> = new Map();
     protected objects: Object3D[] = [];
-    protected initialValue?: ThreedSceneSettings;
+    protected settingsValue?: ThreedViewWidgetSettings;
 
     constructor(canvas?: ElementRef) {
         this.rendererContainer = canvas;
@@ -145,21 +145,21 @@ export abstract class ThreedAbstractScene {
         }
     }
 
-    public updateValue(value: ThreedSceneSettings): void {
-        this.initialValue = value;
+    public updateValue(value: ThreedViewWidgetSettings): void {
+        this.settingsValue = value;
 
         this.setValues();
     }
 
     private setValues() {
         // TODO: this.models.get(value.models[0].uuid)
-        if (this.models.size == 0 || !this.initialValue) return;
+        if (this.models.size == 0 || !this.settingsValue) return;
 
         const [model] = this.models.values();
 
-        const position = this.initialValue.threedPositionVectorSettings;
-        const rotation = this.initialValue.threedRotationVectorSettings;
-        const scale = this.initialValue.threedScaleVectorSettings;
+        const position = this.settingsValue.threedSceneSettings.threedPositionVectorSettings;
+        const rotation = this.settingsValue.threedSceneSettings.threedRotationVectorSettings;
+        const scale = this.settingsValue.threedSceneSettings.threedScaleVectorSettings;
 
         model.scene.position.set(position.x, position.y, position.z);
         model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));

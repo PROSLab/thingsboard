@@ -21,7 +21,6 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderConfig, ThreedModelLoaderService } from '@core/services/threed-model-loader.service';
 import { ThreedViewWidgetSettings } from './threed-models';
-import { ThreedFpsScene } from './threed-fps-scene';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
   deepClone,
@@ -40,6 +39,7 @@ import {
   functionValueCalculator,
   parseWithTranslation
 } from '@home/components/widget/lib/maps/common-maps-utils';
+import { ThreedNavigateScene } from './threed-nagivate-scene';
 
 
 
@@ -73,7 +73,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
   public pointerLocked: boolean = false;
 
-  private threedFpsScene: ThreedFpsScene;
+  private threedNavigateScene: ThreedNavigateScene;
 
   constructor(
     protected store: Store<AppState>,
@@ -82,15 +82,17 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   ) {
     super(store);
 
-    this.threedFpsScene = new ThreedFpsScene();
+    this.threedNavigateScene = new ThreedNavigateScene();
   }
 
   ngOnInit(): void {
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
 
-    this.threedFpsScene.updateValue(this.settings.threedSceneSettings);
-    this.threedFpsScene.onPointerLockedChanged.subscribe(v => {
+    console.log(this.settings);
+
+    this.threedNavigateScene.updateValue(this.settings);
+    this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
     });
@@ -101,21 +103,24 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     let config: ThreedModelLoaderConfig = {
       aliasController: this.ctx.aliasController,
       settings: this.settings.threedModelSettings,
-      onLoadModel: (gltf: GLTF) => this.threedFpsScene.replaceModel(gltf)
+      onLoadModel: (gltf: GLTF) => {
+        this.threedNavigateScene.addModel(gltf, true);
+        (this.settings.threedModelSettings as any).uuid = gltf.scene.uuid;
+      }
     }
     this.threedModelLoader.loadModel(config);
   }
 
   ngAfterViewInit() {
-    this.threedFpsScene.attachToElement(this.rendererContainer);
+    this.threedNavigateScene.attachToElement(this.rendererContainer);
   }
 
   lockCursor() {
-    this.threedFpsScene.lockControls();
+    this.threedNavigateScene.lockControls();
   }
 
   public onDataUpdated() {
-    console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
+    //console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
     if (this.ctx.datasources.length > 0) {
       var tbDatasource = this.ctx.datasources[0];
       // TODO...
@@ -123,11 +128,11 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
     const data = this.ctx.data;
     let formattedData = formattedDataFormDatasourceData(data);
-    console.log("formattedData", formattedData);
+    //console.log("formattedData", formattedData);
     if (this.ctx.latestData && this.ctx.latestData.length) {
       const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
       formattedData = mergeFormattedData(formattedData, formattedLatestData);
-      console.log("formattedData first if", formattedData);
+      //console.log("formattedData first if", formattedData);
 
     }
 
@@ -137,10 +142,10 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       //const markerTooltipText = parseWithTranslation.prepareProcessPattern(pattern, false);
       //console.log(markerTooltipText);
       const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
-      console.log(replaceInfoTooltipMarker);
+      //console.log(replaceInfoTooltipMarker);
       const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
-      console.log(content);
-      this.threedFpsScene.updateLabelContent(content);
+      //console.log(content);
+      this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
     });
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
@@ -157,16 +162,16 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }*/
 
   public onResize(width: number, height: number): void {
-    this.threedFpsScene?.resize(width, height);
+    this.threedNavigateScene?.resize(width, height);
   }
 
   @HostListener('window:keyup', ['$event'])
   keyUpEvent(event: KeyboardEvent) {
-    this.threedFpsScene?.onKeyUp(event);
+    this.threedNavigateScene?.onKeyUp(event);
   }
 
   @HostListener('window:keydown', ['$event'])
   keyDownEvent(event: KeyboardEvent) {
-    this.threedFpsScene?.onKeyDown(event);
+    this.threedNavigateScene?.onKeyDown(event);
   }
 }
