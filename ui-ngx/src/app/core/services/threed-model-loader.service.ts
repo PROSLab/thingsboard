@@ -44,7 +44,7 @@ export class ThreedModelLoaderService {
     const this_ = this;
     this.currentConfig.aliasController.resolveSingleEntityInfo(entityAliasId).pipe(
       switchMap((r: EntityInfo) => {
-        console.log(r);
+        //console.log(r);
         const entityId: EntityId = {
           entityType: r.entityType,
           id: r.id
@@ -55,7 +55,7 @@ export class ThreedModelLoaderService {
       if (!attributes || attributes.length == 0) throw new Error("Invalid attribute");
 
       const modelUrl = attributes[0].value;
-      console.log("modelUrlAttribute: ",);
+      //console.log("modelUrlAttribute: ",);
       this_.loadModelFromUrl(modelUrl);
     });
   }

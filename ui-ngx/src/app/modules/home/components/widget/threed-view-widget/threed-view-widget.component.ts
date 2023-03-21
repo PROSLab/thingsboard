@@ -23,22 +23,11 @@ import { ThreedModelLoaderConfig, ThreedModelLoaderService } from '@core/service
 import { ThreedViewWidgetSettings } from './threed-models';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
-  deepClone,
-  formattedDataArrayFromDatasourceData,
   formattedDataFormDatasourceData,
-  isDefinedAndNotNull,
-  isNotEmptyStr,
-  isString,
   mergeFormattedData,
   processDataPattern,
-  fillDataPattern,
-  safeExecute
+  fillDataPattern
 } from '@core/utils';
-import { FormattedData, ReplaceInfo } from '@shared/models/widget.models';
-import {
-  functionValueCalculator,
-  parseWithTranslation
-} from '@home/components/widget/lib/maps/common-maps-utils';
 import { ThreedNavigateScene } from './threed-nagivate-scene';
 
 
@@ -78,7 +67,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef,
-    private threedModelLoader: ThreedModelLoaderService,
+    private threedModelLoader: ThreedModelLoaderService
   ) {
     super(store);
 
@@ -88,8 +77,6 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   ngOnInit(): void {
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
-
-    console.log(this.settings);
 
     this.threedNavigateScene.updateValue(this.settings);
     this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {

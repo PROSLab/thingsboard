@@ -39,6 +39,7 @@ import { IAliasController } from '@app/core/public-api';
 import { ThreedModelLoaderConfig, ThreedModelLoaderService } from '@core/services/threed-model-loader.service';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
+import { EntityInfo } from '@app/shared/public-api';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -80,6 +81,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   private isVisible: boolean = false;
   fullscreen: boolean = false;
 
+  private entities: EntityInfo[] = [];
+
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
     private fb: FormBuilder,
@@ -92,13 +95,15 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   }
 
   ngOnInit(): void {
-    console.log("ThreedSceneSettingsComponent", this);
-
     this.threedSceneSettingsFormGroup = this.fb.group({
       threedPositionVectorSettings: [null, []],
       threedRotationVectorSettings: [null, []],
       threedScaleVectorSettings: [null, []],
     });
+
+    const entityAlias = "Thermostats";
+    const entityAliasId = this.aliasController.getEntityAliasId(entityAlias);
+    this.aliasController.resolveEntitiesInfo(entityAliasId).subscribe(v => console.log(v));
 
     /*
     this.threedSceneSettingsFormGroup.get('threedScaleVectorSettings').valueChanges.subscribe(() => {
