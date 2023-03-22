@@ -1,0 +1,51 @@
+<!--
+
+    Copyright © 2016-2023 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div fxLayout="column" [formGroup]="threedDeviceGroupFormGroup">
+
+    <tb-threed-entity-alias-settings [aliasController]="aliasController" formControlName="threedEntityAliasSettings"
+        (onEntityAliasChanged)="onEntityAliasChanged()"></tb-threed-entity-alias-settings>
+    <div fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign="center center"
+        style="margin-bottom: 10px">
+        <mat-slide-toggle formControlName="useAttribute" fxFlex>Use Entity
+            Attribute</mat-slide-toggle>
+        <tb-threed-entity-key-settings fxFlex #entityKeySettings [aliasController]="aliasController"
+            formControlName="threedEntityKeySettings"
+            [entityAlias]="threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value"></tb-threed-entity-key-settings>
+    </div>
+    <br>
+
+    <!-- Use a component for: load model / set attribute, set rotation, position, scale, ... -->
+
+    <div *ngFor="let entity of entities$ | async">
+        Device {{entity}}<br>
+
+        name?: string; {{entity.name}}<br>
+        label?: string; {{entity.label}}<br>
+        entityType?: EntityType; {{entity.entityType}}<br>
+        id?: string; {{entity.id}}<br>
+        entityDescription?: string; {{entity.entityDescription}}<br>
+    </div>
+    <!-- TODO:
+    <div *ngFor="let d of deviceGroup.devices">Device {{d}}</div>
+
+    <div *ngIf="!deviceGroup.devices.length">
+        <span fxLayoutAlign="center center" class="tb-prompt">No devices for this entity
+            alias</span>
+    </div>
+    -->
+</div>

@@ -1,3 +1,5 @@
+import { ThreedDeviceGroupSettings } from "../lib/settings/threed/threed-device-group-settings.component";
+
 export interface ThreedViewWidgetSettings {
     hexColor: number;
     threedModelSettings: ThreedModelSettings;
@@ -42,4 +44,11 @@ export interface ThreedSceneSettings {
     threedScaleVectorSettings: ThreedVectorSettings,
     threedPositionVectorSettings: ThreedVectorSettings,
     threedRotationVectorSettings: ThreedVectorSettings
+}
+
+export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
+    deviceGroups: []
+};
+export interface ThreedDevicesSettings {
+    deviceGroups: ThreedDeviceGroupSettings[];
 }

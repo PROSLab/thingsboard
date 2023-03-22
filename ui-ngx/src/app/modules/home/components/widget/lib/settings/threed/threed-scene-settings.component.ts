@@ -99,11 +99,13 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
       threedPositionVectorSettings: [null, []],
       threedRotationVectorSettings: [null, []],
       threedScaleVectorSettings: [null, []],
+      threedDevicesSettings: [null, []],
     });
 
-    const entityAlias = "Thermostats";
-    const entityAliasId = this.aliasController.getEntityAliasId(entityAlias);
-    this.aliasController.resolveEntitiesInfo(entityAliasId).subscribe(v => console.log(v));
+    const entityAliases = this.aliasController.getEntityAliases();
+    for (const entityAliasId of Object.keys(entityAliases)) {
+      this.aliasController.resolveEntitiesInfo(entityAliasId).subscribe(v => this.entities = v);
+    }
 
     /*
     this.threedSceneSettingsFormGroup.get('threedScaleVectorSettings').valueChanges.subscribe(() => {
@@ -180,20 +182,10 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
   writeValue(value: ThreedSceneSettings): void {
     this.modelValue = value;
-    const threedScaleVectorSettings = value.threedScaleVectorSettings;
-    const threedPositionVectorSettings = value.threedPositionVectorSettings;
-    const threedRotationVectorSettings = value.threedRotationVectorSettings;
-
-    const formValue: ThreedSceneSettings = {
-      threedScaleVectorSettings,
-      threedPositionVectorSettings,
-      threedRotationVectorSettings
-    };
 
     this.threedSceneEditor.updateValue(this.modelValue);
-
     this.threedSceneSettingsFormGroup.patchValue(
-      formValue, { emitEvent: false }
+      this.modelValue, { emitEvent: false }
     );
     //this.updateValidators(false);
   }

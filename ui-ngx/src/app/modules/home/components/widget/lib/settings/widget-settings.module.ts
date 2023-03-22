@@ -271,6 +271,10 @@ import {
 import { 
   ThreedVectorSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-vector-settings.component';
+import { ThreedDevicesSettingsComponent } from './threed/threed-devices-settings.component';
+import { ThreedEntityAliasSettingsComponent } from './threed/aliases/threed-entity-alias-settings.component';
+import { ThreedEntityKeySettingsComponent } from './threed/aliases/threed-entity-key-settings.component';
+import { ThreedDeviceGroupSettingsComponent } from './threed/threed-device-group-settings.component';
 
 @NgModule({
   declarations: [
@@ -374,6 +378,10 @@ import {
     ThreedModelSettingsComponent,
     ThreedSceneSettingsComponent,
     ThreedVectorSettingsComponent,
+    ThreedDevicesSettingsComponent,
+    ThreedEntityAliasSettingsComponent,
+    ThreedEntityKeySettingsComponent,
+    ThreedDeviceGroupSettingsComponent,
   ],
   imports: [
     CommonModule,
