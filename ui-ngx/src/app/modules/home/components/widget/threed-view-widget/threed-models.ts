@@ -47,8 +47,8 @@ export interface ThreedSceneSettings {
 }
 
 export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
-    deviceGroups: []
+    threedDeviceGroupSettings: [],
 };
 export interface ThreedDevicesSettings {
-    deviceGroups: ThreedDeviceGroupSettings[];
+    threedDeviceGroupSettings: ThreedDeviceGroupSettings[];
 }

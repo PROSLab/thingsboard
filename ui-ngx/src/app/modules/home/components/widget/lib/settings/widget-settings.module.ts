@@ -262,19 +262,20 @@ import {
 import {
   ThreedViewWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-view-widget-settings.component';
-import { 
-  ThreedModelSettingsComponent 
+import {
+  ThreedModelSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-model-settings.component';
-import { 
-  ThreedSceneSettingsComponent 
+import {
+  ThreedSceneSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-scene-settings.component';
-import { 
+import {
   ThreedVectorSettingsComponent
 } from '@home/components/widget/lib/settings/threed/threed-vector-settings.component';
-import { ThreedDevicesSettingsComponent } from './threed/threed-devices-settings.component';
-import { ThreedEntityAliasSettingsComponent } from './threed/aliases/threed-entity-alias-settings.component';
-import { ThreedEntityKeySettingsComponent } from './threed/aliases/threed-entity-key-settings.component';
-import { ThreedDeviceGroupSettingsComponent } from './threed/threed-device-group-settings.component';
+import { ThreedDevicesSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-devices-settings.component';
+import { ThreedEntityAliasSettingsComponent } from '@home/components/widget/lib/settings//threed/aliases/threed-entity-alias-settings.component';
+import { ThreedEntityKeySettingsComponent } from '@home/components/widget/lib/settings//threed/aliases/threed-entity-key-settings.component';
+import { ThreedDeviceGroupSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-device-group-settings.component';
+import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-object-settings.component';
 
 @NgModule({
   declarations: [
@@ -382,6 +383,7 @@ import { ThreedDeviceGroupSettingsComponent } from './threed/threed-device-group
     ThreedEntityAliasSettingsComponent,
     ThreedEntityKeySettingsComponent,
     ThreedDeviceGroupSettingsComponent,
+    ThreedObjectSettingsComponent,
   ],
   imports: [
     CommonModule,

@@ -22,7 +22,8 @@ import {
   FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
-  Validator
+  Validator,
+  Validators
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -91,7 +92,7 @@ export class ThreedEntityKeySettingsComponent extends PageComponent implements O
 
   ngOnInit(): void {
     this.threedEntityKeySettingsFormGroup = this.fb.group({
-      entityAttribute: [null, []]
+      entityAttribute: [null, [Validators.required]]
     });
     this.threedEntityKeySettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();

@@ -15,7 +15,18 @@
 ///
 
 import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validator, NG_VALIDATORS, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALUE_ACCESSOR,
+  NG_VALIDATORS,
+  Validator,
+  AbstractControl,
+  ValidationErrors,
+  Validators,
+  FormArray
+} from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -26,17 +37,21 @@ import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './ali
 import { EntityInfo } from '@app/shared/public-api';
 import { Observable, of } from 'rxjs';
 import { tap, publishReplay, refCount } from 'rxjs/operators';
+import { ThreedObjectSettings } from './threed-object-settings.component';
+import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '../../../threed-view-widget/threed-models';
 
 export interface ThreedDeviceGroupSettings {
   threedEntityAliasSettings: ThreedEntityAliasSettings;
   useAttribute: boolean;
   threedEntityKeySettings: ThreedEntityKeySettings;
+  threedObjectSettings: ThreedObjectSettings[];
 }
 
 export const defaultThreedDeviceGroupSettings: ThreedDeviceGroupSettings = {
   threedEntityAliasSettings: { entityAlias: "" },
   useAttribute: false,
-  threedEntityKeySettings: { entityAttribute: "" }
+  threedEntityKeySettings: { entityAttribute: "" },
+  threedObjectSettings: []
 };
 
 @Component({
@@ -62,9 +77,6 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   disabled: boolean;
 
   @Input()
-  expanded = false;
-
-  @Input()
   aliasController: IAliasController;
 
   @ViewChild("entityKeySettings")
@@ -88,17 +100,57 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     this.threedDeviceGroupFormGroup = this.fb.group({
       threedEntityAliasSettings: [null, []],
       useAttribute: [false, []],
-      threedEntityKeySettings: [null, []]
+      threedEntityKeySettings: [null, []],
+      threedObjectSettings: this.prepareObjectsFormArray([]),
     });
 
     this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').valueChanges.subscribe(() => this.loadEntities());
     this.threedDeviceGroupFormGroup.get('useAttribute').valueChanges.subscribe(() => this.updateValidators(true));
-    
+
     this.threedDeviceGroupFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
 
     this.updateValidators(false);
+  }
+
+
+  private prepareObjectsFormArray(threedObjectSettings: ThreedObjectSettings[] | undefined): FormArray {
+    const objectsControls: Array<AbstractControl> = [];
+    if (threedObjectSettings) {
+      threedObjectSettings.forEach((object) => {
+        objectsControls.push(this.fb.control(object, [Validators.required]));
+      });
+    }
+    return this.fb.array(objectsControls);
+  }
+
+  objectsFormArray(): FormArray {
+    return this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray;
+  }
+
+  public trackByObjectControl(index: number, objectControl: AbstractControl): any {
+    return objectControl;
+  }
+
+  private addObjectIfNotExists(entity: EntityInfo) {
+    const objectsArray = this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray;
+
+    const objectValues: ThreedObjectSettings[] = objectsArray.value;
+    if (objectValues.find(o => o.entity.id == entity.id))
+      return;
+
+    const object: ThreedObjectSettings = {
+      entity,
+      modelUrl: "",
+      threedPositionVectorSettings: defaultThreedVectorZeroSettings,
+      threedRotationVectorSettings: defaultThreedVectorZeroSettings,
+      threedScaleVectorSettings: defaultThreedVectorOneSettings,
+    };
+    const objectControl = this.fb.control(object, [Validators.required]);
+    (objectControl as any).new = true;
+    objectsArray.push(objectControl);
+    this.threedDeviceGroupFormGroup.updateValueAndValidity();
   }
 
   registerOnChange(fn: any): void {
@@ -122,6 +174,8 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     this.threedDeviceGroupFormGroup.patchValue(
       value, { emitEvent: false }
     );
+    this.threedDeviceGroupFormGroup.setControl('threedObjectSettings', this.prepareObjectsFormArray(value.threedObjectSettings));
+
     this.updateValidators(false);
   }
 
@@ -139,6 +193,9 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
     this.entityKeySettings?.updateEntityAlias(value.threedEntityAliasSettings.entityAlias);
 
+    // TODO: remove if...
+    if (!this.propagateChange) return;
+    
     if (this.threedDeviceGroupFormGroup.valid) {
       this.propagateChange(this.modelValue);
     } else {
@@ -163,14 +220,14 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   private loadEntities() {
     const threedEntityAliasSettings: ThreedEntityAliasSettings = this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value;
     const entityAliasId = this.aliasController.getEntityAliasId(threedEntityAliasSettings.entityAlias);
-    if(entityAliasId == null){
+    if (entityAliasId == null) {
       this.entities$ = of([]);
+      (this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray).clear();
       return;
     }
 
-    console.log(threedEntityAliasSettings, entityAliasId);
     this.entities$ = this.aliasController.resolveEntitiesInfo(entityAliasId).pipe(
-      tap(v => console.log(v)),
+      tap(eis => eis.forEach(e => this.addObjectIfNotExists(e))),
       publishReplay(1),
       refCount()
     );

@@ -68,7 +68,7 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
 
   public threedDevicesSettingsFormGroup: FormGroup;
 
-  public devicesGroup: any[] = [];
+  //public devicesGroup: any[] = [];
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -131,14 +131,22 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
 
   writeValue(value: ThreedDevicesSettings): void {
     this.modelValue = value;
+
+    this.threedDevicesSettingsFormGroup.setControl('threedDeviceGroupSettings', this.prepareDeviceGroupsFormArray(value.threedDeviceGroupSettings));
+
+    /*
     this.threedDevicesSettingsFormGroup.patchValue(
       value, { emitEvent: false }
-    );
+    );*/
   }
 
   private updateModel() {
     const value: ThreedDevicesSettings = this.threedDevicesSettingsFormGroup.value;
     this.modelValue = value;
+
+    // TODO: remove if...
+    if(!this.propagateChange) return;
+
     if (this.threedDevicesSettingsFormGroup.valid) {
       this.propagateChange(this.modelValue);
     } else {

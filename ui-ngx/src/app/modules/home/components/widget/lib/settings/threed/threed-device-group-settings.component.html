@@ -31,21 +31,24 @@
 
     <!-- Use a component for: load model / set attribute, set rotation, position, scale, ... -->
 
-    <div *ngFor="let entity of entities$ | async">
-        Device {{entity}}<br>
+    <!-- *ngFor="let entity of entities$ | async" -->
 
-        name?: string; {{entity.name}}<br>
-        label?: string; {{entity.label}}<br>
-        entityType?: EntityType; {{entity.entityType}}<br>
-        id?: string; {{entity.id}}<br>
-        entityDescription?: string; {{entity.entityDescription}}<br>
-    </div>
-    <!-- TODO:
-    <div *ngFor="let d of deviceGroup.devices">Device {{d}}</div>
+    <section class="tb-widget-settings"
+        *ngFor="let objectControl of objectsFormArray().controls; trackBy: trackByObjectControl; let $index = index;">
+        <fieldset class="fields-group">
+            <legend class="group-title">entity.name settings</legend>
+            <div fxLayout="column">
+                <tb-threed-object-settings 
+                    [aliasController]="aliasController"
+                    [formControl]="objectControl"
+                    [entityAttribute]="threedDeviceGroupFormGroup.get('threedEntityKeySettings').value">
+                </tb-threed-object-settings>
+            </div>
+        </fieldset>
+    </section>
 
-    <div *ngIf="!deviceGroup.devices.length">
-        <span fxLayoutAlign="center center" class="tb-prompt">No devices for this entity
+    <div *ngIf="!(entities$ | async)?.length">
+        <span fxLayoutAlign="center center" class="tb-prompt">No devices found for this entity
             alias</span>
     </div>
-    -->
 </div>

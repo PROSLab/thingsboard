@@ -50,6 +50,8 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   protected onSettingsSet(settings: WidgetSettings) {
     const t_settings = settings as ThreedViewWidgetSettings;
 
+    console.log(settings);
+
     this.threedViewWidgetSettingsForm = this.fb.group({
       hexColor: [t_settings.hexColor, [Validators.required]],
       threedModelSettings: [t_settings.threedModelSettings, []],
