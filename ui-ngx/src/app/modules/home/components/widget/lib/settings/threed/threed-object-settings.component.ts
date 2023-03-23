@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, AfterViewInit, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -36,6 +36,9 @@ import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EntityService } from '@core/http/entity.service';
 import { ThreedModelSettings, ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { EntityInfo } from '@app/shared/public-api';
+import { ThreedModelLoaderConfig, ThreedModelLoaderService, ThreedUrlModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 
 export interface ThreedObjectSettings {
   entity: EntityInfo;
@@ -62,16 +65,16 @@ export interface ThreedObjectSettings {
     }
   ]
 })
-export class ThreedObjectSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator {
+export class ThreedObjectSettingsComponent extends PageComponent implements OnInit, OnChanges, AfterViewInit, ControlValueAccessor, Validator {
+
+  @ViewChild("modelInput")
+  modelInput: ThreedModelInputComponent;
 
   @Input()
   disabled: boolean;
 
   @Input()
   aliasController: IAliasController;
-
-  @Input()
-  entity?: EntityInfo;
 
   @Input()
   entityAttribute?: string;
@@ -82,9 +85,11 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
 
   public threedObjectSettingsFormGroup: FormGroup;
 
+  private lastEntityAttribute?: string;
+
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
-    private entityService: EntityService,
+    private loader: ThreedModelLoaderService,
     private fb: FormBuilder) {
     super(store);
   }
@@ -100,12 +105,19 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     this.threedObjectSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+  }
 
-    if (this.entity && this.entityAttribute) {
-      this.threedObjectSettingsFormGroup.get("modelUrl").enable();
-    } else {
-      this.threedObjectSettingsFormGroup.get("modelUrl").disable();
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
+    if (changes.entityAttribute) {
+      this.entityAttribute = changes.entityAttribute.currentValue;
+
+      this.entityAttributeChanged();
     }
+  }
+
+  ngAfterViewInit() {
+    this.entityAttributeChanged(false);
   }
 
   registerOnChange(fn: any): void {
@@ -147,5 +159,28 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     if (!this.propagateChange) return;
 
     this.propagateChange(this.modelValue);
+  }
+
+  private entityAttributeChanged(emitEvent: boolean = true) {
+    if (this.entityAttribute != null && this.entityAttribute != "null") {
+      this.threedObjectSettingsFormGroup?.get("modelUrl").disable({ emitEvent });
+      this.tryLoadModel();
+    } else {
+      this.threedObjectSettingsFormGroup?.get("modelUrl").enable({ emitEvent });
+      this.modelInput?.writeValue(null);
+    }
+  }
+
+  private tryLoadModel() {
+    if(!this.modelValue?.entity || !this.entityAttribute) return;
+
+    const config: ThreedUrlModelLoaderConfig = {
+      entity: this.modelValue.entity,
+      entityAttribute: this.entityAttribute
+    };
+    this.loader.getUrlModel(config).subscribe(url => {
+      console.log(url);
+      this.modelInput?.writeValue(url);
+    });
   }
 }

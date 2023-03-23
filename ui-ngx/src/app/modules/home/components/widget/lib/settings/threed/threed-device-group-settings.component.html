@@ -36,12 +36,12 @@
     <section class="tb-widget-settings"
         *ngFor="let objectControl of objectsFormArray().controls; trackBy: trackByObjectControl; let $index = index;">
         <fieldset class="fields-group">
-            <legend class="group-title">entity.name settings</legend>
+            <legend class="group-title">{{objectControl.value.entity.name}} settings</legend>
             <div fxLayout="column">
                 <tb-threed-object-settings 
                     [aliasController]="aliasController"
                     [formControl]="objectControl"
-                    [entityAttribute]="threedDeviceGroupFormGroup.get('threedEntityKeySettings').value">
+                    [entityAttribute]="entityAttribute">
                 </tb-threed-object-settings>
             </div>
         </fieldset>

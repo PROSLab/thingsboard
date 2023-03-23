@@ -85,7 +85,7 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     });
   }
 
-  
+
   private prepareDeviceGroupsFormArray(threedDeviceGroupSettings: ThreedDeviceGroupSettings[] | undefined): FormArray {
     const deviceGroupsControls: Array<AbstractControl> = [];
     if (threedDeviceGroupSettings) {
@@ -130,9 +130,11 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
   }
 
   writeValue(value: ThreedDevicesSettings): void {
+    console.log(value);
+
     this.modelValue = value;
 
-    this.threedDevicesSettingsFormGroup.setControl('threedDeviceGroupSettings', this.prepareDeviceGroupsFormArray(value.threedDeviceGroupSettings));
+    this.threedDevicesSettingsFormGroup.setControl('threedDeviceGroupSettings', this.prepareDeviceGroupsFormArray(value.threedDeviceGroupSettings), { emitEvent: false });
 
     /*
     this.threedDevicesSettingsFormGroup.patchValue(
@@ -145,7 +147,10 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     this.modelValue = value;
 
     // TODO: remove if...
-    if(!this.propagateChange) return;
+    if (!this.propagateChange) {
+      console.error("propagateChange undefined in ThreeDevicesSettingsComponent");
+      return;
+    } 
 
     if (this.threedDevicesSettingsFormGroup.valid) {
       this.propagateChange(this.modelValue);

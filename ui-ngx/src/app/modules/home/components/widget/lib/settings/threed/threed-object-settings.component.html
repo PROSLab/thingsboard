@@ -16,7 +16,8 @@
 
 -->
 <section class="tb-widget-settings" [formGroup]="threedObjectSettingsFormGroup">
-    <tb-threed-model-input label="3D model" formControlName="modelUrl">
+    <tb-threed-model-input #modelInput 
+        label="3D model" formControlName="modelUrl">
     </tb-threed-model-input>
 
     <tb-threed-vector-settings label="Position"

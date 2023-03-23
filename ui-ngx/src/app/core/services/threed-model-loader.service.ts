@@ -7,13 +7,19 @@ import { IAliasController } from '@core/api/widget-api.models';
 import { AttributeService } from '@core/http/attribute.service';
 import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 import { EntityInfo } from '@shared/models/entity.models';
+import { Observable, of } from 'rxjs';
 
 export interface ThreedModelLoaderConfig {
   settings: ThreedModelSettings;
   aliasController: IAliasController;
   onLoadModel: (gltf: GLTF) => void;
+}
+
+export interface ThreedUrlModelLoaderConfig {
+  entity: EntityInfo;
+  entityAttribute: string;
 }
 
 @Injectable({
@@ -25,6 +31,29 @@ export class ThreedModelLoaderService {
 
   constructor(
     private attributeService: AttributeService) {
+  }
+
+  public getUrlModel(config: ThreedUrlModelLoaderConfig): Observable<string> {
+    if (!config.entityAttribute || config.entityAttribute.length == 0) return of("");
+
+    const entityId: EntityId = {
+      entityType: config.entity.entityType,
+      id: config.entity.id
+    };
+
+    console.log(entityId, config);
+
+    return this.attributeService.getEntityAttributes(entityId, AttributeScope.SERVER_SCOPE, [config.entityAttribute])
+      .pipe(
+        map(attributes => {
+          console.log(attributes);
+
+          if (!attributes || attributes.length == 0)
+            throw new Error("Invalid attribute");
+
+          return attributes[0].value;
+        })
+      )
   }
 
   public loadModel(config: ThreedModelLoaderConfig) {

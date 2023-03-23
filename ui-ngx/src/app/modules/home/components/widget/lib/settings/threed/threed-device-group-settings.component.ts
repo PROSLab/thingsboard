@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -71,7 +71,7 @@ export const defaultThreedDeviceGroupSettings: ThreedDeviceGroupSettings = {
     }
   ]
 })
-export class ThreedDeviceGroupSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator {
+export class ThreedDeviceGroupSettingsComponent extends PageComponent implements OnInit, AfterViewInit, ControlValueAccessor, Validator {
 
   @Input()
   disabled: boolean;
@@ -90,6 +90,9 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
   public entities$: Observable<EntityInfo[]> = of([]);
 
+  public entityAttribute?: string;
+  private lastEntityKeySettings?: ThreedEntityKeySettings;
+
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
     private fb: FormBuilder) {
@@ -106,12 +109,19 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
     this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').valueChanges.subscribe(() => this.loadEntities());
     this.threedDeviceGroupFormGroup.get('useAttribute').valueChanges.subscribe(() => this.updateValidators(true));
+    this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').valueChanges.subscribe(() => {
+      this.entityAttribute = this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').value.entityAttribute;
+    });
 
     this.threedDeviceGroupFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
 
     this.updateValidators(false);
+  }
+
+  ngAfterViewInit(): void {
+    this.entityKeySettings?.updateEntityAlias(this.modelValue?.threedEntityAliasSettings?.entityAlias);
   }
 
 
@@ -174,7 +184,8 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     this.threedDeviceGroupFormGroup.patchValue(
       value, { emitEvent: false }
     );
-    this.threedDeviceGroupFormGroup.setControl('threedObjectSettings', this.prepareObjectsFormArray(value.threedObjectSettings));
+    this.threedDeviceGroupFormGroup.setControl('threedObjectSettings', this.prepareObjectsFormArray(value.threedObjectSettings), { emitEvent: false });
+    this.lastEntityKeySettings = this.modelValue?.threedEntityKeySettings;
 
     this.updateValidators(false);
   }
@@ -195,7 +206,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
     // TODO: remove if...
     if (!this.propagateChange) return;
-    
+
     if (this.threedDeviceGroupFormGroup.valid) {
       this.propagateChange(this.modelValue);
     } else {
@@ -205,11 +216,18 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
   private updateValidators(emitEvent: boolean) {
     const useAttribute: boolean = this.threedDeviceGroupFormGroup.get('useAttribute').value;
+    
     if (useAttribute) {
       this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').enable({ emitEvent });
+      this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').setValue({ entityAttribute: this.lastEntityKeySettings?.entityAttribute || "" });
+      this.entityAttribute = this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').value.entityAttribute;
     } else {
+      this.lastEntityKeySettings = this.modelValue?.threedEntityKeySettings;
       this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').disable({ emitEvent });
+      this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').setValue({ entityAttribute: null });
+      this.entityAttribute = null;
     }
+
     this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').updateValueAndValidity({ emitEvent });
   }
 

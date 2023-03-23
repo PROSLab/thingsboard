@@ -16,11 +16,13 @@
 
 -->
 <div class="tb-container">
-    <label class="tb-title" *ngIf="label" [ngClass]="{'tb-error': !disabled && (required && !safeImageUrl), 'tb-required': !disabled && required}">{{label}}</label>
+    <label class="tb-title" *ngIf="label"
+      [ngStyle]="disabled ? {'text-align': 'center'} : {}"
+      [ngClass]="{'tb-error': !disabled && (required && !safeImageUrl), 'tb-required': !disabled && required}">{{label}}</label>
     <ng-container #flow="flow"
                   [flowConfig]="{singleFile: true, allowDuplicateUploads: true}">
-      <div class="tb-image-select-container">
-        <div class="image-container" *ngIf="showPreview">
+      <div class="tb-image-select-container" [ngStyle]="disabled ? {'display': 'flex'} : {}">
+        <div class="image-container" *ngIf="showPreview" [ngClass]="{'image-center': disabled}">
           <div class="image-content-container" [ngClass]="{'no-padding': disabled}">
             <div class="tb-image-preview-container" style="border:0px!important;">
               <div *ngIf="!safeImageUrl; else elseBlock">{{ (disabled ? 'dashboard.empty-image' : 'dashboard.no-image') | translate }}</div>
