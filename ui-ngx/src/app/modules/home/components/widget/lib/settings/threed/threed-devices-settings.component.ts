@@ -130,8 +130,6 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
   }
 
   writeValue(value: ThreedDevicesSettings): void {
-    console.log(value);
-
     this.modelValue = value;
 
     this.threedDevicesSettingsFormGroup.setControl('threedDeviceGroupSettings', this.prepareDeviceGroupsFormArray(value.threedDeviceGroupSettings), { emitEvent: false });

@@ -108,7 +108,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
     if (changes.entityAttribute) {
       this.entityAttribute = changes.entityAttribute.currentValue;
 
@@ -167,7 +166,8 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
       this.tryLoadModel();
     } else {
       this.threedObjectSettingsFormGroup?.get("modelUrl").enable({ emitEvent });
-      this.modelInput?.writeValue(null);
+      const base64 = this.threedObjectSettingsFormGroup?.get("modelUrl").value;
+      this.modelInput?.writeValue(base64);
     }
   }
 
@@ -179,7 +179,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
       entityAttribute: this.entityAttribute
     };
     this.loader.getUrlModel(config).subscribe(url => {
-      console.log(url);
       this.modelInput?.writeValue(url);
     });
   }
