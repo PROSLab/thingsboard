@@ -33,11 +33,10 @@ import {
   ThreedModelSettings,
   ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneEditor } from './threed-scene-editor';
 import { MatDialog } from '@angular/material/dialog';
 import { IAliasController } from '@app/core/public-api';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { EntityInfo } from '@app/shared/public-api';
+import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -136,7 +135,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
       // TODO replaceModel(res);
-      this.threedSceneEditor.replaceModel(res.model);
+      this.threedSceneEditor.replaceModel(res.model, res.entityId);
     });
   }
 

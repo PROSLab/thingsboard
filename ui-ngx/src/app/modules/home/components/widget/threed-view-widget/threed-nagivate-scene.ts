@@ -62,19 +62,19 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         this.labelRenderer.setSize(rect.width, rect.height);
     }
 
-    public addModel(gltf: GLTF, tooltip: boolean = false): Label | undefined {
-        super.addModel(gltf);
+    public addModel(model: GLTF, id?: string, tooltip: boolean = false): Label | undefined {
+        super.addModel(model, id);
 
         if (tooltip) {
-            const model = this.models.get(gltf.scene.uuid);
-            const label = this.createLabel(gltf.scene.uuid);
+            const currentModel = this.models.get(model.scene.uuid);
+            const label = this.createLabel(model.scene.uuid);
 
             /*const box = new THREE.Box3().setFromObject(model.scene);
             const center = box.getCenter(new THREE.Vector3());
             label.position.set(0, center.y, 0);*/
 
             label.cssObject.position.set(0, 0, 0);
-            model.scene.add(label.cssObject);
+            currentModel.scene.add(label.cssObject);
 
             return label;
         }
@@ -111,7 +111,7 @@ export class ThreedNavigateScene extends ThreedFpsScene {
 
                     this.INTERSECTED = intersects[0].object;
                     this.INTERSECTED!.userData.currentHex = this.INTERSECTED.material.emissive?.getHex();
-                    const hexColor = this.settingsValue.hexColor || 0xff0000;
+                    const hexColor = 0xff0000; //TODO: this.settingsValue?.hexColor || 0xff0000;
                     this.INTERSECTED!.material.emissive?.setHex(hexColor);
 
                     for (const label of this.labels.values()) {

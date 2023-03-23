@@ -78,7 +78,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
 
-    this.threedNavigateScene.updateValue(this.settings);
+    this.threedNavigateScene.updateValue(this.settings.threedSceneSettings);
     this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
@@ -93,9 +93,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     }
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      const gltf = res.model;
-      this.threedNavigateScene.addModel(gltf, true);
-      (this.settings.threedModelSettings as any).uuid = gltf.scene.uuid;
+      this.threedNavigateScene.addModel(res.model, res.entityId, true);
+      (this.settings.threedModelSettings as any).uuid = res.model.scene.uuid;
     });
   }
 

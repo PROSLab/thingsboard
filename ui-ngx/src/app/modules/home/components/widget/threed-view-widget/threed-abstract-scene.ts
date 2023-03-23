@@ -17,7 +17,7 @@ export abstract class ThreedAbstractScene {
 
     protected models: Map<string, GLTF> = new Map();
     protected objects: Object3D[] = [];
-    protected settingsValue?: ThreedViewWidgetSettings;
+    protected settingsValue?: ThreedSceneSettings;
 
     constructor(canvas?: ElementRef) {
         this.rendererContainer = canvas;
@@ -81,7 +81,7 @@ export abstract class ThreedAbstractScene {
         this.renderer.render(this.scene!, this.camera!);
     }
 
-    public onDataChanged(ctx: WidgetContext): void{}
+    public onDataChanged(ctx: WidgetContext): void { }
 
     public resize(width?: number, height?: number) {
         const rect = this.rendererContainer?.nativeElement.getBoundingClientRect();
@@ -94,14 +94,14 @@ export abstract class ThreedAbstractScene {
         //this.render();
     }
 
-    public replaceModel(gltf: GLTF): void {
-        this.removeModel(gltf.scene.uuid, false);
-        this.addModel(gltf)
+    public replaceModel(model: GLTF, id?: string): void {
+        this.removeModel(id || model.scene.uuid, false);
+        this.addModel(model, id);
     }
 
-    public addModel(gltf: GLTF): void {
-        const root = gltf.scene;
-        this.models.set(root.uuid, gltf);
+    protected addModel(model: GLTF, id?: string): void {
+        const root = model.scene;
+        this.models.set(id || root.uuid, model);
         this.setValues();
 
         this.scene!.add(root);
@@ -110,10 +110,10 @@ export abstract class ThreedAbstractScene {
         this.render();
     }
 
-    public removeModel(uuid: string, calculateSceneObjects: boolean = true): void {
-        if (!this.models.has(uuid)) return;
+    public removeModel(id: string, calculateSceneObjects: boolean = true): void {
+        if (!this.models.has(id)) return;
 
-        this.scene!.remove(this.models.get(uuid).scene);
+        this.scene!.remove(this.models.get(id).scene);
 
         if (calculateSceneObjects) {
             this.recalculateSceneObjects();
@@ -145,21 +145,21 @@ export abstract class ThreedAbstractScene {
         }
     }
 
-    public updateValue(value: ThreedViewWidgetSettings): void {
+    public updateValue(value: ThreedSceneSettings): void {
         this.settingsValue = value;
 
         this.setValues();
     }
 
     private setValues() {
-        // TODO: this.models.get(value.models[0].uuid)
+        // TODO: this.models.get(this.settingsValue.models[0].uuid) ...
         if (this.models.size == 0 || !this.settingsValue) return;
 
         const [model] = this.models.values();
 
-        const position = this.settingsValue.threedSceneSettings.threedPositionVectorSettings;
-        const rotation = this.settingsValue.threedSceneSettings.threedRotationVectorSettings;
-        const scale = this.settingsValue.threedSceneSettings.threedScaleVectorSettings;
+        const position = this.settingsValue.threedPositionVectorSettings;
+        const rotation = this.settingsValue.threedRotationVectorSettings;
+        const scale = this.settingsValue.threedScaleVectorSettings;
 
         model.scene.position.set(position.x, position.y, position.z);
         model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
