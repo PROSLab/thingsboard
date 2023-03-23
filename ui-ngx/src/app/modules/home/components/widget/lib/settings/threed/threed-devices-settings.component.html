@@ -28,7 +28,9 @@
 
                     <tb-threed-device-group-settings
                         [aliasController]="aliasController"
-                        [formControl]="deviceGroupControl"></tb-threed-device-group-settings>
+                        [formControl]="deviceGroupControl"
+                        (removeDeviceGroup)="removeDeviceGroup($index)">
+                    </tb-threed-device-group-settings>
 
                 </div>
             </fieldset>

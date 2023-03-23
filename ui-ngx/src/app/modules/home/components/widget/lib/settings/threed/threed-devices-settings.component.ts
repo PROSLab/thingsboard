@@ -165,4 +165,8 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     deviceGroupsArray.push(deviceGroupControl);
     this.threedDevicesSettingsFormGroup.updateValueAndValidity();
   }
+
+  public removeDeviceGroup(index: number) {
+    (this.threedDevicesSettingsFormGroup.get('threedDeviceGroupSettings') as FormArray).removeAt(index);
+  }
 }

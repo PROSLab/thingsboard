@@ -17,6 +17,11 @@
 -->
 <div fxLayout="column" [formGroup]="threedDeviceGroupFormGroup">
 
+    <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;" type="button" (click)="removeDeviceGroup.emit()"
+        matTooltip="{{ 'action.remove' | translate }}" matTooltipPosition="above">
+        <mat-icon>delete</mat-icon>
+    </button>
+
     <tb-threed-entity-alias-settings [aliasController]="aliasController" formControlName="threedEntityAliasSettings"
         (onEntityAliasChanged)="onEntityAliasChanged()"></tb-threed-entity-alias-settings>
     <div fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign="center center"
@@ -38,16 +43,14 @@
         <fieldset class="fields-group">
             <legend class="group-title">{{objectControl.value.entity.name}} settings</legend>
             <div fxLayout="column">
-                <tb-threed-object-settings 
-                    [aliasController]="aliasController"
-                    [formControl]="objectControl"
-                    [entityAttribute]="entityAttribute">
+                <tb-threed-object-settings [aliasController]="aliasController" [formControl]="objectControl"
+                    [entityAttribute]="entityAttribute" (removeObject)="removeObject($index)">
                 </tb-threed-object-settings>
             </div>
         </fieldset>
     </section>
 
-    <div *ngIf="!(entities$ | async)?.length">
+    <div *ngIf="!objectsFormArray().controls.length">
         <span fxLayoutAlign="center center" class="tb-prompt">No devices found for this entity
             alias</span>
     </div>

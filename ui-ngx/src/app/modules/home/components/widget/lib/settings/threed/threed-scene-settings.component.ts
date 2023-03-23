@@ -36,9 +36,7 @@ import {
 import { ThreedSceneEditor } from './threed-scene-editor';
 import { MatDialog } from '@angular/material/dialog';
 import { IAliasController } from '@app/core/public-api';
-import { ThreedModelLoaderConfig, ThreedModelLoaderService } from '@core/services/threed-model-loader.service';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import * as THREE from 'three';
+import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { EntityInfo } from '@app/shared/public-api';
 
 @Component({
@@ -81,8 +79,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   private isVisible: boolean = false;
   fullscreen: boolean = false;
 
-  private entities: EntityInfo[] = [];
-
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
     private fb: FormBuilder,
@@ -102,11 +98,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
       threedDevicesSettings: [null, []],
     });
 
-    const entityAliases = this.aliasController.getEntityAliases();
-    for (const entityAliasId of Object.keys(entityAliases)) {
-      this.aliasController.resolveEntitiesInfo(entityAliasId).subscribe(v => this.entities = v);
-    }
-
     /*
     this.threedSceneSettingsFormGroup.get('threedScaleVectorSettings').valueChanges.subscribe(() => {
       this.updateValidators(true);
@@ -123,21 +114,30 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
     if (this.threedModelSettingsFormGroup) {
       let lastSettings: ThreedModelSettings = this.threedModelSettingsFormGroup.value;
-      let config: ThreedModelLoaderConfig = {
-        aliasController: this.aliasController,
-        settings: lastSettings,
-        onLoadModel: (gltf: GLTF) => this.threedSceneEditor.replaceModel(gltf)
+
+      const config: ThreedUniversalModelLoaderConfig = {
+        entityLoader: this.threedModelLoader.toEntityLoader(lastSettings),
+        aliasController: this.aliasController
       }
-      this.threedModelLoader.loadModel(config);
+      this.loadModel(config);
 
       this.threedModelSettingsFormGroup.valueChanges.subscribe((newSettings: ThreedModelSettings) => {
         if (lastSettings != newSettings) {
           lastSettings = newSettings;
-          config.settings = newSettings;
-          this.threedModelLoader.loadModel(config);
+          config.entityLoader = this.threedModelLoader.toEntityLoader(lastSettings);
+          this.loadModel(config);
         }
       });
     }
+  }
+
+  private loadModel(config: ThreedUniversalModelLoaderConfig) {
+    if (!config.entityLoader) return;
+
+    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
+      // TODO replaceModel(res);
+      this.threedSceneEditor.replaceModel(res.model);
+    });
   }
 
   ngAfterContentChecked(): void {

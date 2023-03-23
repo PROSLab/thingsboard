@@ -19,7 +19,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ThreedModelLoaderConfig, ThreedModelLoaderService } from '@core/services/threed-model-loader.service';
+import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedViewWidgetSettings } from './threed-models';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
@@ -87,15 +87,16 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   private loadModel() {
-    let config: ThreedModelLoaderConfig = {
-      aliasController: this.ctx.aliasController,
-      settings: this.settings.threedModelSettings,
-      onLoadModel: (gltf: GLTF) => {
-        this.threedNavigateScene.addModel(gltf, true);
-        (this.settings.threedModelSettings as any).uuid = gltf.scene.uuid;
-      }
+    let config: ThreedUniversalModelLoaderConfig = {
+      entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedModelSettings),
+      aliasController: this.ctx.aliasController
     }
-    this.threedModelLoader.loadModel(config);
+
+    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
+      const gltf = res.model;
+      this.threedNavigateScene.addModel(gltf, true);
+      (this.settings.threedModelSettings as any).uuid = gltf.scene.uuid;
+    });
   }
 
   ngAfterViewInit() {

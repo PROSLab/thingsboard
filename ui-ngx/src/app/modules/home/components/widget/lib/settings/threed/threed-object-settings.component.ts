@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, AfterViewInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Output, forwardRef, Input, OnChanges, OnInit, AfterViewInit, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -29,15 +29,9 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@core/api/widget-api.models';
-import { Observable, of } from 'rxjs';
-import { catchError, map, mergeMap, publishReplay, refCount, startWith, tap } from 'rxjs/operators';
-import { DataKey } from '@shared/models/widget.models';
-import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { EntityService } from '@core/http/entity.service';
-import { ThreedModelSettings, ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { EntityInfo } from '@app/shared/public-api';
-import { ThreedModelLoaderConfig, ThreedModelLoaderService, ThreedUrlModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 
 export interface ThreedObjectSettings {
@@ -79,6 +73,9 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   @Input()
   entityAttribute?: string;
 
+  @Output()
+  removeObject = new EventEmitter();
+
   private modelValue: ThreedObjectSettings;
 
   private propagateChange = null;
@@ -86,6 +83,7 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   public threedObjectSettingsFormGroup: FormGroup;
 
   private lastEntityAttribute?: string;
+
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -172,14 +170,17 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   private tryLoadModel() {
-    if(!this.modelValue?.entity || !this.entityAttribute) return;
+    if (!this.modelValue?.entity || !this.entityAttribute) return;
 
-    const config: ThreedUrlModelLoaderConfig = {
-      entity: this.modelValue.entity,
-      entityAttribute: this.entityAttribute
+    const config: ThreedUniversalModelLoaderConfig = {
+      entityLoader: {
+        entity: this.modelValue.entity,
+        entityAttribute: this.entityAttribute
+      },
+      aliasController: this.aliasController
     };
-    this.loader.getUrlModel(config).subscribe(url => {
-      this.modelInput?.writeValue(url);
+    this.loader.loadModelAsUrl(config).subscribe(url => {
+      this.modelInput?.writeValue(url.base64);
     });
   }
 }
