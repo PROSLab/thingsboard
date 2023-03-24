@@ -37,7 +37,7 @@ import {
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { MatDialog } from '@angular/material/dialog';
 import { IAliasController } from '@app/core/public-api';
-import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
+import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 import { ThreedDeviceGroupSettings } from './threed-device-group-settings.component';
 
@@ -80,6 +80,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   public threedSceneEditor: ThreedSceneEditor;
   private isVisible: boolean = false;
   fullscreen: boolean = false;
+
+  private lastEntityLoaders: Map<string, ModelUrl | EntityAliasAttribute> = new Map();
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -182,7 +184,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
   private updateSceneModels(newSettings: ThreedDevicesSettings | ThreedEnvironmentSettings) {
     if (newSettings == null) return;
-    
+
     // must be called ONLY when the model effectively changed (not when properties like pos, rot, scale, attr...changes)
     if ("threedDeviceGroupSettings" in newSettings) {
       newSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
@@ -192,16 +194,28 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
             entityLoader,
             aliasController: this.aliasController
           }
-          this.loadModel(config);
+
+          const id = entityLoader.entity.id;
+          const lastEntityLoader = this.lastEntityLoaders.get(id);
+          if (!this.threedModelLoader.areLoaderEqual(lastEntityLoader, entityLoader)) {
+            this.lastEntityLoaders.set(id, entityLoader);
+            this.loadModel(config);
+          }
         })
       });
     } else {
+      const entityLoader = this.threedModelLoader.toEntityLoader(newSettings);
       const config: ThreedUniversalModelLoaderConfig = {
-        entityLoader: this.threedModelLoader.toEntityLoader(newSettings),
+        entityLoader,
         aliasController: this.aliasController
       }
 
-      this.loadModel(config, "Environment");
+      const id = "Environment";
+      const lastEntityLoader = this.lastEntityLoaders.get(id);
+      if (!this.threedModelLoader.areLoaderEqual(lastEntityLoader, entityLoader)) {
+        this.lastEntityLoaders.set(id, entityLoader);
+        this.loadModel(config, id);
+      }
     }
   }
 

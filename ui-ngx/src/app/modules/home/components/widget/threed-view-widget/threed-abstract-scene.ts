@@ -179,12 +179,13 @@ export abstract class ThreedAbstractScene {
         const environmentSettings = this.settingsValue.threedEnvironmentSettings?.objectSettings;
         if (!environmentSettings) return;
 
-        this.updateModelTransforms(environmentSettings.entity.id, environmentSettings);
+        // this.updateModelTransforms(environmentSettings.entity.id, environmentSettings);
+        this.updateModelTransforms("Environment", environmentSettings);
     }
 
     private setDevicesValues() {
         const devicesSettings = this.settingsValue.threedDevicesSettings;
-        if (!devicesSettings || devicesSettings.threedDeviceGroupSettings) return;
+        if (!devicesSettings || !devicesSettings.threedDeviceGroupSettings) return;
 
         devicesSettings.threedDeviceGroupSettings.forEach(deviceGroup => {
             const objectsSettings = deviceGroup.threedObjectSettings;
@@ -198,6 +199,7 @@ export abstract class ThreedAbstractScene {
 
     private updateModelTransforms(id: string,
         settings: { threedPositionVectorSettings: ThreedVectorSettings, threedRotationVectorSettings: ThreedVectorSettings, threedScaleVectorSettings: ThreedVectorSettings }) {
+
         const model = this.models.get(id);
         if (!model) return;
 

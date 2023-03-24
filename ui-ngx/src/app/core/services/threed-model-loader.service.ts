@@ -52,11 +52,25 @@ export class ThreedModelLoaderService {
     private attributeService: AttributeService) {
   }
 
-  private isModelUrl(obj: any): obj is ModelUrl {
-    return 'url' in obj;
+  public areLoaderEqual(entityLoader1: ModelUrl | EntityAliasAttribute, entityLoader2: ModelUrl | EntityAliasAttribute): boolean {
+    if(!entityLoader1 || !entityLoader2) return false;
+    
+    if (this.isModelUrl(entityLoader1) && this.isModelUrl(entityLoader2)) {
+      return entityLoader1.url == entityLoader2.url;
+    }
+    else if (this.isEntityAliasAttribute(entityLoader1) && this.isEntityAliasAttribute(entityLoader2)) {
+      return entityLoader1.entityAlias == entityLoader2.entityAlias &&
+        entityLoader1.entityAttribute == entityLoader2.entityAttribute &&
+        entityLoader1.entity.id == entityLoader2.entity.id;
+    }
+
+    return false;
   }
 
-  private isEntityAliasAttribute(obj: any): obj is EntityAliasAttribute {
+  public isModelUrl(obj: any): obj is ModelUrl {
+    return 'url' in obj;
+  }
+  public isEntityAliasAttribute(obj: any): obj is EntityAliasAttribute {
     return 'entityAlias' in obj && 'entityAttribute' in obj;
   }
 

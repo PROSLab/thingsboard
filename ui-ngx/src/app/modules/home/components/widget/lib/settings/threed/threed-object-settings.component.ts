@@ -120,12 +120,11 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
     if (changes.entityAttribute) {
       this.entityAttribute = changes.entityAttribute.currentValue;
       this.entityAttributeChanged();
     }
-    if(changes.entityAlias){
+    if (changes.entityAlias) {
       this.entityAlias = changes.entityAlias.currentValue;
       this.entityAttributeChanged();
     }
@@ -177,7 +176,7 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   private entityAttributeChanged(emitEvent: boolean = true) {
-    if (this.entityAttribute != null && this.entityAttribute != "null") {
+    if (this.entityAttribute != null) {
       this.threedObjectSettingsFormGroup?.get("modelUrl").disable({ emitEvent });
       this.tryLoadModel();
     } else {
@@ -205,8 +204,8 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   private updateObjectVector(objectVector: any, formName: string) {
-    console.log("updateObjectVector", objectVector, formName);
+    console.log("updateObjectVector", objectVector, formName, (this.customObjectId || this.modelValue?.entity?.id));
     if (objectVector.id == (this.customObjectId || this.modelValue?.entity?.id))
-      this.threedObjectSettingsFormGroup.get(formName).setValue(objectVector.vector);
+      this.threedObjectSettingsFormGroup.get(formName).setValue(objectVector.vector, { emitValue: false, onlySelf: true });
   }
 }
