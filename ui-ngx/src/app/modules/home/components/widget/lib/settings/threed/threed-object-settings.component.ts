@@ -206,6 +206,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   private updateObjectVector(objectVector: any, formName: string) {
     console.log("updateObjectVector", objectVector, formName, (this.customObjectId || this.modelValue?.entity?.id));
     if (objectVector.id == (this.customObjectId || this.modelValue?.entity?.id))
-      this.threedObjectSettingsFormGroup.get(formName).setValue(objectVector.vector, { emitValue: false, onlySelf: true });
+      this.threedObjectSettingsFormGroup.get(formName).setValue(objectVector.vector, { emitValue: false });
   }
 }
