@@ -90,6 +90,10 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
             return o.object.type != "TransformControlsPlane"
         });
 
+        console.log(intersection.map(o => { 
+            const ud = this.getRootObjectByChild(o.object)?.userData;
+            return { d: o.distance, ud: ud };
+        }));
 
         if (intersection.length > 0) {
             const root = this.getRootObjectByChild(intersection[0].object);
@@ -104,6 +108,8 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
     }
 
     public override onMouseClick(event: MouseEvent): void {
+        super.onMouseClick(event);
+
         this.updateRaycaster();
     }
 

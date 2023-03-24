@@ -163,9 +163,9 @@ export abstract class ThreedAbstractScene {
         }
     }
 
-    protected getRootObjectByChild(child: THREE.Object3D) : THREE.Object3D | undefined {
-        if(child.userData[this.ROOT_TAG]) return child;
-        else if(child.parent != null) return this.getRootObjectByChild(child.parent);
+    protected getRootObjectByChild(child: THREE.Object3D): THREE.Object3D | undefined {
+        if (child.userData[this.ROOT_TAG]) return child;
+        else if (child.parent != null) return this.getRootObjectByChild(child.parent);
         else return undefined;
     }
 
@@ -224,13 +224,23 @@ export abstract class ThreedAbstractScene {
     }
 
     public onMouseMove(event: MouseEvent): void {
-        event.preventDefault();
-
-        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        this.calculateMousePosition(event);
     }
 
     public abstract onKeyDown(event: KeyboardEvent): void;
     public abstract onKeyUp(event: KeyboardEvent): void;
-    public onMouseClick(event: MouseEvent): void { }
+    public onMouseClick(event: MouseEvent): void {
+        this.calculateMousePosition(event);
+    }
+
+    private calculateMousePosition(event: MouseEvent) {
+        if (!this.rendererContainer) return;
+
+        event.preventDefault();
+
+        const rect = this.rendererContainer.nativeElement.getBoundingClientRect();
+
+        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
 }
