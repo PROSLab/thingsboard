@@ -163,11 +163,18 @@ export abstract class ThreedAbstractScene {
         }
     }
 
+    protected getParentByChild(child: THREE.Object3D, tag: string, value: any): THREE.Object3D | undefined {
+        if (child.userData[tag] == value) return child;
+        else if (child.parent != null) return this.getParentByChild(child.parent, tag, value);
+        else return undefined;
+    }
+
+    /*
     protected getRootObjectByChild(child: THREE.Object3D): THREE.Object3D | undefined {
         if (child.userData[this.ROOT_TAG]) return child;
         else if (child.parent != null) return this.getRootObjectByChild(child.parent);
         else return undefined;
-    }
+    }*/
 
     public updateValue(value: ThreedSceneSettings): void {
         this.settingsValue = value;

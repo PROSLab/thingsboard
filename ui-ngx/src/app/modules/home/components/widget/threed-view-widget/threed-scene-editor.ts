@@ -91,12 +91,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         });
 
         console.log(intersection.map(o => { 
-            const ud = this.getRootObjectByChild(o.object)?.userData;
+            const ud = this.getParentByChild(o.object, this.ROOT_TAG, true)?.userData;
             return { d: o.distance, ud: ud };
         }));
 
         if (intersection.length > 0) {
-            const root = this.getRootObjectByChild(intersection[0].object);
+            // get the root of the object 'intersection[0].object' (it checks if the ROOT_TAG is true on the parents)
+            const root = this.getParentByChild(intersection[0].object, this.ROOT_TAG, true);
             if (root) this.changeTransformControl(root);
         }
     }

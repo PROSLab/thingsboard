@@ -29,6 +29,7 @@ import {
   fillDataPattern
 } from '@core/utils';
 import { ThreedNavigateScene } from './threed-nagivate-scene';
+import { ThreedDeviceGroupSettings } from '../lib/settings/threed/threed-device-group-settings.component';
 
 
 
@@ -83,25 +84,42 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       this.pointerLocked = v;
       this.cd.detectChanges();
     });
-    this.loadModel();
+
+    this.loadModels();
   }
 
-  private loadModel() {
-    return;
-    // TODO:
-    /*
-    let config: ThreedUniversalModelLoaderConfig = {
-      entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedModelSettings),
+  private loadModels() {
+    this.loadEnvironment();
+    this.loadDevices();
+
+  }
+
+  private loadEnvironment() {
+    const config: ThreedUniversalModelLoaderConfig = {
+      entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
     }
+    this.loadModel(config, "Environment");
+  }
 
-    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedNavigateScene.addModel(res.model, res.entityId, true);
+  private loadDevices() {
+    this.settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
+      const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
+      loaders.forEach(entityLoader => {
+        const config: ThreedUniversalModelLoaderConfig = {
+          entityLoader,
+          aliasController: this.ctx.aliasController
+        }
 
-      // TODO:
-      // (this.settings.threedModelSettings as any).uuid = res.model.scene.uuid;
+        this.loadModel(config);
+      })
     });
-    */
+  }
+
+  private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {
+    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
+      this.threedNavigateScene.addModel(res.model, id ? id : res.entityId, true);
+    });
   }
 
   ngAfterViewInit() {
@@ -139,8 +157,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
       //console.log(content);
 
-      // TODO:
-      //this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
+      this.threedNavigateScene.updateLabelContent("Environment", content);
+      // this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
     });
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
@@ -164,9 +182,16 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   keyUpEvent(event: KeyboardEvent) {
     this.threedNavigateScene?.onKeyUp(event);
   }
-
   @HostListener('window:keydown', ['$event'])
   keyDownEvent(event: KeyboardEvent) {
     this.threedNavigateScene?.onKeyDown(event);
+  }
+  @HostListener('window:mousemove', ['$event'])
+  public mousemove(event: MouseEvent): void {
+    this.threedNavigateScene?.onMouseMove(event);
+  }
+  @HostListener('window:click', ['$event'])
+  public mouseclick(event: MouseEvent): void {
+    this.threedNavigateScene?.onMouseClick(event);
   }
 }

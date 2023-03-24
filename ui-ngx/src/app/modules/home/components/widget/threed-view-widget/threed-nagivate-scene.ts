@@ -40,7 +40,7 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         this.labels = new Map();
     }
 
-    private createLabel(name: string): Label {
+    private createLabel(id: string): Label {
         const layer = this.lastLayerIndex++;
         const divElement = document.createElement('div');
         divElement.className = 'label';
@@ -48,9 +48,10 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         divElement.style.marginTop = '-1em';
         const cssObject = new CSS2DObject(divElement);
         cssObject.layers.set(layer);
+        cssObject.userData[this.OBJECT_ID_TAG] = id;
 
         const label = { divElement, cssObject, layer };
-        this.labels.set(name, label)
+        this.labels.set(id, label)
         return label;
     }
 
@@ -66,8 +67,9 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         super.addModel(model, id);
 
         if (tooltip) {
-            const currentModel = this.models.get(model.scene.uuid);
-            const label = this.createLabel(model.scene.uuid);
+            const customId = model.scene.userData[this.OBJECT_ID_TAG];
+            const currentModel = this.models.get(customId);
+            const label = this.createLabel(customId);
 
             /*const box = new THREE.Box3().setFromObject(model.scene);
             const center = box.getCenter(new THREE.Vector3());
@@ -92,11 +94,12 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         this.labelRenderer?.render(this.scene!, this.camera!);
     }
 
+    /*
     private hasParentWithUUID(uuid: string, object: THREE.Object3D) {
         if (object.uuid == uuid) return true;
         if (object.parent != null) return this.hasParentWithUUID(uuid, object.parent);
         return false;
-    }
+    }*/
 
     protected override tick() {
         super.tick();
@@ -115,7 +118,7 @@ export class ThreedNavigateScene extends ThreedFpsScene {
                     this.INTERSECTED!.material.emissive?.setHex(hexColor);
 
                     for (const label of this.labels.values()) {
-                        if (this.hasParentWithUUID(label.cssObject.parent.uuid, this.INTERSECTED)) {
+                        if (this.getParentByChild(this.INTERSECTED, this.OBJECT_ID_TAG, label.cssObject.parent.userData[this.OBJECT_ID_TAG])) {
                             this.camera!.layers.enable(label.layer);
                             this.INTERSECTED.userData.layer = label.layer;
                             break;
@@ -138,10 +141,10 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         }
     }
 
-    public updateLabelContent(uuid: string, content: string) {
-        if (!this.labels.has(uuid)) return;
+    public updateLabelContent(id: string, content: string) {
+        if (!this.labels.has(id)) return;
 
-        const divLabel = this.labels.get(uuid).divElement;
+        const divLabel = this.labels.get(id).divElement;
         divLabel.innerHTML = content;
         //divLabel.textContent = content;
     }
