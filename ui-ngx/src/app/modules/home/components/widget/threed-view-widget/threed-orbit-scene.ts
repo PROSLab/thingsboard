@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ElementRef } from '@angular/core';
 
 export class ThreedOrbitScene extends ThreedAbstractScene {
-    
+
     protected orbit?: OrbitControls;
 
     constructor(canvas?: ElementRef) {

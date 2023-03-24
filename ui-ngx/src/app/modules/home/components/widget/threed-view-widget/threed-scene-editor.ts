@@ -9,10 +9,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
 
     private transformControl?: TransformControls;
     private boxHelper?: BoxHelper;
+    private raycaster = new THREE.Raycaster();
+    private raycastEnabled = true;
+    private raycastEnabledLastFrame = true;
 
-    public positionChanged = new EventEmitter<{id: string, vector: Vector3}>();
-    public rotationChanged = new EventEmitter<{id: string, vector: Vector3}>();
-    public scaleChanged = new EventEmitter<{id: string, vector: Vector3}>();
+    public positionChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
+    public rotationChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
+    public scaleChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
 
     constructor(canvas?: ElementRef) {
         super(canvas);
@@ -25,9 +28,10 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         this.transformControl.addEventListener('change', () => this.render());
         this.transformControl.addEventListener('dragging-changed', (event) => {
             this.orbit.enabled = !event.value;
+            this.raycastEnabled = !event.value;
             if (this.orbit.enabled) {
                 const obj = this.transformControl.object;
-                const id = obj.userData[this.OBJECT_ID]
+                const id = obj.userData[this.OBJECT_ID_TAG]
                 const newPosition = this.transformControl.object?.position;
                 const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
                 const newRotation = new THREE.Vector3(
@@ -37,11 +41,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
                 );
                 const newScale = this.transformControl.object?.scale;
 
-                this.positionChanged.emit({id, vector: newPosition});
-                this.rotationChanged.emit({id, vector: newRotation});
-                this.scaleChanged.emit({id, vector: newScale});
+                this.positionChanged.emit({ id, vector: newPosition });
+                this.rotationChanged.emit({ id, vector: newRotation });
+                this.scaleChanged.emit({ id, vector: newScale });
 
                 //console.log(newPosition, newRotation, newScale);
+            } else {
+                this.raycastEnabledLastFrame = false;
             }
         });
         this.scene.add(this.transformControl);
@@ -53,15 +59,10 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         const customId = id || model.scene.uuid;
         const root = this.models.get(customId).scene;
 
-        this.transformControl.detach();
-        this.transformControl.attach(root);
-
         if (!this.boxHelper) {
             this.boxHelper = new THREE.BoxHelper(root, 0xffff00);
             this.scene.add(this.boxHelper);
         }
-
-        this.boxHelper.setFromObject(root);
     }
 
     protected override onRemoveModel(gltf: GLTF, id: string): void {
@@ -76,7 +77,37 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         this.boxHelper?.update();
     }
 
-    public onKeyDown(event: KeyboardEvent): void {
+
+    private updateRaycaster() {
+        if (!this.raycastEnabled) return;
+        if (!this.raycastEnabledLastFrame) {
+            this.raycastEnabledLastFrame = true;
+            return;
+        }
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        const intersection = this.raycaster.intersectObjects(this.scene.children).filter(o => {
+            return o.object.type != "TransformControlsPlane"
+        });
+
+
+        if (intersection.length > 0) {
+            const root = this.getRootObjectByChild(intersection[0].object);
+            if (root) this.changeTransformControl(root);
+        }
+    }
+
+    private changeTransformControl(model: THREE.Object3D) {
+        this.transformControl.detach();
+        this.transformControl.attach(model);
+        this.boxHelper.setFromObject(model);
+    }
+
+    public override onMouseClick(event: MouseEvent): void {
+        this.updateRaycaster();
+    }
+
+    public override onKeyDown(event: KeyboardEvent): void {
         super.onKeyDown(event);
 
         switch (event.code) {
@@ -105,7 +136,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         }
     }
 
-    public onKeyUp(event: KeyboardEvent): void {
+    public override onKeyUp(event: KeyboardEvent): void {
         super.onKeyUp(event);
 
         switch (event.code) {

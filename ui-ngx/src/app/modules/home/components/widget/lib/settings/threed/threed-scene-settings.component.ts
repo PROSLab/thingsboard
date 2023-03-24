@@ -273,4 +273,14 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   public keyup(event: KeyboardEvent): void {
     this.threedSceneEditor?.onKeyUp(event);
   }
+
+  @HostListener('window:mousemove', ['$event'])
+  public mousemove(event: MouseEvent): void {
+    this.threedSceneEditor?.onMouseMove(event);
+  }
+
+  @HostListener('window:click', ['$event'])
+  public mouseclick(event: MouseEvent): void {
+    this.threedSceneEditor?.onMouseClick(event);
+  }
 }

@@ -19,7 +19,10 @@ export abstract class ThreedAbstractScene {
     protected objects: Object3D[] = [];
     protected settingsValue?: ThreedSceneSettings;
 
-    protected readonly OBJECT_ID = "customId";
+    protected mouse = new THREE.Vector2();
+
+    protected readonly OBJECT_ID_TAG = "customId";
+    protected readonly ROOT_TAG = "rootObject";
 
     constructor(canvas?: ElementRef) {
         this.rendererContainer = canvas;
@@ -104,8 +107,10 @@ export abstract class ThreedAbstractScene {
     protected addModel(model: GLTF, id?: string): void {
         const root = model.scene;
         const customId = id || root.uuid
-        model.userData[this.OBJECT_ID] = customId;
-        root.userData[this.OBJECT_ID] = customId;
+        model.userData[this.OBJECT_ID_TAG] = customId;
+        model.userData[this.ROOT_TAG] = true;
+        root.userData[this.OBJECT_ID_TAG] = customId;
+        root.userData[this.ROOT_TAG] = true;
         this.models.set(customId, model);
         console.log("addModel", customId, this.models);
         this.scene!.add(root);
@@ -156,6 +161,12 @@ export abstract class ThreedAbstractScene {
                     this.objects.push(child);
             }
         }
+    }
+
+    protected getRootObjectByChild(child: THREE.Object3D) : THREE.Object3D | undefined {
+        if(child.userData[this.ROOT_TAG]) return child;
+        else if(child.parent != null) return this.getRootObjectByChild(child.parent);
+        else return undefined;
     }
 
     public updateValue(value: ThreedSceneSettings): void {
@@ -212,7 +223,14 @@ export abstract class ThreedAbstractScene {
         if (scale) model.scene.scale.set(scale.x, scale.y, scale.z);
     }
 
-    public abstract onKeyDown(event: KeyboardEvent): void;
+    public onMouseMove(event: MouseEvent): void {
+        event.preventDefault();
 
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+    }
+
+    public abstract onKeyDown(event: KeyboardEvent): void;
     public abstract onKeyUp(event: KeyboardEvent): void;
+    public onMouseClick(event: MouseEvent): void { }
 }
