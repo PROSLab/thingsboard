@@ -10,6 +10,7 @@ import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { switchMap, map, mergeMap, catchError } from 'rxjs/operators';
 import { EntityInfo } from '@shared/models/entity.models';
 import { from, Observable, of } from 'rxjs';
+import { ThreedDeviceGroupSettings } from '@app/modules/home/components/widget/lib/settings/threed/threed-device-group-settings.component';
 
 /*
 export interface ThreedModelLoaderConfig {
@@ -78,9 +79,33 @@ export class ThreedModelLoaderService {
     return undefined;
   }
 
-  public loadModelAsUrl(config: ThreedUniversalModelLoaderConfig): Observable<{ entityId: string, base64: string }> {
+  public toEntityLoaders(settings: ThreedDeviceGroupSettings): EntityAliasAttribute | EntityInfoAttribute[] {
+    if (!settings.threedEntityAliasSettings?.entityAlias)
+      throw new Error("Entity alias not defined");
+
+    if (settings.useAttribute && settings.threedEntityKeySettings?.entityAttribute)
+      return {
+        entityAlias: settings.threedEntityAliasSettings.entityAlias,
+        entityAttribute: settings.threedEntityKeySettings.entityAttribute
+      } as EntityAliasAttribute;
+    else if (!settings.useAttribute && settings.threedObjectSettings) {
+      let enitytInfoAttributes: EntityInfoAttribute[] = [];
+      settings.threedObjectSettings.forEach(object => {
+        enitytInfoAttributes.push({
+          entity: object.entity,
+          entityAttribute: object.modelUrl
+        });
+      });
+
+      return enitytInfoAttributes;
+    }
+
+    return undefined;
+  }
+
+  public loadModelAsUrl(config: ThreedUniversalModelLoaderConfig): Observable<{ entityId: string | undefined, base64: string }> {
     if (this.isModelUrl(config.entityLoader)) {
-      return of({ entityId: config.entityLoader.entity?.id || "", base64: config.entityLoader.url });
+      return of({ entityId: config.entityLoader.entity?.id, base64: config.entityLoader.url });
     } else if (this.isEntityAliasAttribute(config.entityLoader)) {
       const entityAliasId = config.aliasController.getEntityAliasId(config.entityLoader.entityAlias);
       const entityAttribute = config.entityLoader.entityAttribute;
@@ -122,7 +147,7 @@ export class ThreedModelLoaderService {
     throw new Error("Invalid config");
   }
 
-  private getObservableModelFromEntityIdAndAttribute(entityId: EntityId, entityAttribute: string): Observable<{ entityId: string, base64: string }> {
+  private getObservableModelFromEntityIdAndAttribute(entityId: EntityId, entityAttribute: string): Observable<{ entityId: string | undefined, base64: string }> {
     return this.attributeService.getEntityAttributes(entityId, AttributeScope.SERVER_SCOPE, [entityAttribute])
       .pipe(
         map(attributes => {
@@ -134,7 +159,7 @@ export class ThreedModelLoaderService {
       );
   }
 
-  public loadModelAsGLTF(config: ThreedUniversalModelLoaderConfig): Observable<{ entityId: string, model: GLTF }> {
+  public loadModelAsGLTF(config: ThreedUniversalModelLoaderConfig): Observable<{ entityId: string | undefined, model: GLTF }> {
     return this.loadModelAsUrl(config).pipe(
       mergeMap(({ entityId, base64 }) => {
         return from(fetch(base64).then(res => res.arrayBuffer()).then(buffer => {

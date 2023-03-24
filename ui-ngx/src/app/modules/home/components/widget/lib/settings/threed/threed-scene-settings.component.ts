@@ -30,6 +30,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  ThreedDevicesSettings,
   ThreedModelSettings,
   ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
@@ -37,6 +38,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { IAliasController } from '@app/core/public-api';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { ThreedDeviceGroupSettings } from './threed-device-group-settings.component';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -102,6 +104,32 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
       this.updateValidators(true);
     });*/
 
+
+    this.threedSceneSettingsFormGroup.get("threedDevicesSettings").valueChanges.subscribe((newValues: ThreedDevicesSettings) => {
+      if (newValues == null) return;
+
+      console.log(newValues);
+      newValues.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
+
+        const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
+        if (loaders instanceof Array) {
+          loaders.forEach(entityInfoAttribute => {
+            const config: ThreedUniversalModelLoaderConfig = {
+              entityLoader: entityInfoAttribute,
+              aliasController: this.aliasController
+            }
+            this.loadModel(config);
+          })
+        } else {
+          const config: ThreedUniversalModelLoaderConfig = {
+            entityLoader: loaders,
+            aliasController: this.aliasController
+          }
+          this.loadModel(config);
+        }
+      });
+    });
+
     this.threedSceneSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
@@ -134,8 +162,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     if (!config.entityLoader) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      // TODO replaceModel(res);
-      this.threedSceneEditor.replaceModel(res.model, res.entityId);
+      this.threedSceneEditor.replaceModel(res.model, res.entityId || "Environment");
     });
   }
 

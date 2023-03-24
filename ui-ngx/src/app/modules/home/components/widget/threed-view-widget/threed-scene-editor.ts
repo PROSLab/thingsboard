@@ -58,8 +58,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
             this.scene.add(this.boxHelper);
         }
 
-        this.boxHelper.remove();
-        this.boxHelper.attach(root);
+        this.boxHelper.setFromObject(root);
+    }
+
+    protected override onRemoveModel(gltf: GLTF, id: string): void {
+        super.onRemoveModel(gltf, id);
+
+        this.transformControl.detach();
     }
 
     protected tick(): void {

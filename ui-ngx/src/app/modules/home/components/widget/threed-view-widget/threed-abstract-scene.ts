@@ -102,23 +102,31 @@ export abstract class ThreedAbstractScene {
     protected addModel(model: GLTF, id?: string): void {
         const root = model.scene;
         this.models.set(id || root.uuid, model);
+        console.log("addModel", id || root.uuid, this.models);
+        this.scene!.add(root);
         this.setValues();
 
-        this.scene!.add(root);
         this.recalculateSceneObjects();
 
         this.render();
     }
 
     public removeModel(id: string, calculateSceneObjects: boolean = true): void {
+        console.log("removeModel", id, this.models, this.models.has(id));
         if (!this.models.has(id)) return;
 
-        this.scene!.remove(this.models.get(id).scene);
+        const gltf = this.models.get(id);
+        this.onRemoveModel(gltf, id);
+        const parent = gltf.scene.parent;
+        parent.remove(gltf.scene);
+        this.models.delete(id);
 
         if (calculateSceneObjects) {
             this.recalculateSceneObjects();
         }
     }
+
+    protected onRemoveModel(gltf: GLTF, id: string) { }
 
     private recalculateSceneObjects(): void {
         this.objects = [];
@@ -161,9 +169,13 @@ export abstract class ThreedAbstractScene {
         const rotation = this.settingsValue.threedRotationVectorSettings;
         const scale = this.settingsValue.threedScaleVectorSettings;
 
-        model.scene.position.set(position.x, position.y, position.z);
-        model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
-        model.scene.scale.set(scale.x, scale.y, scale.z);
+        console.log("setValues", model, position, rotation, scale);
+
+        if (position) model.scene.position.set(position.x, position.y, position.z);
+        if (rotation) model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+        if (scale) model.scene.scale.set(scale.x, scale.y, scale.z);
+
+        this.render();
     }
 
     public abstract onKeyDown(event: KeyboardEvent): void;
