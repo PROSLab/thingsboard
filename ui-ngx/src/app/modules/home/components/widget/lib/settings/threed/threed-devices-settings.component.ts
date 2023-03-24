@@ -35,6 +35,7 @@ import { IAliasController } from '@app/core/public-api';
 import { ThreedDevicesSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
 import { defaultThreedDeviceGroupSettings, ThreedDeviceGroupSettings } from './threed-device-group-settings.component';
 import { ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
+import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
 @Component({
   selector: 'tb-threed-devices-settings',
@@ -58,6 +59,9 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
 
   @Input()
   aliasController: IAliasController;
+
+  @Input()
+  threedSceneEditor: ThreedSceneEditor;
 
   @Input()
   disabled: boolean;

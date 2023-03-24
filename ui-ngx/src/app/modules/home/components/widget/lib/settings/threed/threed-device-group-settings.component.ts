@@ -37,6 +37,7 @@ import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './ali
 import { EntityInfo } from '@app/shared/public-api';
 import { ThreedObjectSettings } from './threed-object-settings.component';
 import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '../../../threed-view-widget/threed-models';
+import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
 export interface ThreedDeviceGroupSettings {
   threedEntityAliasSettings: ThreedEntityAliasSettings;
@@ -77,6 +78,9 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   @Input()
   aliasController: IAliasController;
 
+  @Input()
+  threedSceneEditor: ThreedSceneEditor;
+
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;
 
@@ -90,6 +94,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   public threedDeviceGroupFormGroup: FormGroup;
 
   public entityAttribute?: string;
+  public entityAlias?: string;
   private lastEntityKeySettings?: ThreedEntityKeySettings;
 
   constructor(protected store: Store<AppState>,
@@ -226,11 +231,13 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
       this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').enable({ emitEvent });
       this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').setValue({ entityAttribute: this.lastEntityKeySettings?.entityAttribute || "" }, { emitEvent });
       this.entityAttribute = this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').value.entityAttribute;
+      this.entityAlias = this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value.entityAlias;
     } else {
       this.lastEntityKeySettings = this.modelValue?.threedEntityKeySettings;
       this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').disable({ emitEvent });
       this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').setValue({ entityAttribute: null }, { emitEvent });
       this.entityAttribute = null;
+      this.entityAlias = null;
     }
 
     this.threedDeviceGroupFormGroup.get('threedEntityKeySettings').updateValueAndValidity({ emitEvent });
@@ -245,9 +252,11 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     const entityAliasId = this.aliasController.getEntityAliasId(threedEntityAliasSettings.entityAlias);
     if (entityAliasId == null) {
       (this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray).clear();
+      this.entityAlias = null;
       return;
     }
 
+    this.entityAlias = threedEntityAliasSettings.entityAlias;
     this.aliasController.resolveEntitiesInfo(entityAliasId).subscribe(eis => {
       eis.forEach(e => this.addObjectIfNotExists(e))
     });

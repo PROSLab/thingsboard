@@ -2,7 +2,7 @@ import { ElementRef, HostListener } from '@angular/core';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
-    ThreedSceneSettings, ThreedViewWidgetSettings,
+    ThreedSceneSettings, ThreedVectorSettings, ThreedViewWidgetSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
@@ -18,6 +18,8 @@ export abstract class ThreedAbstractScene {
     protected models: Map<string, GLTF> = new Map();
     protected objects: Object3D[] = [];
     protected settingsValue?: ThreedSceneSettings;
+
+    protected readonly OBJECT_ID = "customId";
 
     constructor(canvas?: ElementRef) {
         this.rendererContainer = canvas;
@@ -101,8 +103,11 @@ export abstract class ThreedAbstractScene {
 
     protected addModel(model: GLTF, id?: string): void {
         const root = model.scene;
-        this.models.set(id || root.uuid, model);
-        console.log("addModel", id || root.uuid, this.models);
+        const customId = id || root.uuid
+        model.userData[this.OBJECT_ID] = customId;
+        root.userData[this.OBJECT_ID] = customId;
+        this.models.set(customId, model);
+        console.log("addModel", customId, this.models);
         this.scene!.add(root);
         this.setValues();
 
@@ -161,21 +166,48 @@ export abstract class ThreedAbstractScene {
 
     private setValues() {
         // TODO: this.models.get(this.settingsValue.models[0].uuid) ...
+        // TODO:update only the changed model...
         if (this.models.size == 0 || !this.settingsValue) return;
 
-        const [model] = this.models.values();
+        this.setEnvironmentValues();
+        this.setDevicesValues();
 
-        const position = this.settingsValue.threedPositionVectorSettings;
-        const rotation = this.settingsValue.threedRotationVectorSettings;
-        const scale = this.settingsValue.threedScaleVectorSettings;
+        this.render();
+    }
 
-        console.log("setValues", model, position, rotation, scale);
+    private setEnvironmentValues() {
+        const environmentSettings = this.settingsValue.threedEnvironmentSettings?.objectSettings;
+        if (!environmentSettings) return;
+
+        this.updateModelTransforms(environmentSettings.entity.id, environmentSettings);
+    }
+
+    private setDevicesValues() {
+        const devicesSettings = this.settingsValue.threedDevicesSettings;
+        if (!devicesSettings || devicesSettings.threedDeviceGroupSettings) return;
+
+        devicesSettings.threedDeviceGroupSettings.forEach(deviceGroup => {
+            const objectsSettings = deviceGroup.threedObjectSettings;
+            if (objectsSettings) {
+                objectsSettings.forEach(objectSettings => {
+                    this.updateModelTransforms(objectSettings.entity.id, objectSettings);
+                });
+            }
+        });
+    }
+
+    private updateModelTransforms(id: string,
+        settings: { threedPositionVectorSettings: ThreedVectorSettings, threedRotationVectorSettings: ThreedVectorSettings, threedScaleVectorSettings: ThreedVectorSettings }) {
+        const model = this.models.get(id);
+        if (!model) return;
+
+        const position = settings.threedPositionVectorSettings;
+        const rotation = settings.threedRotationVectorSettings;
+        const scale = settings.threedScaleVectorSettings;
 
         if (position) model.scene.position.set(position.x, position.y, position.z);
         if (rotation) model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
         if (scale) model.scene.scale.set(scale.x, scale.y, scale.z);
-
-        this.render();
     }
 
     public abstract onKeyDown(event: KeyboardEvent): void;

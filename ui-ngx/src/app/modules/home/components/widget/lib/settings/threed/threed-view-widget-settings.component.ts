@@ -42,7 +42,6 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   protected defaultSettings(): WidgetSettings {    
     return {
       hexColor: 0xff0000,
-      threedModelSettings: defaultThreedModelSettings,
       threedSceneSettings: defaultThreedSceneSettings
     };
   }
@@ -54,7 +53,6 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
 
     this.threedViewWidgetSettingsForm = this.fb.group({
       hexColor: [t_settings.hexColor, [Validators.required]],
-      threedModelSettings: [t_settings.threedModelSettings, []],
       threedSceneSettings: [t_settings.threedSceneSettings, []],
     });
   }

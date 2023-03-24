@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
+  ThreedEnvironmentSettings,
   ThreedModelSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { IAliasController } from '@core/api/widget-api.models';
@@ -26,24 +27,20 @@ export interface ThreedUrlModelLoaderConfig {
 */
 
 export interface ThreedUniversalModelLoaderConfig {
-  entityLoader: ModelUrl | EntityAliasAttribute | EntityInfoAttribute;
+  entityLoader: ModelUrl | EntityAliasAttribute;
 
   aliasController: IAliasController;
 }
 
 export interface ModelUrl {
-  entity?: EntityInfo;
   url: string;
+  entity?: EntityInfo;
 }
 
 export interface EntityAliasAttribute {
   entityAlias: string;
   entityAttribute: string;
-}
-
-export interface EntityInfoAttribute {
-  entity: EntityInfo;
-  entityAttribute: string;
+  entity?: EntityInfo;
 }
 
 @Injectable({
@@ -63,10 +60,7 @@ export class ThreedModelLoaderService {
     return 'entityAlias' in obj && 'entityAttribute' in obj;
   }
 
-  private isEntityInfoAttribute(obj: any): obj is EntityInfoAttribute {
-    return 'entity' in obj && 'entityAttribute' in obj;
-  }
-
+  /*
   public toEntityLoader(settings: ThreedModelSettings): ModelUrl | EntityAliasAttribute | undefined {
     if (settings.modelUrl)
       return { url: settings.modelUrl } as ModelUrl;
@@ -77,23 +71,46 @@ export class ThreedModelLoaderService {
       } as EntityAliasAttribute;
 
     return undefined;
-  }
+  }*/
 
-  public toEntityLoaders(settings: ThreedDeviceGroupSettings): EntityAliasAttribute | EntityInfoAttribute[] {
-    if (!settings.threedEntityAliasSettings?.entityAlias)
-      throw new Error("Entity alias not defined");
+  public toEntityLoader(settings: ThreedEnvironmentSettings): ModelUrl | EntityAliasAttribute | undefined {
 
-    if (settings.useAttribute && settings.threedEntityKeySettings?.entityAttribute)
+    if (!settings.useAlias && settings.objectSettings.modelUrl)
+      return {
+        url: settings.objectSettings.modelUrl,
+        entity: settings.objectSettings.entity
+      } as ModelUrl;
+    else if (settings.useAlias && settings.threedEntityAliasSettings?.entityAlias && settings.threedEntityKeySettings?.entityAttribute)
       return {
         entityAlias: settings.threedEntityAliasSettings.entityAlias,
         entityAttribute: settings.threedEntityKeySettings.entityAttribute
       } as EntityAliasAttribute;
+
+    return undefined;
+  }
+
+  public toEntityLoaders(settings: ThreedDeviceGroupSettings): (ModelUrl | EntityAliasAttribute)[] | undefined {
+    if (!settings.threedEntityAliasSettings?.entityAlias)
+      throw new Error("Entity alias not defined");
+
+    if (settings.useAttribute && settings.threedEntityKeySettings?.entityAttribute) {
+      let enitytInfoAttributes: EntityAliasAttribute[] = [];
+      settings.threedObjectSettings.forEach(object => {
+        enitytInfoAttributes.push({
+          entityAlias: settings.threedEntityAliasSettings.entityAlias,
+          entityAttribute: settings.threedEntityKeySettings.entityAttribute,
+          entity: object.entity
+        });
+      });
+
+      return enitytInfoAttributes;
+    }
     else if (!settings.useAttribute && settings.threedObjectSettings) {
-      let enitytInfoAttributes: EntityInfoAttribute[] = [];
+      let enitytInfoAttributes: ModelUrl[] = [];
       settings.threedObjectSettings.forEach(object => {
         enitytInfoAttributes.push({
           entity: object.entity,
-          entityAttribute: object.modelUrl
+          url: object.modelUrl
         });
       });
 
@@ -107,41 +124,32 @@ export class ThreedModelLoaderService {
     if (this.isModelUrl(config.entityLoader)) {
       return of({ entityId: config.entityLoader.entity?.id, base64: config.entityLoader.url });
     } else if (this.isEntityAliasAttribute(config.entityLoader)) {
-      const entityAliasId = config.aliasController.getEntityAliasId(config.entityLoader.entityAlias);
-      const entityAttribute = config.entityLoader.entityAttribute;
-      let entityId: EntityId;
-      return config.aliasController.resolveSingleEntityInfo(entityAliasId).pipe(
-        switchMap((r: EntityInfo) => {
-          entityId = {
-            entityType: r.entityType,
-            id: r.id
-          };
-          return this.getObservableModelFromEntityIdAndAttribute(entityId, entityAttribute);
-        })
-        /*
-        switchMap((r: EntityInfo) => {
-          //console.log(r);
-          entityId = {
-            entityType: r.entityType,
-            id: r.id
-          };
-          return this.attributeService.getEntityAttributes(entityId, AttributeScope.SERVER_SCOPE, [entityAttribute]);
-        }),
-        map(attributes => {
-          if (!attributes || attributes.length == 0)
-            throw new Error("Invalid attribute");
 
-          return { entityId: entityId.id || "", base64: attributes[0].value }
-        })*/
-      );
-    } else if (this.isEntityInfoAttribute(config.entityLoader)) {
-      const entityId: EntityId = {
-        entityType: config.entityLoader.entity.entityType,
-        id: config.entityLoader.entity.id
-      };
-      const entityAttribute = config.entityLoader.entityAttribute;
+      if (config.entityLoader.entity) {
 
-      return this.getObservableModelFromEntityIdAndAttribute(entityId, entityAttribute);
+        const entityId: EntityId = {
+          entityType: config.entityLoader.entity.entityType,
+          id: config.entityLoader.entity.id
+        };
+        const entityAttribute = config.entityLoader.entityAttribute;
+        return this.getObservableModelFromEntityIdAndAttribute(entityId, entityAttribute);
+
+      } else {
+
+        const entityAliasId = config.aliasController.getEntityAliasId(config.entityLoader.entityAlias);
+        const entityAttribute = config.entityLoader.entityAttribute;
+        let entityId: EntityId;
+        return config.aliasController.resolveSingleEntityInfo(entityAliasId).pipe(
+          switchMap((r: EntityInfo) => {
+            entityId = {
+              entityType: r.entityType,
+              id: r.id
+            };
+            return this.getObservableModelFromEntityIdAndAttribute(entityId, entityAttribute);
+          })
+        );
+
+      }
     }
 
     throw new Error("Invalid config");

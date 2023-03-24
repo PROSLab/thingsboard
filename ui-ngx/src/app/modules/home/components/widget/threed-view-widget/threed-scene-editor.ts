@@ -10,9 +10,9 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
     private transformControl?: TransformControls;
     private boxHelper?: BoxHelper;
 
-    public positionChanged = new EventEmitter<Vector3>();
-    public rotationChanged = new EventEmitter<Vector3>();
-    public scaleChanged = new EventEmitter<Vector3>();
+    public positionChanged = new EventEmitter<{id: string, vector: Vector3}>();
+    public rotationChanged = new EventEmitter<{id: string, vector: Vector3}>();
+    public scaleChanged = new EventEmitter<{id: string, vector: Vector3}>();
 
     constructor(canvas?: ElementRef) {
         super(canvas);
@@ -26,6 +26,8 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         this.transformControl.addEventListener('dragging-changed', (event) => {
             this.orbit.enabled = !event.value;
             if (this.orbit.enabled) {
+                const obj = this.transformControl.object;
+                const id = obj.userData[this.OBJECT_ID]
                 const newPosition = this.transformControl.object?.position;
                 const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
                 const newRotation = new THREE.Vector3(
@@ -35,9 +37,9 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
                 );
                 const newScale = this.transformControl.object?.scale;
 
-                this.positionChanged.emit(newPosition);
-                this.rotationChanged.emit(newRotation);
-                this.scaleChanged.emit(newScale);
+                this.positionChanged.emit({id, vector: newPosition});
+                this.rotationChanged.emit({id, vector: newRotation});
+                this.scaleChanged.emit({id, vector: newScale});
 
                 //console.log(newPosition, newRotation, newScale);
             }
@@ -48,7 +50,8 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
     protected override addModel(model: GLTF, id?: string): void {
         super.addModel(model, id);
 
-        const root = this.models.get(id || model.scene.uuid).scene;
+        const customId = id || model.scene.uuid;
+        const root = this.models.get(customId).scene;
 
         this.transformControl.detach();
         this.transformControl.attach(root);

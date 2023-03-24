@@ -1,24 +1,34 @@
+import { ThreedEntityAliasSettings } from "../lib/settings/threed/aliases/threed-entity-alias-settings.component";
+import { ThreedEntityKeySettings } from "../lib/settings/threed/aliases/threed-entity-key-settings.component";
 import { ThreedDeviceGroupSettings } from "../lib/settings/threed/threed-device-group-settings.component";
+import { ThreedObjectSettings } from "../lib/settings/threed/threed-object-settings.component";
 
 export interface ThreedViewWidgetSettings {
     hexColor: number;
-    threedModelSettings: ThreedModelSettings;
+    //threedModelSettings: ThreedModelSettings;
     threedSceneSettings: ThreedSceneSettings;
 }
 
 
-export const defaultThreedModelSettings: ThreedModelSettings = {
-    modelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
-    modelEntityAlias: '',
-    modelUrlAttribute: ''
-};
+
 export interface ThreedModelSettings {
     modelUrl?: string;
     modelEntityAlias?: string;
     modelUrlAttribute?: string;
 }
+export const defaultThreedModelSettings: ThreedModelSettings = {
+    modelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+    modelEntityAlias: '',
+    modelUrlAttribute: ''
+};
 
 
+
+export interface ThreedVectorSettings {
+    x: number;
+    y: number;
+    z: number;
+}
 export const defaultThreedVectorZeroSettings: ThreedVectorSettings = {
     x: 0,
     y: 0,
@@ -29,26 +39,44 @@ export const defaultThreedVectorOneSettings: ThreedVectorSettings = {
     y: 1,
     z: 1
 };
-export interface ThreedVectorSettings {
-    x: number;
-    y: number;
-    z: number;
+
+
+
+export interface ThreedEnvironmentSettings {
+    threedEntityAliasSettings: ThreedEntityAliasSettings;
+    threedEntityKeySettings: ThreedEntityKeySettings;
+    useAlias: boolean;
+    objectSettings: ThreedObjectSettings;
+}
+export const defaultThreedEnvironmentSettings: ThreedEnvironmentSettings = {
+    threedEntityAliasSettings: { entityAlias: "" },
+    useAlias: false,
+    threedEntityKeySettings: { entityAttribute: "" },
+    objectSettings: null
 }
 
-export const defaultThreedSceneSettings: ThreedSceneSettings = {
-    threedScaleVectorSettings: defaultThreedVectorOneSettings,
-    threedPositionVectorSettings: defaultThreedVectorZeroSettings,
-    threedRotationVectorSettings: defaultThreedVectorZeroSettings,
-};
-export interface ThreedSceneSettings {
-    threedScaleVectorSettings: ThreedVectorSettings,
-    threedPositionVectorSettings: ThreedVectorSettings,
-    threedRotationVectorSettings: ThreedVectorSettings
-}
 
-export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
-    threedDeviceGroupSettings: [],
-};
+
 export interface ThreedDevicesSettings {
     threedDeviceGroupSettings: ThreedDeviceGroupSettings[];
 }
+export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
+    threedDeviceGroupSettings: [],
+};
+
+
+
+export interface ThreedSceneSettings {
+    /*threedScaleVectorSettings: ThreedVectorSettings,
+    threedPositionVectorSettings: ThreedVectorSettings,
+    threedRotationVectorSettings: ThreedVectorSettings*/
+    threedEnvironmentSettings: ThreedEnvironmentSettings,
+    threedDevicesSettings: ThreedDevicesSettings,
+}
+export const defaultThreedSceneSettings: ThreedSceneSettings = {
+    /*threedScaleVectorSettings: defaultThreedVectorOneSettings,
+    threedPositionVectorSettings: defaultThreedVectorZeroSettings,
+    threedRotationVectorSettings: defaultThreedVectorZeroSettings,*/
+    threedEnvironmentSettings: defaultThreedEnvironmentSettings,
+    threedDevicesSettings: defaultThreedDevicesSettings,
+};

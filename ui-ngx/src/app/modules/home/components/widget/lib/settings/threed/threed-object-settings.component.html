@@ -16,7 +16,7 @@
 
 -->
 <section class="tb-widget-settings" [formGroup]="threedObjectSettingsFormGroup">
-    <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;" type="button" (click)="removeObject.emit()"
+    <button *ngIf="!disabled && deletable" mat-icon-button style="min-width: 40px;" type="button" (click)="removeObject.emit()"
         matTooltip="{{ 'action.remove' | translate }}" matTooltipPosition="above">
         <mat-icon>delete</mat-icon>
     </button>

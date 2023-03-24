@@ -31,6 +31,7 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import {
   ThreedDevicesSettings,
+  ThreedEnvironmentSettings,
   ThreedModelSettings,
   ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
@@ -76,14 +77,13 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
   public threedSceneSettingsFormGroup: FormGroup;
 
-  private threedSceneEditor: ThreedSceneEditor;
+  public threedSceneEditor: ThreedSceneEditor;
   private isVisible: boolean = false;
   fullscreen: boolean = false;
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
     private fb: FormBuilder,
-    private dialog: MatDialog,
     private threedModelLoader: ThreedModelLoaderService,
     private renderer2: Renderer2) {
     super(store);
@@ -93,76 +93,28 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
   ngOnInit(): void {
     this.threedSceneSettingsFormGroup = this.fb.group({
-      threedPositionVectorSettings: [null, []],
-      threedRotationVectorSettings: [null, []],
-      threedScaleVectorSettings: [null, []],
+      threedEnvironmentSettings: [null, []],
       threedDevicesSettings: [null, []],
     });
 
-    /*
-    this.threedSceneSettingsFormGroup.get('threedScaleVectorSettings').valueChanges.subscribe(() => {
-      this.updateValidators(true);
-    });*/
-
-
     this.threedSceneSettingsFormGroup.get("threedDevicesSettings").valueChanges.subscribe((newValues: ThreedDevicesSettings) => {
-      if (newValues == null) return;
+      this.updateSceneModels(newValues);
+    });
 
-      console.log(newValues);
-      newValues.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
-
-        const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
-        if (loaders instanceof Array) {
-          loaders.forEach(entityInfoAttribute => {
-            const config: ThreedUniversalModelLoaderConfig = {
-              entityLoader: entityInfoAttribute,
-              aliasController: this.aliasController
-            }
-            this.loadModel(config);
-          })
-        } else {
-          const config: ThreedUniversalModelLoaderConfig = {
-            entityLoader: loaders,
-            aliasController: this.aliasController
-          }
-          this.loadModel(config);
-        }
-      });
+    this.threedSceneSettingsFormGroup.get("threedEnvironmentSettings").valueChanges.subscribe((newValue: ThreedEnvironmentSettings) => {
+      this.updateSceneModels(newValue);
     });
 
     this.threedSceneSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
-
-    this.threedSceneEditor.positionChanged.subscribe(v => this.threedSceneSettingsFormGroup.get("threedPositionVectorSettings").setValue(v));
-    this.threedSceneEditor.rotationChanged.subscribe(v => this.threedSceneSettingsFormGroup.get("threedRotationVectorSettings").setValue(v));
-    this.threedSceneEditor.scaleChanged.subscribe(v => this.threedSceneSettingsFormGroup.get("threedScaleVectorSettings").setValue(v));
-
-
-    if (this.threedModelSettingsFormGroup) {
-      let lastSettings: ThreedModelSettings = this.threedModelSettingsFormGroup.value;
-
-      const config: ThreedUniversalModelLoaderConfig = {
-        entityLoader: this.threedModelLoader.toEntityLoader(lastSettings),
-        aliasController: this.aliasController
-      }
-      this.loadModel(config);
-
-      this.threedModelSettingsFormGroup.valueChanges.subscribe((newSettings: ThreedModelSettings) => {
-        if (lastSettings != newSettings) {
-          lastSettings = newSettings;
-          config.entityLoader = this.threedModelLoader.toEntityLoader(lastSettings);
-          this.loadModel(config);
-        }
-      });
-    }
   }
 
-  private loadModel(config: ThreedUniversalModelLoaderConfig) {
+  private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {
     if (!config.entityLoader) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedSceneEditor.replaceModel(res.model, res.entityId || "Environment");
+      this.threedSceneEditor.replaceModel(res.model, id ? id : res.entityId);
     });
   }
 
@@ -213,6 +165,9 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.threedSceneSettingsFormGroup.patchValue(
       this.modelValue, { emitEvent: false }
     );
+
+    this.updateSceneModels(value.threedEnvironmentSettings);
+    this.updateSceneModels(value.threedDevicesSettings);
     //this.updateValidators(false);
   }
 
@@ -225,16 +180,30 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.propagateChange(this.modelValue);
   }
 
-  /*
-  private updateValidators(emitEvent?: boolean): void {
+  private updateSceneModels(newSettings: ThreedDevicesSettings | ThreedEnvironmentSettings) {
+    if (newSettings == null) return;
+    
+    // must be called ONLY when the model effectively changed (not when properties like pos, rot, scale, attr...changes)
+    if ("threedDeviceGroupSettings" in newSettings) {
+      newSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
+        const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
+        loaders.forEach(entityLoader => {
+          const config: ThreedUniversalModelLoaderConfig = {
+            entityLoader,
+            aliasController: this.aliasController
+          }
+          this.loadModel(config);
+        })
+      });
+    } else {
+      const config: ThreedUniversalModelLoaderConfig = {
+        entityLoader: this.threedModelLoader.toEntityLoader(newSettings),
+        aliasController: this.aliasController
+      }
 
-    //See .../settings/map/map-settings.component.ts
-
-    //this.threedSceneSettingsFormGroup.get('threedScaleVectorSettings').updateValueAndValidity({emitEvent});
-    //this.threedSceneSettingsFormGroup.get('threedPositionVectorSettings').updateValueAndValidity({emitEvent});
-    //this.threedSceneSettingsFormGroup.get('threedRotationVectorSettings').updateValueAndValidity({emitEvent});
+      this.loadModel(config, "Environment");
+    }
   }
-  */
 
   public enterFullscreen() {
     this.rendererContainer.nativeElement.requestFullscreen();

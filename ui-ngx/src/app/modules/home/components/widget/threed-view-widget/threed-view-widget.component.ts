@@ -87,6 +87,9 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   private loadModel() {
+    return;
+    // TODO:
+    /*
     let config: ThreedUniversalModelLoaderConfig = {
       entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedModelSettings),
       aliasController: this.ctx.aliasController
@@ -94,8 +97,11 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
       this.threedNavigateScene.addModel(res.model, res.entityId, true);
-      (this.settings.threedModelSettings as any).uuid = res.model.scene.uuid;
+
+      // TODO:
+      // (this.settings.threedModelSettings as any).uuid = res.model.scene.uuid;
     });
+    */
   }
 
   ngAfterViewInit() {
@@ -132,7 +138,9 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       //console.log(replaceInfoTooltipMarker);
       const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
       //console.log(content);
-      this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
+
+      // TODO:
+      //this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
     });
 
     //this.updateMarkers(formattedData, false, markerClickCallback);

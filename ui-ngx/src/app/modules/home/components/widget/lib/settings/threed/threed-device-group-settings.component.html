@@ -43,8 +43,13 @@
         <fieldset class="fields-group">
             <legend class="group-title">{{objectControl.value.entity.name}} settings</legend>
             <div fxLayout="column">
-                <tb-threed-object-settings [aliasController]="aliasController" [formControl]="objectControl"
-                    [entityAttribute]="entityAttribute" (removeObject)="removeObject($index)">
+                <tb-threed-object-settings 
+                    [threedSceneEditor]="threedSceneEditor"
+                    [aliasController]="aliasController" 
+                    [formControl]="objectControl"
+                    [entityAttribute]="entityAttribute" 
+                    [entityAlias]="entityAlias"
+                    (removeObject)="removeObject($index)">
                 </tb-threed-object-settings>
             </div>
         </fieldset>

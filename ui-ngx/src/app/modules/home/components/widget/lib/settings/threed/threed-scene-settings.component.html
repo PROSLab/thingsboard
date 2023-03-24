@@ -60,16 +60,15 @@
             </div>
         </div>
 
+        <tb-threed-environment-settings 
+            [threedSceneEditor]="threedSceneEditor"
+            [aliasController]="aliasController" 
+            formControlName="threedEnvironmentSettings">
+        </tb-threed-environment-settings>
 
-        <tb-threed-vector-settings label="Position"
-            formControlName="threedPositionVectorSettings"></tb-threed-vector-settings>
-        <tb-threed-vector-settings label="Rotation"
-            formControlName="threedRotationVectorSettings"></tb-threed-vector-settings>
-        <tb-threed-vector-settings label="Scale"
-            formControlName="threedScaleVectorSettings"></tb-threed-vector-settings>
-
-        <tb-threed-devices-settings
-            [aliasController]="aliasController"
+        <tb-threed-devices-settings 
+            [threedSceneEditor]="threedSceneEditor"
+            [aliasController]="aliasController" 
             formControlName="threedDevicesSettings">
         </tb-threed-devices-settings>
     </fieldset>

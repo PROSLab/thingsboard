@@ -276,6 +276,7 @@ import { ThreedEntityAliasSettingsComponent } from '@home/components/widget/lib/
 import { ThreedEntityKeySettingsComponent } from '@home/components/widget/lib/settings//threed/aliases/threed-entity-key-settings.component';
 import { ThreedDeviceGroupSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-device-group-settings.component';
 import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-object-settings.component';
+import { ThreedEnvironmentSettingsComponent } from './threed/threed-environment-settings.component';
 
 @NgModule({
   declarations: [
@@ -384,6 +385,7 @@ import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/setti
     ThreedEntityKeySettingsComponent,
     ThreedDeviceGroupSettingsComponent,
     ThreedObjectSettingsComponent,
+    ThreedEnvironmentSettingsComponent,
   ],
   imports: [
     CommonModule,

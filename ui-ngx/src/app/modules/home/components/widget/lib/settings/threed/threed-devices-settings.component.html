@@ -27,6 +27,7 @@
                 <div fxLayout="column" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
 
                     <tb-threed-device-group-settings
+                        [threedSceneEditor]="threedSceneEditor"
                         [aliasController]="aliasController"
                         [formControl]="deviceGroupControl"
                         (removeDeviceGroup)="removeDeviceGroup($index)">

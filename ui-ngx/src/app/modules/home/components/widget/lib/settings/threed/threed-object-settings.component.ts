@@ -29,10 +29,11 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@core/api/widget-api.models';
-import { ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { EntityInfo } from '@app/shared/public-api';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
+import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
 export interface ThreedObjectSettings {
   entity: EntityInfo;
@@ -68,10 +69,22 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   disabled: boolean;
 
   @Input()
+  deletable: boolean = true;
+
+  @Input()
   aliasController: IAliasController;
 
   @Input()
   entityAttribute?: string;
+
+  @Input()
+  entityAlias?: string;
+
+  @Input()
+  threedSceneEditor: ThreedSceneEditor;
+
+  @Input()
+  customObjectId?: string;
 
   @Output()
   removeObject = new EventEmitter();
@@ -81,9 +94,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   private propagateChange = null;
 
   public threedObjectSettingsFormGroup: FormGroup;
-
-  private lastEntityAttribute?: string;
-
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -96,19 +106,27 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     this.threedObjectSettingsFormGroup = this.fb.group({
       entity: [null, []],
       modelUrl: [null, []],
-      threedPositionVectorSettings: [null, []],
-      threedRotationVectorSettings: [null, []],
-      threedScaleVectorSettings: [null, []],
+      threedPositionVectorSettings: [defaultThreedVectorZeroSettings, []],
+      threedRotationVectorSettings: [defaultThreedVectorZeroSettings, []],
+      threedScaleVectorSettings: [defaultThreedVectorOneSettings, []],
     });
     this.threedObjectSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+
+    this.threedSceneEditor.positionChanged.subscribe(v => this.updateObjectVector(v, "threedPositionVectorSettings"));
+    this.threedSceneEditor.rotationChanged.subscribe(v => this.updateObjectVector(v, "threedRotationVectorSettings"));
+    this.threedSceneEditor.scaleChanged.subscribe(v => this.updateObjectVector(v, "threedScaleVectorSettings"));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
     if (changes.entityAttribute) {
       this.entityAttribute = changes.entityAttribute.currentValue;
-
+      this.entityAttributeChanged();
+    }
+    if(changes.entityAlias){
+      this.entityAlias = changes.entityAlias.currentValue;
       this.entityAttributeChanged();
     }
   }
@@ -170,17 +188,25 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   private tryLoadModel() {
-    if (!this.modelValue?.entity || !this.entityAttribute) return;
+    console.log(this.modelValue);
+    if (!this.modelValue?.entity || !this.entityAttribute || !this.entityAlias) return;
 
     const config: ThreedUniversalModelLoaderConfig = {
       entityLoader: {
         entity: this.modelValue.entity,
-        entityAttribute: this.entityAttribute
+        entityAlias: this.entityAlias,
+        entityAttribute: this.entityAttribute,
       },
       aliasController: this.aliasController
     };
     this.loader.loadModelAsUrl(config).subscribe(url => {
       this.modelInput?.writeValue(url.base64);
     });
+  }
+
+  private updateObjectVector(objectVector: any, formName: string) {
+    console.log("updateObjectVector", objectVector, formName);
+    if (objectVector.id == (this.customObjectId || this.modelValue?.entity?.id))
+      this.threedObjectSettingsFormGroup.get(formName).setValue(objectVector.vector);
   }
 }
