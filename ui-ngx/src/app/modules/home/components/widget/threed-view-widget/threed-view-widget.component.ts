@@ -78,6 +78,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   ngOnInit(): void {
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
+    console.log(this.settings);
 
     this.threedNavigateScene.updateValue(this.settings.threedSceneSettings);
     this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
@@ -139,27 +140,30 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
     const data = this.ctx.data;
     let formattedData = formattedDataFormDatasourceData(data);
-    //console.log("formattedData", formattedData);
     if (this.ctx.latestData && this.ctx.latestData.length) {
       const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
       formattedData = mergeFormattedData(formattedData, formattedLatestData);
       //console.log("formattedData first if", formattedData);
-
+      
     }
+    
+    console.log(formattedData);
 
-    //const pattern = this.settings.tooltipPattern;
-    const pattern = "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>";
-    formattedData.forEach(fd => {
-      //const markerTooltipText = parseWithTranslation.prepareProcessPattern(pattern, false);
-      //console.log(markerTooltipText);
-      const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
-      //console.log(replaceInfoTooltipMarker);
-      const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
-      //console.log(content);
+    if (this.settings.threedTooltipSettings.showTooltip) {
+      const pattern = this.settings.threedTooltipSettings.tooltipPattern;
+      //const pattern = "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>";
+      formattedData.forEach(fd => {
+        //const markerTooltipText = parseWithTranslation.prepareProcessPattern(pattern, false);
+        //console.log(markerTooltipText);
+        const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
+        //console.log(replaceInfoTooltipMarker);
+        const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
+        //console.log(content);
 
-      this.threedNavigateScene.updateLabelContent("Environment", content);
-      // this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
-    });
+        this.threedNavigateScene.updateLabelContent(fd.entityId || "Environment", content);
+        // this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
+      });
+    }
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
   }

@@ -252,7 +252,6 @@ export abstract class ThreedAbstractScene {
 
         if (this.mouse.x < 1 && this.mouse.x > -1 && this.mouse.y < 1 && this.mouse.y > -1) {
             event.preventDefault();
-            console.log(this.mouse);
         }
     }
 }

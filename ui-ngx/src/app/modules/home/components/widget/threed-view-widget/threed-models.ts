@@ -77,7 +77,7 @@ export interface ThreedTooltipSettings {
 export const defaultThreedTooltipSettings: ThreedTooltipSettings = {
     showTooltip: true,
     showTooltipAction: 'hover',
-    tooltipPattern: "",
+    tooltipPattern: '<b>${entityName}</b>',
     tooltipOffsetX: 0,
     tooltipOffsetY: 0,
 }
