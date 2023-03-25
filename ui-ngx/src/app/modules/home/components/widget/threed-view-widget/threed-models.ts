@@ -7,6 +7,7 @@ export interface ThreedViewWidgetSettings {
     hexColor: number;
     //threedModelSettings: ThreedModelSettings;
     threedSceneSettings: ThreedSceneSettings;
+    threedTooltipSettings: ThreedTooltipSettings;
 }
 
 
@@ -63,6 +64,24 @@ export interface ThreedDevicesSettings {
 export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
     threedDeviceGroupSettings: [],
 };
+
+
+
+export interface ThreedTooltipSettings {
+    showTooltip: boolean;
+    showTooltipAction: string;
+    tooltipPattern: string;
+    tooltipOffsetX: number;
+    tooltipOffsetY: number;
+}
+export const defaultThreedTooltipSettings: ThreedTooltipSettings = {
+    showTooltip: true,
+    showTooltipAction: 'hover',
+    tooltipPattern: "",
+    tooltipOffsetX: 0,
+    tooltipOffsetY: 0,
+}
+
 
 
 

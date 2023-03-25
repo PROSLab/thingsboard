@@ -19,7 +19,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { defaultThreedModelSettings, defaultThreedSceneSettings, ThreedViewWidgetSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
+import { defaultThreedModelSettings, defaultThreedSceneSettings, defaultThreedTooltipSettings, ThreedViewWidgetSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
 
 @Component({
   selector: 'tb-threed-view-widget-settings',
@@ -42,7 +42,8 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
   protected defaultSettings(): WidgetSettings {    
     return {
       hexColor: 0xff0000,
-      threedSceneSettings: defaultThreedSceneSettings
+      threedSceneSettings: defaultThreedSceneSettings,
+      threedTooltipSettings: defaultThreedTooltipSettings
     };
   }
 
@@ -54,6 +55,7 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
     this.threedViewWidgetSettingsForm = this.fb.group({
       hexColor: [t_settings.hexColor, [Validators.required]],
       threedSceneSettings: [t_settings.threedSceneSettings, []],
+      threedTooltipSettings: [t_settings.threedTooltipSettings, []]
     });
   }
 }

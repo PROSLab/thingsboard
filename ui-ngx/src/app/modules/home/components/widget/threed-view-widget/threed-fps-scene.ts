@@ -38,6 +38,7 @@ export class ThreedFpsScene extends ThreedAbstractScene {
     protected override initialize(canvas?: ElementRef<any>): void {
         super.initialize(canvas);
 
+        this.active = false;
         this.initializeControls();
     }
 
@@ -48,10 +49,12 @@ export class ThreedFpsScene extends ThreedAbstractScene {
         this.controls = new PointerLockControls(this.camera, document.body);
         this.controls.addEventListener('lock', function () {
             this_.pointerLocked = true;
+            this_.active = true;
             this_.onPointerLockedChanged.emit(this_.pointerLocked);
         });
         this.controls.addEventListener('unlock', function () {
             this_.pointerLocked = false;
+            this_.active = false;
             this_.onPointerLockedChanged.emit(this_.pointerLocked);
         });
         this.scene.add(this.controls.getObject());

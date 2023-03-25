@@ -20,9 +20,11 @@ export abstract class ThreedAbstractScene {
     protected settingsValue?: ThreedSceneSettings;
 
     protected mouse = new THREE.Vector2();
+    protected active = true;
 
     protected readonly OBJECT_ID_TAG = "customId";
     protected readonly ROOT_TAG = "rootObject";
+
 
     constructor(canvas?: ElementRef) {
         this.rendererContainer = canvas;
@@ -241,13 +243,16 @@ export abstract class ThreedAbstractScene {
     }
 
     private calculateMousePosition(event: MouseEvent) {
-        if (!this.rendererContainer) return;
-
-        event.preventDefault();
+        if (!this.rendererContainer || !this.active) return;
 
         const rect = this.rendererContainer.nativeElement.getBoundingClientRect();
 
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        if (this.mouse.x < 1 && this.mouse.x > -1 && this.mouse.y < 1 && this.mouse.y > -1) {
+            event.preventDefault();
+            console.log(this.mouse);
+        }
     }
 }

@@ -277,6 +277,7 @@ import { ThreedEntityKeySettingsComponent } from '@home/components/widget/lib/se
 import { ThreedDeviceGroupSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-device-group-settings.component';
 import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-object-settings.component';
 import { ThreedEnvironmentSettingsComponent } from './threed/threed-environment-settings.component';
+import { ThreedTooltipSettingsComponent } from './threed/threed-tooltip-settings.component';
 
 @NgModule({
   declarations: [
@@ -386,6 +387,7 @@ import { ThreedEnvironmentSettingsComponent } from './threed/threed-environment-
     ThreedDeviceGroupSettingsComponent,
     ThreedObjectSettingsComponent,
     ThreedEnvironmentSettingsComponent,
+    ThreedTooltipSettingsComponent,
   ],
   imports: [
     CommonModule,

@@ -34,6 +34,10 @@ import { EntityInfo } from '@app/shared/public-api';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import {
+  ShowTooltipAction, 
+  showTooltipActionTranslationMap
+} from '@home/components/widget/lib/maps/map-models';
 
 export interface ThreedObjectSettings {
   entity: EntityInfo;
@@ -95,6 +99,10 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
 
   public threedObjectSettingsFormGroup: FormGroup;
 
+  showTooltipActions = Object.values(ShowTooltipAction);
+
+  showTooltipActionTranslations = showTooltipActionTranslationMap;
+
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
     private loader: ThreedModelLoaderService,
@@ -106,12 +114,23 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     this.threedObjectSettingsFormGroup = this.fb.group({
       entity: [null, []],
       modelUrl: [null, []],
+
+      showTooltip: [null, []],
+      showTooltipAction: [null, []],
+      tooltipPattern: [null, []],
+      tooltipOffsetX: [null, []],
+      tooltipOffsetY: [null, []],
+
       threedPositionVectorSettings: [defaultThreedVectorZeroSettings, []],
       threedRotationVectorSettings: [defaultThreedVectorZeroSettings, []],
       threedScaleVectorSettings: [defaultThreedVectorOneSettings, []],
     });
+
     this.threedObjectSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
+    });
+    this.threedObjectSettingsFormGroup.get('showTooltip').valueChanges.subscribe(() => {
+      this.updateValidators(true);
     });
 
     this.threedSceneEditor.positionChanged.subscribe(v => this.updateObjectVector(v, "threedPositionVectorSettings"));
@@ -173,6 +192,26 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     if (!this.propagateChange) return;
 
     this.propagateChange(this.modelValue);
+  }
+
+  private updateValidators(emitEvent?: boolean): void {
+    const showTooltip: boolean = this.threedObjectSettingsFormGroup.get('showTooltip').value;
+    if (showTooltip) {
+      this.threedObjectSettingsFormGroup.get('showTooltipAction').enable({emitEvent});
+      this.threedObjectSettingsFormGroup.get('tooltipOffsetX').enable({emitEvent});
+      this.threedObjectSettingsFormGroup.get('tooltipOffsetY').enable({emitEvent});
+      this.threedObjectSettingsFormGroup.get('tooltipPattern').enable({emitEvent});
+    } else {
+      this.threedObjectSettingsFormGroup.get('showTooltipAction').disable({emitEvent});
+      this.threedObjectSettingsFormGroup.get('tooltipPattern').disable({emitEvent});
+      this.threedObjectSettingsFormGroup.get('tooltipOffsetX').disable({emitEvent});
+      this.threedObjectSettingsFormGroup.get('tooltipOffsetY').disable({emitEvent});
+    }
+
+    this.threedObjectSettingsFormGroup.get('showTooltipAction').updateValueAndValidity({emitEvent: false});
+    this.threedObjectSettingsFormGroup.get('tooltipPattern').updateValueAndValidity({emitEvent: false});
+    this.threedObjectSettingsFormGroup.get('tooltipOffsetX').updateValueAndValidity({emitEvent: false});
+    this.threedObjectSettingsFormGroup.get('tooltipOffsetY').updateValueAndValidity({emitEvent: false});  
   }
 
   private entityAttributeChanged(emitEvent: boolean = true) {
