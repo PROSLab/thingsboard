@@ -2,12 +2,17 @@ import { ElementRef, HostListener } from '@angular/core';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
+    ThreedDevicesSettings,
+    ThreedEnvironmentSettings,
     ThreedSceneSettings, ThreedVectorSettings, ThreedViewWidgetSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
 
-export abstract class ThreedAbstractScene {
+/**
+ * @param S refert to the type of Settings
+ */
+export abstract class ThreedAbstractScene<S> {
 
     private rendererContainer: ElementRef;
 
@@ -17,7 +22,7 @@ export abstract class ThreedAbstractScene {
 
     protected models: Map<string, GLTF> = new Map();
     protected objects: Object3D[] = [];
-    protected settingsValue?: ThreedSceneSettings;
+    protected settingsValue?: S;
 
     protected mouse = new THREE.Vector2();
     protected active = true;
@@ -178,7 +183,7 @@ export abstract class ThreedAbstractScene {
         else return undefined;
     }*/
 
-    public updateValue(value: ThreedSceneSettings): void {
+    public updateValue(value: S): void {
         this.settingsValue = value;
 
         this.setValues();
@@ -189,22 +194,22 @@ export abstract class ThreedAbstractScene {
         // TODO:update only the changed model...
         if (this.models.size == 0 || !this.settingsValue) return;
 
-        this.setEnvironmentValues();
-        this.setDevicesValues();
+        this.onSettingValues();
 
         this.render();
     }
 
-    private setEnvironmentValues() {
-        const environmentSettings = this.settingsValue.threedEnvironmentSettings?.objectSettings;
+    protected onSettingValues() { }
+
+    protected setEnvironmentValues(threedEnvironmentSettings: ThreedEnvironmentSettings) {
+        const environmentSettings = threedEnvironmentSettings?.objectSettings;
         if (!environmentSettings) return;
 
-        // this.updateModelTransforms(environmentSettings.entity.id, environmentSettings);
         this.updateModelTransforms("Environment", environmentSettings);
     }
 
-    private setDevicesValues() {
-        const devicesSettings = this.settingsValue.threedDevicesSettings;
+    protected setDevicesValues(threedDevicesSettings: ThreedDevicesSettings) {
+        const devicesSettings = threedDevicesSettings;
         if (!devicesSettings || !devicesSettings.threedDeviceGroupSettings) return;
 
         devicesSettings.threedDeviceGroupSettings.forEach(deviceGroup => {
@@ -217,7 +222,7 @@ export abstract class ThreedAbstractScene {
         });
     }
 
-    private updateModelTransforms(id: string,
+    protected updateModelTransforms(id: string,
         settings: { threedPositionVectorSettings: ThreedVectorSettings, threedRotationVectorSettings: ThreedVectorSettings, threedScaleVectorSettings: ThreedVectorSettings }) {
 
         const model = this.models.get(id);

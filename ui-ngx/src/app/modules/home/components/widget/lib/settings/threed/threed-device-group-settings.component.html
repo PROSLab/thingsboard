@@ -34,9 +34,9 @@
     </div>
     <br>
 
-    <!-- Use a component for: load model / set attribute, set rotation, position, scale, ... -->
+    
+    <tb-threed-tooltip-settings formControlName="threedTooltipSettings"></tb-threed-tooltip-settings>
 
-    <!-- *ngFor="let entity of entities$ | async" -->
 
     <section class="tb-widget-settings"
         *ngFor="let objectControl of objectsFormArray().controls; trackBy: trackByObjectControl; let $index = index;">

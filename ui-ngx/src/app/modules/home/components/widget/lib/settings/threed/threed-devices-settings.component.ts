@@ -32,9 +32,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@app/core/public-api';
-import { ThreedDevicesSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
-import { defaultThreedDeviceGroupSettings, ThreedDeviceGroupSettings } from './threed-device-group-settings.component';
-import { ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
+import { defaultThreedDeviceGroupSettings, ThreedDeviceGroupSettings, ThreedDevicesSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
 @Component({

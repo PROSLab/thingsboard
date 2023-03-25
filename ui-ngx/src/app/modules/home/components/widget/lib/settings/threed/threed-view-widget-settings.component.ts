@@ -41,9 +41,8 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
 
   protected defaultSettings(): WidgetSettings {    
     return {
-      hexColor: 0xff0000,
-      threedSceneSettings: defaultThreedSceneSettings,
-      threedTooltipSettings: defaultThreedTooltipSettings
+      hoverColor: "rgba(255,0,0,0.5)",
+      threedSceneSettings: defaultThreedSceneSettings
     };
   }
 
@@ -51,9 +50,8 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
     const t_settings = settings as ThreedViewWidgetSettings;
 
     this.threedViewWidgetSettingsForm = this.fb.group({
-      hexColor: [t_settings.hexColor, [Validators.required]],
+      hoverColor: [t_settings.hoverColor, [Validators.required]],
       threedSceneSettings: [t_settings.threedSceneSettings, []],
-      threedTooltipSettings: [t_settings.threedTooltipSettings, []]
     });
   }
 }

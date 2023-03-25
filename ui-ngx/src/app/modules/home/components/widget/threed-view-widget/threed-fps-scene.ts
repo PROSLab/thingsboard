@@ -8,7 +8,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRe
 import { WidgetContext } from '@home/models/widget-component.models';
 
 
-export class ThreedFpsScene extends ThreedAbstractScene {
+export class ThreedFpsScene<S> extends ThreedAbstractScene<S> {
 
     private readonly gravity = 9.8;
     private readonly mass = 30;

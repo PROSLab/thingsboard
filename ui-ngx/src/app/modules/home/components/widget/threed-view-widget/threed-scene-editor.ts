@@ -4,8 +4,9 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { BoxHelper, Vector3 } from 'three';
 import { ThreedOrbitScene } from './threed-orbit-scene';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
 
-export class ThreedSceneEditor extends ThreedOrbitScene {
+export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
     private transformControl?: TransformControls;
     private boxHelper?: BoxHelper;
@@ -90,7 +91,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
             return o.object.type != "TransformControlsPlane"
         });
 
-        console.log(intersection.map(o => { 
+        console.log(intersection.map(o => {
             const ud = this.getParentByChild(o.object, this.ROOT_TAG, true)?.userData;
             return { d: o.distance, ud: ud };
         }));
@@ -106,6 +107,11 @@ export class ThreedSceneEditor extends ThreedOrbitScene {
         this.transformControl.detach();
         this.transformControl.attach(model);
         this.boxHelper.setFromObject(model);
+    }
+
+    protected override onSettingValues() {
+        this.setEnvironmentValues(this.settingsValue.threedEnvironmentSettings);
+        this.setDevicesValues(this.settingsValue.threedDevicesSettings);
     }
 
     public override onMouseClick(event: MouseEvent): void {

@@ -3,6 +3,7 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { ThreedFpsScene } from "./threed-fps-scene";
 import * as THREE from 'three';
+import { ThreedSceneSettings, ThreedViewWidgetSettings } from "./threed-models";
 
 interface Label {
     divElement: HTMLDivElement;
@@ -10,13 +11,15 @@ interface Label {
     layer: number;
 }
 
-export class ThreedNavigateScene extends ThreedFpsScene {
+export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings> {
 
     private labelRenderer?: CSS2DRenderer;
     private INTERSECTED?: any;
     private pointerRaycaster = new THREE.Raycaster();
 
     private labels: Map<string, Label>;
+    private hoveringColor = { color: new THREE.Color("00ff00"), alpha: 1 };
+    private hoveringMaterial: THREE.MeshStandardMaterial;
 
     private readonly initialLabelLayerIndex = 5;
     private lastLayerIndex = this.initialLabelLayerIndex;
@@ -95,12 +98,45 @@ export class ThreedNavigateScene extends ThreedFpsScene {
         this.labelRenderer?.render(this.scene!, this.camera!);
     }
 
+    protected override onSettingValues() {
+        this.setEnvironmentValues(this.settingsValue.threedSceneSettings.threedEnvironmentSettings);
+        this.setDevicesValues(this.settingsValue.threedSceneSettings.threedDevicesSettings);
+
+        this.hoveringColor = this.getAlphaAndColorFromString(this.settingsValue?.hoverColor || '00ff00');
+        this.hoveringMaterial = new THREE.MeshStandardMaterial({
+            color: this.hoveringColor.color,
+            opacity: this.hoveringColor.alpha,
+            transparent: true,
+            //wireframe: true,
+        });
+        console.log(this.hoveringColor);
+    }
+
     /*
     private hasParentWithUUID(uuid: string, object: THREE.Object3D) {
         if (object.uuid == uuid) return true;
         if (object.parent != null) return this.hasParentWithUUID(uuid, object.parent);
         return false;
     }*/
+
+    private getAlphaAndColorFromString(colorString: string): { color: THREE.Color, alpha: number } {
+        const matchRGB = colorString.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
+        const matchHex = colorString.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i);
+        const matchHSL = colorString.match(/^hsla?\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,?\s*([\d.]+)?\)$/);
+
+        if (matchRGB) {
+            const alpha = matchRGB[4] ? parseFloat(matchRGB[4]) : 1;
+            return { color: new THREE.Color(colorString), alpha };
+        } else if (matchHex) {
+            const alpha = matchHex[4] ? parseInt(matchHex[4], 16) / 255 : 1;
+            return { color: new THREE.Color(colorString), alpha };
+        } else if (matchHSL) {
+            const alpha = matchHSL[4] ? parseFloat(matchHSL[4]) : 1;
+            return { color: new THREE.Color(colorString), alpha };
+        } else {
+            return { color: new THREE.Color(colorString), alpha: 1 };
+        }
+    }
 
     protected override tick() {
         super.tick();
@@ -114,9 +150,19 @@ export class ThreedNavigateScene extends ThreedFpsScene {
                     this.deselectModel();
 
                     this.INTERSECTED = intersects[0].object;
-                    this.INTERSECTED!.userData.currentHex = this.INTERSECTED.material.emissive?.getHex();
-                    const hexColor = 0xff0000; //TODO: this.settingsValue?.hexColor || 0xff0000;
-                    this.INTERSECTED!.material.emissive?.setHex(hexColor);
+                    /*this.INTERSECTED!.userData.currentColor = this.INTERSECTED.material.emissive?.getHex();
+                    this.INTERSECTED!.userData.currentOpacity = this.INTERSECTED.material.opacity;
+                    this.INTERSECTED!.userData.currentTransparent = this.INTERSECTED.material.transparent;
+                    */
+
+                    this.INTERSECTED!.userData.currentMaterial = this.INTERSECTED!.material;
+
+                    this.INTERSECTED!.material = this.hoveringMaterial;
+                    /*
+                    this.INTERSECTED!.material.emissive?.set(this.hoveringColor.color);
+                    this.INTERSECTED!.material.opacity = this.hoveringColor.alpha;
+                    this.INTERSECTED!.material.transparent = true;
+                    */
 
                     for (const label of this.labels.values()) {
                         if (this.getParentByChild(this.INTERSECTED, this.OBJECT_ID_TAG, label.cssObject.parent.userData[this.OBJECT_ID_TAG])) {
@@ -135,16 +181,44 @@ export class ThreedNavigateScene extends ThreedFpsScene {
 
     private deselectModel(): void {
         if (this.INTERSECTED) {
-            this.INTERSECTED.material.emissive?.setHex(this.INTERSECTED.userData.currentHex);
+            /*this.INTERSECTED.material.emissive?.setHex(this.INTERSECTED.userData.currentColor);
+            this.INTERSECTED.material.opacity = this.INTERSECTED.userData.currentOpacity;
+            this.INTERSECTED.material.transparent = this.INTERSECTED.userData.currentTransparent;
+*/
+            this.INTERSECTED!.material = this.INTERSECTED.userData.currentMaterial;
+
+
             const layer = this.INTERSECTED.userData.layer;
             if (layer >= this.initialLabelLayerIndex)
                 this.camera!.layers.disable(layer);
         }
     }
 
-    public updateLabelContent(id: string, content: string) {
-        if (!this.labels.has(id)) return;
+    /**
+     * It updates the first label finded with the specific id.
+     * Example: if we call updateLabelContent(['id1', 'id2'], "some html"), 
+     * it will check first for a label with id 'id1' and if it does not exist, 
+     * it tries to find a label with id 'id2'. If the label exists, 
+     * it will be updated otherwise nothing happens.
+     * 
+     * @param ids the list of id to search
+     * @param content the new content
+     * @returns 
+     */
+    public updateLabelContent(ids: string[], content: string) {
+        let index = -1;
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            if (!this.labels.has(id)) continue;
+            else {
+                index = i;
+                break;
+            }
+        }
 
+        if (index == -1) return;
+
+        const id = ids[index];
         const divLabel = this.labels.get(id).divElement;
         divLabel.innerHTML = content;
         //divLabel.textContent = content;

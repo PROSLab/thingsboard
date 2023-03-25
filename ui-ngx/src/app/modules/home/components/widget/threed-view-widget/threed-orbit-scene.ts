@@ -2,7 +2,7 @@ import { ThreedAbstractScene } from "./threed-abstract-scene";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ElementRef } from '@angular/core';
 
-export class ThreedOrbitScene extends ThreedAbstractScene {
+export class ThreedOrbitScene<S> extends ThreedAbstractScene<S> {
 
     protected orbit?: OrbitControls;
 

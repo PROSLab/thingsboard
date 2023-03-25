@@ -20,7 +20,7 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ThreedViewWidgetSettings } from './threed-models';
+import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from './threed-models';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
   formattedDataFormDatasourceData,
@@ -29,7 +29,6 @@ import {
   fillDataPattern
 } from '@core/utils';
 import { ThreedNavigateScene } from './threed-nagivate-scene';
-import { ThreedDeviceGroupSettings } from '../lib/settings/threed/threed-device-group-settings.component';
 
 
 
@@ -78,9 +77,10 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   ngOnInit(): void {
     this.ctx.$scope.threedViewWidget = this;
     this.settings = this.ctx.settings;
+
     console.log(this.settings);
 
-    this.threedNavigateScene.updateValue(this.settings.threedSceneSettings);
+    this.threedNavigateScene.updateValue(this.settings);
     this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
@@ -92,7 +92,6 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   private loadModels() {
     this.loadEnvironment();
     this.loadDevices();
-
   }
 
   private loadEnvironment() {
@@ -100,7 +99,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
     }
-    this.loadModel(config, "Environment");
+    this.loadModel(config, "Environment", false);
   }
 
   private loadDevices() {
@@ -117,9 +116,9 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     });
   }
 
-  private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {
+  private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedNavigateScene.addModel(res.model, id ? id : res.entityId, true);
+      this.threedNavigateScene.addModel(res.model, id ? id : res.entityId, hasTooltip);
     });
   }
 
@@ -132,7 +131,9 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   public onDataUpdated() {
-    //console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
+    console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
+    console.log("\n\n\nonDataUpdated - data", this.ctx.data);
+    
     if (this.ctx.datasources.length > 0) {
       var tbDatasource = this.ctx.datasources[0];
       // TODO...
@@ -143,27 +144,22 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     if (this.ctx.latestData && this.ctx.latestData.length) {
       const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
       formattedData = mergeFormattedData(formattedData, formattedLatestData);
-      //console.log("formattedData first if", formattedData);
-      
     }
-    
-    console.log(formattedData);
 
-    if (this.settings.threedTooltipSettings.showTooltip) {
-      const pattern = this.settings.threedTooltipSettings.tooltipPattern;
-      //const pattern = "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>";
-      formattedData.forEach(fd => {
-        //const markerTooltipText = parseWithTranslation.prepareProcessPattern(pattern, false);
-        //console.log(markerTooltipText);
-        const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
-        //console.log(replaceInfoTooltipMarker);
-        const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd)
-        //console.log(content);
-
-        this.threedNavigateScene.updateLabelContent(fd.entityId || "Environment", content);
-        // this.threedNavigateScene.updateLabelContent((this.settings.threedModelSettings as any).uuid, content);
+    // We associate the new data with the tooltip settings, according to the entity alias
+    formattedData.forEach(fd => {
+      this.settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach(deviceGroup => {
+        if (deviceGroup.threedTooltipSettings.showTooltip) {
+          if (deviceGroup.threedEntityAliasSettings.entityAlias == fd.aliasName) {
+            const pattern = deviceGroup.threedTooltipSettings.tooltipPattern;
+            const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
+            const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
+            
+            this.threedNavigateScene.updateLabelContent([fd.entityId, "Environment"], content);
+          }
+        }
       });
-    }
+    });
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
   }

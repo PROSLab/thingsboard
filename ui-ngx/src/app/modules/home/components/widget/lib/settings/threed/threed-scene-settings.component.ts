@@ -30,6 +30,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  ThreedDeviceGroupSettings,
   ThreedDevicesSettings,
   ThreedEnvironmentSettings,
   ThreedModelSettings,
@@ -39,7 +40,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { IAliasController } from '@app/core/public-api';
 import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
-import { ThreedDeviceGroupSettings } from './threed-device-group-settings.component';
 
 @Component({
   selector: 'tb-threed-scene-settings',

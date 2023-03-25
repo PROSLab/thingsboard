@@ -1,13 +1,10 @@
 import { ThreedEntityAliasSettings } from "../lib/settings/threed/aliases/threed-entity-alias-settings.component";
 import { ThreedEntityKeySettings } from "../lib/settings/threed/aliases/threed-entity-key-settings.component";
-import { ThreedDeviceGroupSettings } from "../lib/settings/threed/threed-device-group-settings.component";
 import { ThreedObjectSettings } from "../lib/settings/threed/threed-object-settings.component";
 
 export interface ThreedViewWidgetSettings {
-    hexColor: number;
-    //threedModelSettings: ThreedModelSettings;
+    hoverColor: string;
     threedSceneSettings: ThreedSceneSettings;
-    threedTooltipSettings: ThreedTooltipSettings;
 }
 
 
@@ -43,30 +40,6 @@ export const defaultThreedVectorOneSettings: ThreedVectorSettings = {
 
 
 
-export interface ThreedEnvironmentSettings {
-    threedEntityAliasSettings: ThreedEntityAliasSettings;
-    threedEntityKeySettings: ThreedEntityKeySettings;
-    useAlias: boolean;
-    objectSettings: ThreedObjectSettings;
-}
-export const defaultThreedEnvironmentSettings: ThreedEnvironmentSettings = {
-    threedEntityAliasSettings: { entityAlias: "" },
-    useAlias: false,
-    threedEntityKeySettings: { entityAttribute: "" },
-    objectSettings: null
-}
-
-
-
-export interface ThreedDevicesSettings {
-    threedDeviceGroupSettings: ThreedDeviceGroupSettings[];
-}
-export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
-    threedDeviceGroupSettings: [],
-};
-
-
-
 export interface ThreedTooltipSettings {
     showTooltip: boolean;
     showTooltipAction: string;
@@ -82,6 +55,47 @@ export const defaultThreedTooltipSettings: ThreedTooltipSettings = {
     tooltipOffsetY: 0,
 }
 
+
+
+
+export interface ThreedEnvironmentSettings {
+    threedEntityAliasSettings: ThreedEntityAliasSettings;
+    threedEntityKeySettings: ThreedEntityKeySettings;
+    useAlias: boolean;
+    objectSettings: ThreedObjectSettings;
+}
+export const defaultThreedEnvironmentSettings: ThreedEnvironmentSettings = {
+    threedEntityAliasSettings: { entityAlias: "" },
+    useAlias: false,
+    threedEntityKeySettings: { entityAttribute: "" },
+    objectSettings: null
+}
+
+
+
+export interface ThreedDeviceGroupSettings {
+    threedEntityAliasSettings: ThreedEntityAliasSettings;
+    useAttribute: boolean;
+    threedEntityKeySettings: ThreedEntityKeySettings;
+    threedObjectSettings: ThreedObjectSettings[];
+    threedTooltipSettings: ThreedTooltipSettings;
+}
+export const defaultThreedDeviceGroupSettings: ThreedDeviceGroupSettings = {
+    threedEntityAliasSettings: { entityAlias: "" },
+    useAttribute: false,
+    threedEntityKeySettings: { entityAttribute: "" },
+    threedObjectSettings: [],
+    threedTooltipSettings: defaultThreedTooltipSettings
+};
+
+
+
+export interface ThreedDevicesSettings {
+    threedDeviceGroupSettings: ThreedDeviceGroupSettings[];
+}
+export const defaultThreedDevicesSettings: ThreedDevicesSettings = {
+    threedDeviceGroupSettings: [],
+};
 
 
 

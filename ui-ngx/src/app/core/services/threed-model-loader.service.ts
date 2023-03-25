@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
+  ThreedDeviceGroupSettings,
   ThreedEnvironmentSettings,
   ThreedModelSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
@@ -11,20 +12,6 @@ import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { switchMap, map, mergeMap, catchError } from 'rxjs/operators';
 import { EntityInfo } from '@shared/models/entity.models';
 import { from, Observable, of } from 'rxjs';
-import { ThreedDeviceGroupSettings } from '@app/modules/home/components/widget/lib/settings/threed/threed-device-group-settings.component';
-
-/*
-export interface ThreedModelLoaderConfig {
-  settings: ThreedModelSettings;
-  aliasController: IAliasController;
-  onLoadModel: (gltf: GLTF) => void;
-}
-
-export interface ThreedUrlModelLoaderConfig {
-  entity: EntityInfo;
-  entityAttribute: string;
-}
-*/
 
 export interface ThreedUniversalModelLoaderConfig {
   entityLoader: ModelUrl | EntityAliasAttribute;

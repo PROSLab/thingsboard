@@ -36,22 +36,9 @@ import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-setting
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
 import { EntityInfo } from '@app/shared/public-api';
 import { ThreedObjectSettings } from './threed-object-settings.component';
-import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '../../../threed-view-widget/threed-models';
+import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedDeviceGroupSettings } from '../../../threed-view-widget/threed-models';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
-export interface ThreedDeviceGroupSettings {
-  threedEntityAliasSettings: ThreedEntityAliasSettings;
-  useAttribute: boolean;
-  threedEntityKeySettings: ThreedEntityKeySettings;
-  threedObjectSettings: ThreedObjectSettings[];
-}
-
-export const defaultThreedDeviceGroupSettings: ThreedDeviceGroupSettings = {
-  threedEntityAliasSettings: { entityAlias: "" },
-  useAttribute: false,
-  threedEntityKeySettings: { entityAttribute: "" },
-  threedObjectSettings: []
-};
 
 @Component({
   selector: 'tb-threed-device-group-settings',
@@ -108,6 +95,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
       threedEntityAliasSettings: [null, []],
       useAttribute: [false, []],
       threedEntityKeySettings: [null, []],
+      threedTooltipSettings: [null, []],
       threedObjectSettings: this.prepareObjectsFormArray([]),
     });
 
