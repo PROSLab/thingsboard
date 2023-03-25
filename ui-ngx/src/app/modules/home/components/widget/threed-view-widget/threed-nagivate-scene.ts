@@ -70,6 +70,7 @@ export class ThreedNavigateScene extends ThreedFpsScene {
             const customId = model.scene.userData[this.OBJECT_ID_TAG];
             const currentModel = this.models.get(customId);
             const label = this.createLabel(customId);
+            this.camera!.layers.disable(label.layer);
 
             /*const box = new THREE.Box3().setFromObject(model.scene);
             const center = box.getCenter(new THREE.Vector3());
