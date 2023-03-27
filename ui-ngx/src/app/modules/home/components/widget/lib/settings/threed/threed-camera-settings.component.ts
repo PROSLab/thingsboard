@@ -36,6 +36,7 @@ import {
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { CAMERA_ID } from '../../../threed-view-widget/threed-constants';
 
 
 @Component({
@@ -84,6 +85,9 @@ export class ThreedCameraSettingsComponent extends PageComponent implements OnIn
       initialPosition: [null, []],
       initialRotation: [null, []],
     });
+
+    this.threedSceneEditor.positionChanged.subscribe(v => this.updateObjectVector(v, "initialPosition"));
+    this.threedSceneEditor.rotationChanged.subscribe(v => this.updateObjectVector(v, "initialRotation"));
 
     //this.threedCameraSettingsFormGroup.get('useAlias').valueChanges.subscribe(() => this.updateValidators(true));
     this.threedCameraSettingsFormGroup.valueChanges.subscribe(() => {
@@ -154,5 +158,10 @@ export class ThreedCameraSettingsComponent extends PageComponent implements OnIn
     }
     this.threedCameraSettingsFormGroup.get('threedEntityKeySettings').updateValueAndValidity({ emitEvent });
     */
+  }
+
+  private updateObjectVector(objectVector: any, formName: string) {
+    if (objectVector.id == CAMERA_ID)
+      this.threedCameraSettingsFormGroup.get(formName).setValue(objectVector.vector, { emitValue: false });
   }
 }

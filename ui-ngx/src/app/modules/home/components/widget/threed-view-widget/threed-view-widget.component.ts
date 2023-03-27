@@ -29,6 +29,7 @@ import {
   fillDataPattern
 } from '@core/utils';
 import { ThreedNavigateScene } from './threed-nagivate-scene';
+import { ENVIRONMENT_ID } from './threed-constants';
 
 
 
@@ -99,7 +100,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
     }
-    this.loadModel(config, "Environment", false);
+    this.loadModel(config, ENVIRONMENT_ID, false);
   }
 
   private loadDevices() {
@@ -155,7 +156,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
             const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
             const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
             
-            this.threedNavigateScene.updateLabelContent([fd.entityId, "Environment"], content);
+            this.threedNavigateScene.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
           }
         }
       });

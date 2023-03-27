@@ -3,7 +3,8 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { ThreedFpsScene } from "./threed-fps-scene";
 import * as THREE from 'three';
-import { ThreedSceneSettings, ThreedViewWidgetSettings } from "./threed-models";
+import { ThreedCameraSettings, ThreedSceneSettings, ThreedViewWidgetSettings } from "./threed-models";
+import { OBJECT_ID_TAG } from "./threed-constants";
 
 interface Label {
     divElement: HTMLDivElement;
@@ -51,7 +52,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
         divElement.style.marginTop = '-1em';
         const cssObject = new CSS2DObject(divElement);
         cssObject.layers.set(layer);
-        cssObject.userData[this.OBJECT_ID_TAG] = id;
+        cssObject.userData[OBJECT_ID_TAG] = id;
 
         const label = { divElement, cssObject, layer };
         this.labels.set(id, label)
@@ -70,7 +71,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
         super.addModel(model, id);
 
         if (tooltip) {
-            const customId = model.scene.userData[this.OBJECT_ID_TAG];
+            const customId = model.scene.userData[OBJECT_ID_TAG];
             const currentModel = this.models.get(customId);
             const label = this.createLabel(customId);
             this.camera!.layers.disable(label.layer);
@@ -100,6 +101,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
 
     protected override onSettingValues() {
         this.setEnvironmentValues(this.settingsValue.threedSceneSettings.threedEnvironmentSettings);
+        this.setCameraValues(this.settingsValue.threedSceneSettings.threedCameraSettings, this.camera);
         this.setDevicesValues(this.settingsValue.threedSceneSettings.threedDevicesSettings);
 
         this.hoveringColor = this.getAlphaAndColorFromString(this.settingsValue?.hoverColor || '00ff00');
@@ -155,7 +157,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
                     this.INTERSECTED!.material = this.hoveringMaterial;
 
                     for (const label of this.labels.values()) {
-                        if (this.getParentByChild(this.INTERSECTED, this.OBJECT_ID_TAG, label.cssObject.parent.userData[this.OBJECT_ID_TAG])) {
+                        if (this.getParentByChild(this.INTERSECTED, OBJECT_ID_TAG, label.cssObject.parent.userData[OBJECT_ID_TAG])) {
                             this.camera!.layers.enable(label.layer);
                             this.INTERSECTED.userData.layer = label.layer;
                             break;

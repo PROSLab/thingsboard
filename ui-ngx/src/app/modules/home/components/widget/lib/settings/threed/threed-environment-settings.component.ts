@@ -40,6 +40,7 @@ import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-setting
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
 import { ThreedObjectSettings } from './threed-object-settings.component';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { ENVIRONMENT_ID } from '../../../threed-view-widget/threed-constants';
 
 
 @Component({
@@ -81,6 +82,8 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
 
   public entityAttribute?: string;
   private lastEntityKeySettings?: ThreedEntityKeySettings;
+
+  ENVIRONMENT_ID = ENVIRONMENT_ID;
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,

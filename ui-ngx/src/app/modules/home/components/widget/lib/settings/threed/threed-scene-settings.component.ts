@@ -38,6 +38,7 @@ import {
 import { IAliasController } from '@app/core/public-api';
 import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { ENVIRONMENT_ID } from '../../../threed-view-widget/threed-constants';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -209,7 +210,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
         aliasController: this.aliasController
       }
 
-      const id = "Environment";
+      const id = ENVIRONMENT_ID;
       const lastEntityLoader = this.lastEntityLoaders.get(id);
       if (!this.threedModelLoader.areLoaderEqual(lastEntityLoader, entityLoader)) {
         this.lastEntityLoaders.set(id, entityLoader);

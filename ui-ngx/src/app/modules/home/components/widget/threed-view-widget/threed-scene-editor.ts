@@ -4,7 +4,8 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { BoxHelper, Vector3 } from 'three';
 import { ThreedOrbitScene } from './threed-orbit-scene';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
+import { ThreedCameraSettings, ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
+import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from './threed-constants';
 
 export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
@@ -16,6 +17,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     private cameraMesh: THREE.Mesh | THREE.Group;
     private debugCameraScreenWidth = this.screenWidth / this.SCREEN_WIDTH_ASPECT_RATIO;
     private debugCameraScreenHeight = this.screenHeight / this.SCREEN_HEIGHT_ASPECT_RATIO;
+    private showDebugCameraPreview = false;
 
     private transformControl?: TransformControls;
     private boxHelper?: BoxHelper;
@@ -26,8 +28,6 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     public positionChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public rotationChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public scaleChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
-
-    private readonly CAMERA_ID = "CameraRig"
 
     constructor(canvas?: ElementRef) {
         super(canvas);
@@ -49,10 +49,17 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
         new GLTFLoader().load("./assets/models/gltf/camera.glb", (gltf: GLTF) => {
             this.cameraMesh = gltf.scene;
-            this.cameraMesh.userData[this.ROOT_TAG] = true;
-            this.cameraMesh.userData[this.OBJECT_ID_TAG] = this.CAMERA_ID;
+            this.cameraMesh.traverse((o: any) => {
+                if (o.isMesh) {
+                    o.material?.emissive?.setHex(0xffffff);
+                }
+            })
+            this.cameraMesh.userData[ROOT_TAG] = true;
+            this.cameraMesh.userData[OBJECT_ID_TAG] = CAMERA_ID;
             this.cameraMesh.add(this.perspectiveCamera);
             this.scene.add(this.cameraMesh);
+
+            this.setCameraValues(this.settingsValue.threedCameraSettings, this.cameraMesh);
         });
     }
 
@@ -64,7 +71,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             this.raycastEnabled = !event.value;
             if (this.orbit.enabled) {
                 const obj = this.transformControl.object;
-                const id = obj.userData[this.OBJECT_ID_TAG]
+                const id = obj.userData[OBJECT_ID_TAG]
                 const newPosition = this.transformControl.object?.position;
                 const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
                 const newRotation = new THREE.Vector3(
@@ -120,17 +127,18 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.renderer.setViewport(0, 0, this.screenWidth, this.screenHeight);
         super.render();
 
-
-        if (this.boxHelper) this.boxHelper.visible = false;
-        if (this.transformControl) this.transformControl.visible = false;
-        if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = false;
-        const x = this.screenWidth - this.debugCameraScreenWidth;
-        this.renderer.clearDepth();
-        this.renderer.setScissorTest(true);
-        this.renderer.setScissor(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight)
-        this.renderer.setViewport(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight);
-        this.renderer.render(this.scene, this.perspectiveCamera);
-        this.renderer.setScissorTest(false);
+        if (this.showDebugCameraPreview) {
+            if (this.boxHelper) this.boxHelper.visible = false;
+            if (this.transformControl) this.transformControl.visible = false;
+            if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = false;
+            const x = this.screenWidth - this.debugCameraScreenWidth;
+            this.renderer.clearDepth();
+            this.renderer.setScissorTest(true);
+            this.renderer.setScissor(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight)
+            this.renderer.setViewport(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight);
+            this.renderer.render(this.scene, this.perspectiveCamera);
+            this.renderer.setScissorTest(false);
+        }
     }
 
     public override resize(width?: number, height?: number): void {
@@ -157,13 +165,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         console.log(intersection);
 
         console.log(intersection.map(o => {
-            const ud = this.getParentByChild(o.object, this.ROOT_TAG, true)?.userData;
+            const ud = this.getParentByChild(o.object, ROOT_TAG, true)?.userData;
             return { d: o.distance, ud: ud };
         }));
 
         if (intersection.length > 0) {
             const intersectedObject = intersection[0].object;
-            const root = this.getParentByChild(intersectedObject, this.ROOT_TAG, true);
+            const root = this.getParentByChild(intersectedObject, ROOT_TAG, true);
             if (root) this.changeTransformControl(root);
             else console.log(intersectedObject);
         }
@@ -173,10 +181,12 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.transformControl.detach();
         this.transformControl.attach(model);
         this.boxHelper.setFromObject(model);
+        this.showDebugCameraPreview = model.userData[OBJECT_ID_TAG] == CAMERA_ID;
     }
 
     protected override onSettingValues() {
         this.setEnvironmentValues(this.settingsValue.threedEnvironmentSettings);
+        this.setCameraValues(this.settingsValue.threedCameraSettings, this.cameraMesh);
         this.setDevicesValues(this.settingsValue.threedDevicesSettings);
     }
 

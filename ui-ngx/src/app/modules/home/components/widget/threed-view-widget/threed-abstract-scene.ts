@@ -2,12 +2,14 @@ import { ElementRef, HostListener } from '@angular/core';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
+    ThreedCameraSettings,
     ThreedDevicesSettings,
     ThreedEnvironmentSettings,
     ThreedSceneSettings, ThreedVectorSettings, ThreedViewWidgetSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
+import { CAMERA_ID, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from './threed-constants';
 
 /**
  * @param S refert to the type of Settings
@@ -26,12 +28,9 @@ export abstract class ThreedAbstractScene<S> {
 
     protected mouse = new THREE.Vector2();
     protected active = true;
-    
+
     protected screenWidth = window.innerWidth;
     protected screenHeight = window.innerHeight;
-
-    protected readonly OBJECT_ID_TAG = "customId";
-    protected readonly ROOT_TAG = "rootObject";
 
 
     constructor(canvas?: ElementRef) {
@@ -102,7 +101,7 @@ export abstract class ThreedAbstractScene<S> {
         const rect = this.rendererContainer?.nativeElement.getBoundingClientRect();
         this.screenWidth = width || rect.width;
         this.screenHeight = height || rect.height;
-        
+
         this.renderer.setSize(this.screenWidth, this.screenHeight);
 
         this.camera!.aspect = this.screenWidth / this.screenHeight;
@@ -119,10 +118,10 @@ export abstract class ThreedAbstractScene<S> {
     protected addModel(model: GLTF, id?: string): void {
         const root = model.scene;
         const customId = id || root.uuid
-        model.userData[this.OBJECT_ID_TAG] = customId;
-        model.userData[this.ROOT_TAG] = true;
-        root.userData[this.OBJECT_ID_TAG] = customId;
-        root.userData[this.ROOT_TAG] = true;
+        model.userData[OBJECT_ID_TAG] = customId;
+        model.userData[ROOT_TAG] = true;
+        root.userData[OBJECT_ID_TAG] = customId;
+        root.userData[ROOT_TAG] = true;
         this.models.set(customId, model);
         console.log("addModel", customId, this.models);
         this.scene!.add(root);
@@ -210,7 +209,20 @@ export abstract class ThreedAbstractScene<S> {
         const environmentSettings = threedEnvironmentSettings?.objectSettings;
         if (!environmentSettings) return;
 
-        this.updateModelTransforms("Environment", environmentSettings);
+        this.updateModelTransforms(ENVIRONMENT_ID, environmentSettings);
+    }
+
+    protected setCameraValues(threedCameraSettings: ThreedCameraSettings, camera?: THREE.Object3D) {
+        if (!threedCameraSettings) return;
+
+        this.updateModelTransforms(CAMERA_ID, { threedPositionVectorSettings: threedCameraSettings.initialPosition, threedRotationVectorSettings: threedCameraSettings.initialRotation });
+
+        if (camera) {
+            const position = threedCameraSettings.initialPosition;
+            const rotation = threedCameraSettings.initialRotation;
+            if (position) camera.position.set(position.x, position.y, position.z);
+            if (rotation) camera.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+        }
     }
 
     protected setDevicesValues(threedDevicesSettings: ThreedDevicesSettings) {
@@ -228,7 +240,11 @@ export abstract class ThreedAbstractScene<S> {
     }
 
     protected updateModelTransforms(id: string,
-        settings: { threedPositionVectorSettings: ThreedVectorSettings, threedRotationVectorSettings: ThreedVectorSettings, threedScaleVectorSettings: ThreedVectorSettings }) {
+        settings: {
+            threedPositionVectorSettings?: ThreedVectorSettings,
+            threedRotationVectorSettings?: ThreedVectorSettings,
+            threedScaleVectorSettings?: ThreedVectorSettings
+        }) {
 
         const model = this.models.get(id);
         if (!model) return;
