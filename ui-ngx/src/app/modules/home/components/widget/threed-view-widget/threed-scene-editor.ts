@@ -97,6 +97,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
                 this.raycastEnabledLastFrame = false;
             }
         });
+        this.transformControl.visible = false;
         this.scene.add(this.transformControl);
     }
 
@@ -128,16 +129,18 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     public override render(): void {
         this.renderer.clear();
 
-        if (this.boxHelper) this.boxHelper.visible = true;
-        if (this.transformControl) this.transformControl.visible = true;
-        if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = true;
         this.renderer.setViewport(0, 0, this.screenWidth, this.screenHeight);
         super.render();
 
         if (this.showDebugCameraPreview) {
+            const boxHelperVisible = this.boxHelper?.visible || false;
+            const transformControlVisible = this.transformControl?.visible || false;
+            const perspectiveCameraHelperVisible = this.perspectiveCameraHelper?.visible || false;
+
             if (this.boxHelper) this.boxHelper.visible = false;
             if (this.transformControl) this.transformControl.visible = false;
             if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = false;
+
             const x = this.screenWidth - this.debugCameraScreenWidth;
             this.renderer.clearDepth();
             this.renderer.setScissorTest(true);
@@ -145,6 +148,10 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             this.renderer.setViewport(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight);
             this.renderer.render(this.scene, this.perspectiveCamera);
             this.renderer.setScissorTest(false);
+
+            if (this.boxHelper) this.boxHelper.visible = boxHelperVisible;
+            if (this.transformControl) this.transformControl.visible = transformControlVisible;
+            if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = perspectiveCameraHelperVisible;
         }
     }
 
@@ -166,7 +173,9 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersection = this.raycaster.intersectObjects(this.scene.children).filter(o => {
-            return o.object.type != "TransformControlsPlane"
+            return o.object.type != "TransformControlsPlane" && 
+                //@ts-ignore
+                o.object.tag != "Helper"
         });
 
         console.log(intersection);
@@ -181,24 +190,30 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             const root = this.getParentByChild(intersectedObject, ROOT_TAG, true);
             if (root) this.changeTransformControl(root);
             else console.log(intersectedObject);
+        } else {
+            this.changeTransformControl(undefined);
         }
     }
 
-    private changeTransformControl(model: THREE.Object3D) {
+    private changeTransformControl(model?: THREE.Object3D) {
         this.transformControl.detach();
-        this.transformControl.attach(model);
-        this.boxHelper.setFromObject(model);
+        this.transformControl.visible = model ? true : false;
 
-        this.showDebugCameraPreview = model.userData[OBJECT_ID_TAG] == CAMERA_ID;
+        if (model) {
+            this.transformControl.attach(model);
+            this.boxHelper.setFromObject(model);
 
-        this.lastPosition.copy(model.position);
-        const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
-        this.lastRotation = new THREE.Vector3(
-            THREE.MathUtils.radToDeg(euler.x),
-            THREE.MathUtils.radToDeg(euler.y),
-            THREE.MathUtils.radToDeg(euler.z)
-        );
-        this.lastScale.copy(model.scale);
+            this.showDebugCameraPreview = model.userData[OBJECT_ID_TAG] == CAMERA_ID;
+
+            this.lastPosition.copy(model.position);
+            const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
+            this.lastRotation = new THREE.Vector3(
+                THREE.MathUtils.radToDeg(euler.x),
+                THREE.MathUtils.radToDeg(euler.y),
+                THREE.MathUtils.radToDeg(euler.z)
+            );
+            this.lastScale.copy(model.scale);
+        }
     }
 
     protected override onSettingValues() {
@@ -273,9 +288,9 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
     public focusOnObject() {
         this.raycastEnabledLastFrame = false;
-        
+
         const object = this.transformControl?.object;
-        const position = object?.position || new THREE.Vector3(0,0,0);
+        const position = object?.position || new THREE.Vector3(0, 0, 0);
         this.orbit.target.copy(position);
         this.orbit.update();
     }
