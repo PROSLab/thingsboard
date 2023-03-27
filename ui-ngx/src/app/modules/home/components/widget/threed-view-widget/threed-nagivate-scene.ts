@@ -146,23 +146,13 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
             const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true);
 
             if (intersects.length > 0) {
-                if (this.INTERSECTED != intersects[0].object) {
+                const intersectedObject = intersects[0].object;
+                if (this.INTERSECTED != intersectedObject) {
                     this.deselectModel();
 
-                    this.INTERSECTED = intersects[0].object;
-                    /*this.INTERSECTED!.userData.currentColor = this.INTERSECTED.material.emissive?.getHex();
-                    this.INTERSECTED!.userData.currentOpacity = this.INTERSECTED.material.opacity;
-                    this.INTERSECTED!.userData.currentTransparent = this.INTERSECTED.material.transparent;
-                    */
-
+                    this.INTERSECTED = intersectedObject;
                     this.INTERSECTED!.userData.currentMaterial = this.INTERSECTED!.material;
-
                     this.INTERSECTED!.material = this.hoveringMaterial;
-                    /*
-                    this.INTERSECTED!.material.emissive?.set(this.hoveringColor.color);
-                    this.INTERSECTED!.material.opacity = this.hoveringColor.alpha;
-                    this.INTERSECTED!.material.transparent = true;
-                    */
 
                     for (const label of this.labels.values()) {
                         if (this.getParentByChild(this.INTERSECTED, this.OBJECT_ID_TAG, label.cssObject.parent.userData[this.OBJECT_ID_TAG])) {
@@ -181,12 +171,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
 
     private deselectModel(): void {
         if (this.INTERSECTED) {
-            /*this.INTERSECTED.material.emissive?.setHex(this.INTERSECTED.userData.currentColor);
-            this.INTERSECTED.material.opacity = this.INTERSECTED.userData.currentOpacity;
-            this.INTERSECTED.material.transparent = this.INTERSECTED.userData.currentTransparent;
-*/
             this.INTERSECTED!.material = this.INTERSECTED.userData.currentMaterial;
-
 
             const layer = this.INTERSECTED.userData.layer;
             if (layer >= this.initialLabelLayerIndex)

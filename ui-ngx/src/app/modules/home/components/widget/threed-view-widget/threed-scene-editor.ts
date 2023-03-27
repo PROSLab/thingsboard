@@ -3,10 +3,19 @@ import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { BoxHelper, Vector3 } from 'three';
 import { ThreedOrbitScene } from './threed-orbit-scene';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
 
 export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
+
+    private readonly SCREEN_WIDTH_ASPECT_RATIO = 4;
+    private readonly SCREEN_HEIGHT_ASPECT_RATIO = 4;
+
+    private perspectiveCamera: THREE.PerspectiveCamera;
+    private perspectiveCameraHelper: THREE.CameraHelper;
+    private cameraMesh: THREE.Mesh | THREE.Group;
+    private debugCameraScreenWidth = this.screenWidth / this.SCREEN_WIDTH_ASPECT_RATIO;
+    private debugCameraScreenHeight = this.screenHeight / this.SCREEN_HEIGHT_ASPECT_RATIO;
 
     private transformControl?: TransformControls;
     private boxHelper?: BoxHelper;
@@ -18,6 +27,8 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     public rotationChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public scaleChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
 
+    private readonly CAMERA_ID = "CameraRig"
+
     constructor(canvas?: ElementRef) {
         super(canvas);
     }
@@ -25,6 +36,27 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     protected override initialize(canvas?: ElementRef): void {
         super.initialize(canvas);
 
+        this.renderer.autoClear = false;
+
+        this.initializeCameraHelper();
+        this.initializeTransformControl();
+    }
+
+    private initializeCameraHelper() {
+        this.perspectiveCamera = new THREE.PerspectiveCamera(60, this.camera.aspect, 1, 150);
+        this.perspectiveCameraHelper = new THREE.CameraHelper(this.perspectiveCamera);
+        this.scene.add(this.perspectiveCameraHelper)
+
+        new GLTFLoader().load("./assets/models/gltf/camera.glb", (gltf: GLTF) => {
+            this.cameraMesh = gltf.scene;
+            this.cameraMesh.userData[this.ROOT_TAG] = true;
+            this.cameraMesh.userData[this.OBJECT_ID_TAG] = this.CAMERA_ID;
+            this.cameraMesh.add(this.perspectiveCamera);
+            this.scene.add(this.cameraMesh);
+        });
+    }
+
+    private initializeTransformControl() {
         this.transformControl = new TransformControls(this.camera, this.renderer.domElement);
         this.transformControl.addEventListener('change', () => this.render());
         this.transformControl.addEventListener('dragging-changed', (event) => {
@@ -76,8 +108,39 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         super.tick();
 
         this.boxHelper?.update();
+        this.perspectiveCameraHelper?.update();
     }
 
+    public override render(): void {
+        this.renderer.clear();
+
+        if (this.boxHelper) this.boxHelper.visible = true;
+        if (this.transformControl) this.transformControl.visible = true;
+        if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = true;
+        this.renderer.setViewport(0, 0, this.screenWidth, this.screenHeight);
+        super.render();
+
+
+        if (this.boxHelper) this.boxHelper.visible = false;
+        if (this.transformControl) this.transformControl.visible = false;
+        if (this.perspectiveCameraHelper) this.perspectiveCameraHelper.visible = false;
+        const x = this.screenWidth - this.debugCameraScreenWidth;
+        this.renderer.clearDepth();
+        this.renderer.setScissorTest(true);
+        this.renderer.setScissor(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight)
+        this.renderer.setViewport(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight);
+        this.renderer.render(this.scene, this.perspectiveCamera);
+        this.renderer.setScissorTest(false);
+    }
+
+    public override resize(width?: number, height?: number): void {
+        super.resize(width, height);
+
+        this.debugCameraScreenWidth = this.screenWidth / this.SCREEN_WIDTH_ASPECT_RATIO;
+        this.debugCameraScreenHeight = this.screenHeight / this.SCREEN_HEIGHT_ASPECT_RATIO;
+        this.perspectiveCamera.aspect = this.debugCameraScreenWidth / this.debugCameraScreenHeight;
+        this.perspectiveCamera.updateProjectionMatrix();
+    }
 
     private updateRaycaster() {
         if (!this.raycastEnabled) return;
@@ -91,15 +154,18 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             return o.object.type != "TransformControlsPlane"
         });
 
+        console.log(intersection);
+
         console.log(intersection.map(o => {
             const ud = this.getParentByChild(o.object, this.ROOT_TAG, true)?.userData;
             return { d: o.distance, ud: ud };
         }));
 
         if (intersection.length > 0) {
-            // get the root of the object 'intersection[0].object' (it checks if the ROOT_TAG is true on the parents)
-            const root = this.getParentByChild(intersection[0].object, this.ROOT_TAG, true);
+            const intersectedObject = intersection[0].object;
+            const root = this.getParentByChild(intersectedObject, this.ROOT_TAG, true);
             if (root) this.changeTransformControl(root);
+            else console.log(intersectedObject);
         }
     }
 

@@ -131,8 +131,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   public onDataUpdated() {
-    console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
-    console.log("\n\n\nonDataUpdated - data", this.ctx.data);
+    //console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
+    //console.log("\n\n\nonDataUpdated - data", this.ctx.data);
     
     if (this.ctx.datasources.length > 0) {
       var tbDatasource = this.ctx.datasources[0];

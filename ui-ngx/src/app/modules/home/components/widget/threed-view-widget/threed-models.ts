@@ -57,6 +57,22 @@ export const defaultThreedTooltipSettings: ThreedTooltipSettings = {
 
 
 
+export interface ThreedCameraSettings {
+    near: number;
+    far: number;
+    fov: number;
+    initialPosition: ThreedVectorSettings;
+    initialRotation: ThreedVectorSettings;
+}
+export const defaultThreedCameraSettings: ThreedCameraSettings = {
+    near: 0.1,
+    far: 1000,
+    fov: 60,
+    initialPosition: defaultThreedVectorZeroSettings,
+    initialRotation: defaultThreedVectorZeroSettings
+}
+
+
 
 export interface ThreedEnvironmentSettings {
     threedEntityAliasSettings: ThreedEntityAliasSettings;
@@ -104,6 +120,7 @@ export interface ThreedSceneSettings {
     threedPositionVectorSettings: ThreedVectorSettings,
     threedRotationVectorSettings: ThreedVectorSettings*/
     threedEnvironmentSettings: ThreedEnvironmentSettings,
+    threedCameraSettings: ThreedCameraSettings,
     threedDevicesSettings: ThreedDevicesSettings,
 }
 export const defaultThreedSceneSettings: ThreedSceneSettings = {
@@ -111,5 +128,6 @@ export const defaultThreedSceneSettings: ThreedSceneSettings = {
     threedPositionVectorSettings: defaultThreedVectorZeroSettings,
     threedRotationVectorSettings: defaultThreedVectorZeroSettings,*/
     threedEnvironmentSettings: defaultThreedEnvironmentSettings,
+    threedCameraSettings:defaultThreedCameraSettings,
     threedDevicesSettings: defaultThreedDevicesSettings,
 };

@@ -26,6 +26,9 @@ export abstract class ThreedAbstractScene<S> {
 
     protected mouse = new THREE.Vector2();
     protected active = true;
+    
+    protected screenWidth = window.innerWidth;
+    protected screenHeight = window.innerHeight;
 
     protected readonly OBJECT_ID_TAG = "customId";
     protected readonly ROOT_TAG = "rootObject";
@@ -42,7 +45,7 @@ export abstract class ThreedAbstractScene<S> {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xcccccc);
 
-        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera = new THREE.PerspectiveCamera(60, this.screenWidth / this.screenHeight, 1, 1000);
         this.camera.position.set(0, 5, 0);
 
         this.scene.add(new THREE.GridHelper(1000, 10, 0x888888, 0x444444));
@@ -68,10 +71,10 @@ export abstract class ThreedAbstractScene<S> {
 
     private updateRendererSize() {
         const rect = this.rendererContainer.nativeElement.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height;
+        this.screenWidth = rect.width;
+        this.screenHeight = rect.height;
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setSize(width, height);
+        this.renderer.setSize(this.screenWidth, this.screenHeight);
     }
 
     private startRendering() {
@@ -97,11 +100,13 @@ export abstract class ThreedAbstractScene<S> {
 
     public resize(width?: number, height?: number) {
         const rect = this.rendererContainer?.nativeElement.getBoundingClientRect();
-        width = width || rect.width;
-        height = height || rect.height;
-        this.camera!.aspect = width / height;
+        this.screenWidth = width || rect.width;
+        this.screenHeight = height || rect.height;
+        
+        this.renderer.setSize(this.screenWidth, this.screenHeight);
+
+        this.camera!.aspect = this.screenWidth / this.screenHeight;
         this.camera!.updateProjectionMatrix();
-        this.renderer.setSize(width, height);
 
         //this.render();
     }

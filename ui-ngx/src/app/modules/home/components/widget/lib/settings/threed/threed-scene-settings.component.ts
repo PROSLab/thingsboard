@@ -33,10 +33,8 @@ import {
   ThreedDeviceGroupSettings,
   ThreedDevicesSettings,
   ThreedEnvironmentSettings,
-  ThreedModelSettings,
   ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { MatDialog } from '@angular/material/dialog';
 import { IAliasController } from '@app/core/public-api';
 import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
@@ -96,6 +94,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   ngOnInit(): void {
     this.threedSceneSettingsFormGroup = this.fb.group({
       threedEnvironmentSettings: [null, []],
+      threedCameraSettings: [null, []],
       threedDevicesSettings: [null, []],
     });
 

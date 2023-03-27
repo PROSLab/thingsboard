@@ -278,6 +278,7 @@ import { ThreedDeviceGroupSettingsComponent } from '@home/components/widget/lib/
 import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-object-settings.component';
 import { ThreedEnvironmentSettingsComponent } from './threed/threed-environment-settings.component';
 import { ThreedTooltipSettingsComponent } from './threed/threed-tooltip-settings.component';
+import { ThreedCameraSettingsComponent } from './threed/threed-camera-settings.component';
 
 @NgModule({
   declarations: [
@@ -388,6 +389,7 @@ import { ThreedTooltipSettingsComponent } from './threed/threed-tooltip-settings
     ThreedObjectSettingsComponent,
     ThreedEnvironmentSettingsComponent,
     ThreedTooltipSettingsComponent,
+    ThreedCameraSettingsComponent,
   ],
   imports: [
     CommonModule,
