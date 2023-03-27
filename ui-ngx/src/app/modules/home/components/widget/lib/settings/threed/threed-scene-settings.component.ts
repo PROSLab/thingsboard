@@ -245,6 +245,10 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.threedSceneEditor?.changeTransformControlMode(mode);
   }
 
+  public focusOnObject() {
+    this.threedSceneEditor?.focusOnObject();
+  }
+
   @HostListener('window:resize')
   public detectResize(): void {
     this.threedSceneEditor?.resize();

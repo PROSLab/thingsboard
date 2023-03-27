@@ -270,4 +270,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     public changeTransformControlMode(mode: 'translate' | 'rotate' | 'scale') {
         this.transformControl?.setMode(mode);
     }
+
+    public focusOnObject() {
+        this.raycastEnabledLastFrame = false;
+        
+        const object = this.transformControl?.object;
+        const position = object?.position || new THREE.Vector3(0,0,0);
+        this.orbit.target.copy(position);
+        this.orbit.update();
+    }
 }
