@@ -6,6 +6,7 @@ import { ThreedOrbitScene } from './threed-orbit-scene';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ThreedCameraSettings, ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
 import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from './threed-constants';
+import { ThreedUtils } from './threed-utils';
 
 export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
@@ -28,6 +29,9 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     public positionChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public rotationChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public scaleChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
+    private lastPosition = new THREE.Vector3();
+    private lastRotation = new THREE.Vector3();
+    private lastScale = new THREE.Vector3();
 
     constructor(canvas?: ElementRef) {
         super(canvas);
@@ -81,9 +85,12 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
                 );
                 const newScale = this.transformControl.object?.scale;
 
-                this.positionChanged.emit({ id, vector: newPosition });
-                this.rotationChanged.emit({ id, vector: newRotation });
-                this.scaleChanged.emit({ id, vector: newScale });
+                if (!ThreedUtils.compareVector3AndUpdate(newPosition, this.lastPosition))
+                    this.positionChanged.emit({ id, vector: newPosition });
+                if (!ThreedUtils.compareVector3AndUpdate(newRotation, this.lastRotation))
+                    this.rotationChanged.emit({ id, vector: newRotation });
+                if (!ThreedUtils.compareVector3AndUpdate(newScale, this.lastScale))
+                    this.scaleChanged.emit({ id, vector: newScale });
 
                 //console.log(newPosition, newRotation, newScale);
             } else {
@@ -181,7 +188,17 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.transformControl.detach();
         this.transformControl.attach(model);
         this.boxHelper.setFromObject(model);
+
         this.showDebugCameraPreview = model.userData[OBJECT_ID_TAG] == CAMERA_ID;
+
+        this.lastPosition.copy(model.position);
+        const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
+        this.lastRotation = new THREE.Vector3(
+            THREE.MathUtils.radToDeg(euler.x),
+            THREE.MathUtils.radToDeg(euler.y),
+            THREE.MathUtils.radToDeg(euler.z)
+        );
+        this.lastScale.copy(model.scale);
     }
 
     protected override onSettingValues() {
