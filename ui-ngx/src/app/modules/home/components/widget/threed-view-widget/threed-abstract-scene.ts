@@ -212,7 +212,7 @@ export abstract class ThreedAbstractScene<S> {
         this.updateModelTransforms(ENVIRONMENT_ID, environmentSettings);
     }
 
-    protected setCameraValues(threedCameraSettings: ThreedCameraSettings, camera?: THREE.Object3D) {
+    protected setCameraValues(threedCameraSettings: ThreedCameraSettings, camera?: THREE.Object3D | THREE.PerspectiveCamera) {
         if (!threedCameraSettings) return;
 
         this.updateModelTransforms(CAMERA_ID, { threedPositionVectorSettings: threedCameraSettings.initialPosition, threedRotationVectorSettings: threedCameraSettings.initialRotation });
@@ -222,6 +222,15 @@ export abstract class ThreedAbstractScene<S> {
             const rotation = threedCameraSettings.initialRotation;
             if (position) camera.position.set(position.x, position.y, position.z);
             if (rotation) camera.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+
+            //@ts-ignore
+            if (camera.isPerspectiveCamera) {
+                const cam = camera as THREE.PerspectiveCamera;
+                cam.far = threedCameraSettings.far || cam.far;
+                cam.near = threedCameraSettings.near || cam.near;
+                cam.fov = threedCameraSettings.fov || cam.fov;
+                cam.updateProjectionMatrix();
+            }
         }
     }
 

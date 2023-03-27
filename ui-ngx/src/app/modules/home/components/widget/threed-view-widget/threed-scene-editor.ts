@@ -190,6 +190,17 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.setDevicesValues(this.settingsValue.threedDevicesSettings);
     }
 
+    protected override setCameraValues(threedCameraSettings: ThreedCameraSettings, camera?: THREE.PerspectiveCamera | THREE.Object3D<THREE.Event>): void {
+        super.setCameraValues(threedCameraSettings, camera);
+
+        if (threedCameraSettings && this.perspectiveCamera) {
+            this.perspectiveCamera.far = threedCameraSettings.far || this.perspectiveCamera.far;
+            this.perspectiveCamera.near = threedCameraSettings.near || this.perspectiveCamera.near;
+            this.perspectiveCamera.fov = threedCameraSettings.fov || this.perspectiveCamera.fov;
+            this.perspectiveCamera.updateProjectionMatrix();
+        }
+    }
+
     public override onMouseClick(event: MouseEvent): void {
         super.onMouseClick(event);
 
