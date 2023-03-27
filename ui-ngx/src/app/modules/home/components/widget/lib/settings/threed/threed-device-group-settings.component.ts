@@ -35,8 +35,7 @@ import { IAliasController } from '@app/core/public-api';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
 import { EntityInfo } from '@app/shared/public-api';
-import { ThreedObjectSettings } from './threed-object-settings.component';
-import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedDeviceGroupSettings } from '../../../threed-view-widget/threed-models';
+import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedDeviceGroupSettings, ThreedObjectSettings } from '../../../threed-view-widget/threed-models';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 
 
@@ -92,7 +91,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
   ngOnInit(): void {
     this.threedDeviceGroupFormGroup = this.fb.group({
-      threedEntityAliasSettings: [null, []],
+      threedEntityAliasSettings: [null, [Validators.required]],
       useAttribute: [false, []],
       threedEntityKeySettings: [null, []],
       threedTooltipSettings: [null, []],
@@ -203,7 +202,10 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     this.entityKeySettings?.updateEntityAlias(value.threedEntityAliasSettings.entityAlias);
 
     // TODO: remove if...
-    if (!this.propagateChange) return;
+    if (!this.propagateChange) {
+      console.error("PropagateChange is undefined");
+      return;
+    }
 
     if (this.threedDeviceGroupFormGroup.valid) {
       this.propagateChange(this.modelValue);

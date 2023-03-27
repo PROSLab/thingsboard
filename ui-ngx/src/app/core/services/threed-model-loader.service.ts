@@ -40,8 +40,8 @@ export class ThreedModelLoaderService {
   }
 
   public areLoaderEqual(entityLoader1: ModelUrl | EntityAliasAttribute, entityLoader2: ModelUrl | EntityAliasAttribute): boolean {
-    if(!entityLoader1 || !entityLoader2) return false;
-    
+    if (!entityLoader1 || !entityLoader2) return false;
+
     if (this.isModelUrl(entityLoader1) && this.isModelUrl(entityLoader2)) {
       return entityLoader1.url == entityLoader2.url;
     }
@@ -61,6 +61,10 @@ export class ThreedModelLoaderService {
     return 'entityAlias' in obj && 'entityAttribute' in obj;
   }
 
+  public isConfigValid(config: ThreedUniversalModelLoaderConfig): boolean {
+    return (config && config.aliasController && config.entityLoader) ? true : false;
+  }
+
   /*
   public toEntityLoader(settings: ThreedModelSettings): ModelUrl | EntityAliasAttribute | undefined {
     if (settings.modelUrl)
@@ -76,7 +80,7 @@ export class ThreedModelLoaderService {
 
   public toEntityLoader(settings: ThreedEnvironmentSettings): ModelUrl | EntityAliasAttribute | undefined {
 
-    if (!settings.useAlias && settings.objectSettings.modelUrl)
+    if (!settings.useAlias && settings.objectSettings?.modelUrl)
       return {
         url: settings.objectSettings.modelUrl,
         entity: settings.objectSettings.entity
@@ -92,7 +96,8 @@ export class ThreedModelLoaderService {
 
   public toEntityLoaders(settings: ThreedDeviceGroupSettings): (ModelUrl | EntityAliasAttribute)[] | undefined {
     if (!settings.threedEntityAliasSettings?.entityAlias)
-      throw new Error("Entity alias not defined");
+      return undefined;
+      //throw new Error("Entity alias not defined");
 
     if (settings.useAttribute && settings.threedEntityKeySettings?.entityAttribute) {
       let enitytInfoAttributes: EntityAliasAttribute[] = [];
@@ -122,6 +127,9 @@ export class ThreedModelLoaderService {
   }
 
   public loadModelAsUrl(config: ThreedUniversalModelLoaderConfig): Observable<{ entityId: string | undefined, base64: string }> {
+    if (!this.isConfigValid(config))
+      return of({ entityId: Math.random().toString(), base64: "/assets/models/gltf/default.glb" });
+
     if (this.isModelUrl(config.entityLoader)) {
       return of({ entityId: config.entityLoader.entity?.id, base64: config.entityLoader.url });
     } else if (this.isEntityAliasAttribute(config.entityLoader)) {

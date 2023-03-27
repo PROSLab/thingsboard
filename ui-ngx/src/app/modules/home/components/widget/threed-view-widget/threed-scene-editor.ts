@@ -64,6 +64,12 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             this.scene.add(this.cameraMesh);
 
             this.setCameraValues(this.settingsValue.threedCameraSettings, this.cameraMesh);
+
+            if (!this.boxHelper) {
+                this.boxHelper = new THREE.BoxHelper(this.cameraMesh, 0xffff00);
+                this.scene.add(this.boxHelper);
+                this.boxHelper.visible = false
+            }
         });
     }
 
@@ -101,6 +107,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.scene.add(this.transformControl);
     }
 
+    /*
     protected override addModel(model: GLTF, id?: string): void {
         super.addModel(model, id);
 
@@ -112,6 +119,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             this.scene.add(this.boxHelper);
         }
     }
+    */
 
     protected override onRemoveModel(gltf: GLTF, id: string): void {
         super.onRemoveModel(gltf, id);
@@ -174,16 +182,18 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersection = this.raycaster.intersectObjects(this.scene.children).filter(o => {
             return o.object.type != "TransformControlsPlane" && 
+                o.object.type != "BoxHelper" && 
                 //@ts-ignore
                 o.object.tag != "Helper"
         });
 
+        /*
         console.log(intersection);
 
         console.log(intersection.map(o => {
             const ud = this.getParentByChild(o.object, ROOT_TAG, true)?.userData;
             return { d: o.distance, ud: ud };
-        }));
+        }));*/
 
         if (intersection.length > 0) {
             const intersectedObject = intersection[0].object;
@@ -198,6 +208,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     private changeTransformControl(model?: THREE.Object3D) {
         this.transformControl.detach();
         this.transformControl.visible = model ? true : false;
+        this.boxHelper.visible = model ? true : false;
 
         if (model) {
             this.transformControl.attach(model);

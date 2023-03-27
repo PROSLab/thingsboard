@@ -63,7 +63,7 @@ export class ThreedModelInputComponent extends PageComponent implements AfterVie
   }
 
   @Input()
-  disabled: boolean;
+  disabled: boolean = false;
 
   @Input()
   showClearButton = true;

@@ -30,15 +30,11 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  defaultThreedVectorOneSettings,
-  defaultThreedVectorZeroSettings,
   ThreedEnvironmentSettings,
-  ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { IAliasController } from '@app/core/public-api';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
-import { ThreedObjectSettings } from './threed-object-settings.component';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
 import { ENVIRONMENT_ID } from '../../../threed-view-widget/threed-constants';
 

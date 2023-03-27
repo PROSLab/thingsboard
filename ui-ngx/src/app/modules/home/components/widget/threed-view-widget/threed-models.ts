@@ -1,6 +1,6 @@
+import { EntityInfo } from "@app/shared/public-api";
 import { ThreedEntityAliasSettings } from "../lib/settings/threed/aliases/threed-entity-alias-settings.component";
 import { ThreedEntityKeySettings } from "../lib/settings/threed/aliases/threed-entity-key-settings.component";
-import { ThreedObjectSettings } from "../lib/settings/threed/threed-object-settings.component";
 
 export interface ThreedViewWidgetSettings {
     hoverColor: string;
@@ -37,6 +37,16 @@ export const defaultThreedVectorOneSettings: ThreedVectorSettings = {
     y: 1,
     z: 1
 };
+
+
+
+export interface ThreedObjectSettings {
+    entity: EntityInfo;
+    modelUrl: string;
+    threedPositionVectorSettings: ThreedVectorSettings;
+    threedRotationVectorSettings: ThreedVectorSettings;
+    threedScaleVectorSettings: ThreedVectorSettings;
+}
 
 
 
@@ -78,7 +88,7 @@ export interface ThreedEnvironmentSettings {
     threedEntityAliasSettings: ThreedEntityAliasSettings;
     threedEntityKeySettings: ThreedEntityKeySettings;
     useAlias: boolean;
-    objectSettings: ThreedObjectSettings;
+    objectSettings: ThreedObjectSettings | null;
 }
 export const defaultThreedEnvironmentSettings: ThreedEnvironmentSettings = {
     threedEntityAliasSettings: { entityAlias: "" },
@@ -128,6 +138,6 @@ export const defaultThreedSceneSettings: ThreedSceneSettings = {
     threedPositionVectorSettings: defaultThreedVectorZeroSettings,
     threedRotationVectorSettings: defaultThreedVectorZeroSettings,*/
     threedEnvironmentSettings: defaultThreedEnvironmentSettings,
-    threedCameraSettings:defaultThreedCameraSettings,
+    threedCameraSettings: defaultThreedCameraSettings,
     threedDevicesSettings: defaultThreedDevicesSettings,
 };

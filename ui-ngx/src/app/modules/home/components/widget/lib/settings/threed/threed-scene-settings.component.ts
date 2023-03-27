@@ -100,6 +100,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     });
 
     this.threedSceneSettingsFormGroup.get("threedDevicesSettings").valueChanges.subscribe((newValues: ThreedDevicesSettings) => {
+      // TODO: when changing models, this code is not triggered
+      console.log("threedDevicesSettings valueChanges", newValues);
       this.updateSceneModels(newValues);
     });
 
@@ -185,11 +187,13 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   private updateSceneModels(newSettings: ThreedDevicesSettings | ThreedEnvironmentSettings) {
     if (newSettings == null) return;
 
+    console.log(newSettings);
+
     // must be called ONLY when the model effectively changed (not when properties like pos, rot, scale, attr...changes)
     if ("threedDeviceGroupSettings" in newSettings) {
       newSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
         const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
-        loaders.forEach(entityLoader => {
+        loaders?.forEach(entityLoader => {
           const config: ThreedUniversalModelLoaderConfig = {
             entityLoader,
             aliasController: this.aliasController

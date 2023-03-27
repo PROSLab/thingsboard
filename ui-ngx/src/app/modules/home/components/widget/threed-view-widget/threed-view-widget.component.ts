@@ -80,6 +80,10 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
     this.settings = this.ctx.settings;
 
     console.log(this.settings);
+    if (!this.settings.hoverColor || !this.settings.threedSceneSettings) {
+      console.warn("ThreedViewWidgetSettings object empty!")
+      return;
+    }
 
     this.threedNavigateScene.updateValue(this.settings);
     this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
@@ -100,6 +104,9 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
       entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
     }
+
+    console.log(config);
+
     this.loadModel(config, ENVIRONMENT_ID, false);
   }
 
@@ -118,6 +125,8 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
+    if (!this.threedModelLoader.isConfigValid(config)) return;
+          
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
       this.threedNavigateScene.addModel(res.model, id ? id : res.entityId, hasTooltip);
     });
@@ -134,7 +143,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   public onDataUpdated() {
     //console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
     //console.log("\n\n\nonDataUpdated - data", this.ctx.data);
-    
+
     if (this.ctx.datasources.length > 0) {
       var tbDatasource = this.ctx.datasources[0];
       // TODO...
@@ -149,13 +158,13 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
 
     // We associate the new data with the tooltip settings, according to the entity alias
     formattedData.forEach(fd => {
-      this.settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach(deviceGroup => {
+      this.settings.threedSceneSettings?.threedDevicesSettings?.threedDeviceGroupSettings?.forEach(deviceGroup => {
         if (deviceGroup.threedTooltipSettings.showTooltip) {
           if (deviceGroup.threedEntityAliasSettings.entityAlias == fd.aliasName) {
             const pattern = deviceGroup.threedTooltipSettings.tooltipPattern;
             const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
             const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
-            
+
             this.threedNavigateScene.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
           }
         }

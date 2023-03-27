@@ -29,8 +29,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@core/api/widget-api.models';
-import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { EntityInfo } from '@app/shared/public-api';
+import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedObjectSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
@@ -38,14 +37,6 @@ import {
   ShowTooltipAction, 
   showTooltipActionTranslationMap
 } from '@home/components/widget/lib/maps/map-models';
-
-export interface ThreedObjectSettings {
-  entity: EntityInfo;
-  modelUrl: string;
-  threedPositionVectorSettings: ThreedVectorSettings;
-  threedRotationVectorSettings: ThreedVectorSettings;
-  threedScaleVectorSettings: ThreedVectorSettings;
-}
 
 @Component({
   selector: 'tb-threed-object-settings',
@@ -189,7 +180,10 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     this.modelValue = value;
 
     // TODO: remove if...
-    if (!this.propagateChange) return;
+    if (!this.propagateChange) {
+      console.error("PropagateChange undefined");
+      return;
+    }
 
     this.propagateChange(this.modelValue);
   }
