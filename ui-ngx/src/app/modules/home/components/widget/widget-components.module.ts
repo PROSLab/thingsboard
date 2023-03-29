@@ -44,6 +44,7 @@ import { MarkdownWidgetComponent } from '@home/components/widget/lib/markdown-wi
 import { SelectEntityDialogComponent } from '@home/components/widget/lib/maps/dialogs/select-entity-dialog.component';
 
 import { ThreedNavigationWidgetComponent } from '@home/components/widget/threed-view-widget/threed-navigation-widget.component';
+import { ThreedOrbitWidgetComponent } from '@home/components/widget/threed-view-widget/threed-orbit-widget.component';
 
 @NgModule({
   declarations:
@@ -69,6 +70,7 @@ import { ThreedNavigationWidgetComponent } from '@home/components/widget/threed-
       SelectEntityDialogComponent,
       
       ThreedNavigationWidgetComponent,
+      ThreedOrbitWidgetComponent,
     ],
   imports: [
     CommonModule,
@@ -95,6 +97,7 @@ import { ThreedNavigationWidgetComponent } from '@home/components/widget/threed-
     MarkdownWidgetComponent,
     
     ThreedNavigationWidgetComponent,
+    ThreedOrbitWidgetComponent,
   ],
   providers: [
     CustomDialogService,
