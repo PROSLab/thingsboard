@@ -32,11 +32,9 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import {
   ThreedCameraSettings,
-  ThreedEnvironmentSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
-import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
-import { CAMERA_ID } from '../../../threed-view-widget/threed-constants';
+import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
+import { CAMERA_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 
 
 @Component({

@@ -31,11 +31,8 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@core/api/widget-api.models';
 import { Observable, of } from 'rxjs';
-import { catchError, map, mergeMap, publishReplay, refCount, startWith, tap } from 'rxjs/operators';
-import { DataKey } from '@shared/models/widget.models';
-import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { map, mergeMap, tap } from 'rxjs/operators';
 import { EntityService } from '@core/http/entity.service';
-import { ThreedModelSettings } from '@home/components/widget/threed-view-widget/threed-models';
 
 export interface ThreedEntityAliasSettings {
   entityAlias: string;

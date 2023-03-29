@@ -20,16 +20,15 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from './threed-models';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
   formattedDataFormDatasourceData,
   mergeFormattedData,
   processDataPattern,
   fillDataPattern
 } from '@core/utils';
-import { ThreedNavigateScene } from './threed-nagivate-scene';
-import { ENVIRONMENT_ID } from './threed-constants';
+import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedNavigateScene } from '@home/components/widget/threed-view-widget/threed-nagivate-scene';
+import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 
 
 

@@ -19,7 +19,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
+import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
 
 @Component({
   selector: 'tb-threed-view-widget-settings',

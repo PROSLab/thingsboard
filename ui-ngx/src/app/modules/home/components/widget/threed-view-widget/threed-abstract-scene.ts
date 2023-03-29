@@ -14,18 +14,18 @@
 /// limitations under the License.
 ///
 
-import { ElementRef, HostListener } from '@angular/core';
+import { ElementRef } from '@angular/core';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
     ThreedCameraSettings,
     ThreedDevicesSettings,
     ThreedEnvironmentSettings,
-    ThreedSceneSettings, ThreedVectorSettings, ThreedViewWidgetSettings,
+    ThreedVectorSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
-import { CAMERA_ID, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from './threed-constants';
+import { CAMERA_ID, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
 
 /**
  * @param S refert to the type of Settings

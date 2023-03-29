@@ -37,8 +37,8 @@ import {
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { IAliasController } from '@app/core/public-api';
 import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
-import { ENVIRONMENT_ID } from '../../../threed-view-widget/threed-constants';
+import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
+import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 
 @Component({
   selector: 'tb-threed-scene-settings',

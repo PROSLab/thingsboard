@@ -32,8 +32,8 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@app/core/public-api';
-import { defaultThreedDeviceGroupSettings, ThreedDeviceGroupSettings, ThreedDevicesSettings } from 'src/app/modules/home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { defaultThreedDeviceGroupSettings, ThreedDeviceGroupSettings, ThreedDevicesSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
 
 @Component({
   selector: 'tb-threed-devices-settings',

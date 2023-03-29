@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { Component, forwardRef, Input, OnInit, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges, SimpleChanges, AfterContentChecked, Renderer2 } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -35,8 +35,8 @@ import {
 import { IAliasController } from '@app/core/public-api';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
-import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
-import { ENVIRONMENT_ID } from '../../../threed-view-widget/threed-constants';
+import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
+import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 
 
 @Component({

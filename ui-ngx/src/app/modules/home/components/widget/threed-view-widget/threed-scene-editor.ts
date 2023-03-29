@@ -18,11 +18,11 @@ import { ElementRef, EventEmitter } from '@angular/core';
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { BoxHelper, Vector3 } from 'three';
-import { ThreedOrbitScene } from './threed-orbit-scene';
+import { ThreedOrbitScene } from '@home/components/widget/threed-view-widget/threed-orbit-scene';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { ThreedCameraSettings, ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
-import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG, ThreedSceneControllerType } from './threed-constants';
-import { ThreedUtils } from './threed-utils';
+import { ThreedCameraSettings, ThreedSceneSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ThreedUtils } from '@home/components/widget/threed-view-widget/threed-utils';
 
 export interface ThreedSceneEditorConfig {
     controllerType: ThreedSceneControllerType;

@@ -18,8 +18,7 @@ import { Injectable } from '@angular/core';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
   ThreedDeviceGroupSettings,
-  ThreedEnvironmentSettings,
-  ThreedModelSettings
+  ThreedEnvironmentSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { AttributeService } from '@core/http/attribute.service';

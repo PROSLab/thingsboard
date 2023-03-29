@@ -32,7 +32,7 @@ import { IAliasController } from '@core/api/widget-api.models';
 import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedObjectSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
-import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
 import {
   ShowTooltipAction, 
   showTooltipActionTranslationMap

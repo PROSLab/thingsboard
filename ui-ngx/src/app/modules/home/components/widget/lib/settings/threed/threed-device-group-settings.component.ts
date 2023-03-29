@@ -35,8 +35,8 @@ import { IAliasController } from '@app/core/public-api';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
 import { EntityInfo } from '@app/shared/public-api';
-import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedDeviceGroupSettings, ThreedObjectSettings } from '../../../threed-view-widget/threed-models';
-import { ThreedSceneEditor } from '../../../threed-view-widget/threed-scene-editor';
+import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedDeviceGroupSettings, ThreedObjectSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
 
 
 @Component({

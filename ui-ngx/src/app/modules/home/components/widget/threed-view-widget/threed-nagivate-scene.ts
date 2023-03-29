@@ -17,10 +17,10 @@
 import { ElementRef } from "@angular/core";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
-import { ThreedFpsScene } from "./threed-fps-scene";
+import { ThreedFpsScene } from "@home/components/widget/threed-view-widget/threed-fps-scene";
 import * as THREE from 'three';
-import { ThreedCameraSettings, ThreedSceneSettings, ThreedViewWidgetSettings } from "./threed-models";
-import { OBJECT_ID_TAG } from "./threed-constants";
+import { ThreedViewWidgetSettings } from "@home/components/widget/threed-view-widget/threed-models";
+import { OBJECT_ID_TAG } from "@home/components/widget/threed-view-widget/threed-constants";
 
 interface Label {
     divElement: HTMLDivElement;
