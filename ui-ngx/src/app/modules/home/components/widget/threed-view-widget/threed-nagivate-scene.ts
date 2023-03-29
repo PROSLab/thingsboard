@@ -1,3 +1,19 @@
+///
+/// Copyright © 2016-2023 The Thingsboard Authors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
+///
+
 import { ElementRef } from "@angular/core";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
@@ -12,7 +28,7 @@ interface Label {
     layer: number;
 }
 
-export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings> {
+export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings, any> {
 
     private labelRenderer?: CSS2DRenderer;
     private INTERSECTED?: any;
@@ -25,7 +41,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
     private readonly initialLabelLayerIndex = 5;
     private lastLayerIndex = this.initialLabelLayerIndex;
 
-    protected override initialize(canvas?: ElementRef<any>): void {
+    protected override initialize(canvas?: ElementRef): void {
         super.initialize(canvas);
 
         this.initializeLabelRenderer();

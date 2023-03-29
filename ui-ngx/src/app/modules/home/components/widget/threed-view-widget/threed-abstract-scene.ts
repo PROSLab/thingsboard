@@ -1,3 +1,19 @@
+///
+/// Copyright © 2016-2023 The Thingsboard Authors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
+///
+
 import { ElementRef, HostListener } from '@angular/core';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -14,7 +30,7 @@ import { CAMERA_ID, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from './threed-con
 /**
  * @param S refert to the type of Settings
  */
-export abstract class ThreedAbstractScene<S> {
+export abstract class ThreedAbstractScene<S, C> {
 
     private rendererContainer: ElementRef;
 
@@ -25,6 +41,7 @@ export abstract class ThreedAbstractScene<S> {
     protected models: Map<string, GLTF> = new Map();
     protected objects: Object3D[] = [];
     protected settingsValue?: S;
+    protected configs?: C; 
 
     protected mouse = new THREE.Vector2();
     protected active = true;
@@ -33,8 +50,9 @@ export abstract class ThreedAbstractScene<S> {
     protected screenHeight = window.innerHeight;
 
 
-    constructor(canvas?: ElementRef) {
+    constructor(canvas?: ElementRef, configs?: C) {
         this.rendererContainer = canvas;
+        this.configs = configs;
         this.initialize(canvas);
     }
 

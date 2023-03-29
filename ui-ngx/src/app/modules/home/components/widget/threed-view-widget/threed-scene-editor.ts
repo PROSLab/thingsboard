@@ -1,3 +1,19 @@
+///
+/// Copyright © 2016-2023 The Thingsboard Authors
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///     http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
+///
+
 import { ElementRef, EventEmitter } from '@angular/core';
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
@@ -5,10 +21,17 @@ import { BoxHelper, Vector3 } from 'three';
 import { ThreedOrbitScene } from './threed-orbit-scene';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ThreedCameraSettings, ThreedDevicesSettings, ThreedEnvironmentSettings, ThreedSceneSettings } from './threed-models';
-import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from './threed-constants';
+import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG, ThreedSceneControllerType } from './threed-constants';
 import { ThreedUtils } from './threed-utils';
 
-export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
+export interface ThreedSceneEditorConfig {
+    controllerType: ThreedSceneControllerType;
+}
+export const defaultThreedSceneEditorConfig: ThreedSceneEditorConfig = {
+    controllerType: ThreedSceneControllerType.FIRST_PERSON_CONTROLLER
+}
+
+export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings, ThreedSceneEditorConfig> {
 
     private readonly SCREEN_WIDTH_ASPECT_RATIO = 4;
     private readonly SCREEN_HEIGHT_ASPECT_RATIO = 4;
@@ -19,6 +42,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     private debugCameraScreenWidth = this.screenWidth / this.SCREEN_WIDTH_ASPECT_RATIO;
     private debugCameraScreenHeight = this.screenHeight / this.SCREEN_HEIGHT_ASPECT_RATIO;
     private showDebugCameraPreview = false;
+    private focusOnCameraDone = false;
 
     private transformControl?: TransformControls;
     private boxHelper?: BoxHelper;
@@ -33,8 +57,12 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     private lastRotation = new THREE.Vector3();
     private lastScale = new THREE.Vector3();
 
-    constructor(canvas?: ElementRef) {
-        super(canvas);
+    constructor(canvas?: ElementRef, configs: ThreedSceneEditorConfig = defaultThreedSceneEditorConfig) {
+        super(canvas, configs);
+    }
+
+    protected isController(controllerType: ThreedSceneControllerType): boolean {
+        return this.configs?.controllerType == controllerType;
     }
 
     protected override initialize(canvas?: ElementRef): void {
@@ -42,11 +70,14 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
         this.renderer.autoClear = false;
 
-        this.initializeCameraHelper();
+        if (this.isController(ThreedSceneControllerType.FIRST_PERSON_CONTROLLER))
+            this.initializeCameraHelper();
         this.initializeTransformControl();
+        this.initializeBoxHelper();
     }
 
     private initializeCameraHelper() {
+        console.log("initializeCameraHelper");
         this.perspectiveCamera = new THREE.PerspectiveCamera(60, this.camera.aspect, 1, 150);
         this.perspectiveCameraHelper = new THREE.CameraHelper(this.perspectiveCamera);
         this.scene.add(this.perspectiveCameraHelper)
@@ -64,12 +95,6 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             this.scene.add(this.cameraMesh);
 
             this.setCameraValues(this.settingsValue.threedCameraSettings, this.cameraMesh);
-
-            if (!this.boxHelper) {
-                this.boxHelper = new THREE.BoxHelper(this.cameraMesh, 0xffff00);
-                this.scene.add(this.boxHelper);
-                this.boxHelper.visible = false
-            }
         });
     }
 
@@ -107,19 +132,13 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.scene.add(this.transformControl);
     }
 
-    /*
-    protected override addModel(model: GLTF, id?: string): void {
-        super.addModel(model, id);
-
-        const customId = id || model.scene.uuid;
-        const root = this.models.get(customId).scene;
-
+    private initializeBoxHelper() {
         if (!this.boxHelper) {
-            this.boxHelper = new THREE.BoxHelper(root, 0xffff00);
+            this.boxHelper = new THREE.BoxHelper(undefined, 0xffff00);
             this.scene.add(this.boxHelper);
+            this.boxHelper.visible = false
         }
     }
-    */
 
     protected override onRemoveModel(gltf: GLTF, id: string): void {
         super.onRemoveModel(gltf, id);
@@ -130,8 +149,8 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     protected tick(): void {
         super.tick();
 
-        this.boxHelper?.update();
-        this.perspectiveCameraHelper?.update();
+        if (this.boxHelper?.visible) this.boxHelper?.update();
+        if (this.perspectiveCameraHelper?.visible) this.perspectiveCameraHelper?.update();
     }
 
     public override render(): void {
@@ -166,10 +185,12 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
     public override resize(width?: number, height?: number): void {
         super.resize(width, height);
 
-        this.debugCameraScreenWidth = this.screenWidth / this.SCREEN_WIDTH_ASPECT_RATIO;
-        this.debugCameraScreenHeight = this.screenHeight / this.SCREEN_HEIGHT_ASPECT_RATIO;
-        this.perspectiveCamera.aspect = this.debugCameraScreenWidth / this.debugCameraScreenHeight;
-        this.perspectiveCamera.updateProjectionMatrix();
+        if (this.isController(ThreedSceneControllerType.FIRST_PERSON_CONTROLLER)) {
+            this.debugCameraScreenWidth = this.screenWidth / this.SCREEN_WIDTH_ASPECT_RATIO;
+            this.debugCameraScreenHeight = this.screenHeight / this.SCREEN_HEIGHT_ASPECT_RATIO;
+            this.perspectiveCamera.aspect = this.debugCameraScreenWidth / this.debugCameraScreenHeight;
+            this.perspectiveCamera.updateProjectionMatrix();
+        }
     }
 
     private updateRaycaster() {
@@ -181,8 +202,8 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
 
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersection = this.raycaster.intersectObjects(this.scene.children).filter(o => {
-            return o.object.type != "TransformControlsPlane" && 
-                o.object.type != "BoxHelper" && 
+            return o.object.type != "TransformControlsPlane" &&
+                o.object.type != "BoxHelper" &&
                 //@ts-ignore
                 o.object.tag != "Helper"
         });
@@ -241,6 +262,11 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
             this.perspectiveCamera.near = threedCameraSettings.near || this.perspectiveCamera.near;
             this.perspectiveCamera.fov = threedCameraSettings.fov || this.perspectiveCamera.fov;
             this.perspectiveCamera.updateProjectionMatrix();
+
+            if(!this.focusOnCameraDone) {
+                this.focusOnObject(this.cameraMesh);
+                this.focusOnCameraDone = true;
+            }
         }
     }
 
@@ -297,10 +323,10 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings> {
         this.transformControl?.setMode(mode);
     }
 
-    public focusOnObject() {
+    public focusOnObject(object?: THREE.Object3D) {
         this.raycastEnabledLastFrame = false;
 
-        const object = this.transformControl?.object;
+        object = object || this.transformControl?.object;
         const position = object?.position || new THREE.Vector3(0, 0, 0);
         this.orbit.target.copy(position);
         this.orbit.update();
