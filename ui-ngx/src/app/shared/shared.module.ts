@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { NgModule, SecurityContext } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FooterComponent } from '@shared/components/footer.component';
 import { LogoComponent } from '@shared/components/logo.component';
@@ -170,6 +170,8 @@ import { CustomDateAdapter } from '@shared/adapter/custom-datatime-adapter';
 import { CustomPaginatorIntl } from '@shared/services/custom-paginator-intl';
 import { TbScriptLangComponent } from '@shared/components/script-lang.component';
 
+import { ThreedModelInputComponent } from '@shared/components/threed-model-input.component';
+
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
 }
@@ -295,7 +297,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ProtobufContentComponent,
     BranchAutocompleteComponent,
     PhoneInputComponent,
-    TbScriptLangComponent
+    TbScriptLangComponent,
+    
+    ThreedModelInputComponent
   ],
   imports: [
     CommonModule,
@@ -500,7 +504,10 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ProtobufContentComponent,
     BranchAutocompleteComponent,
     PhoneInputComponent,
-    TbScriptLangComponent
-  ]
+    TbScriptLangComponent,
+    
+    ThreedModelInputComponent
+  ],
+  schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })
 export class SharedModule { }

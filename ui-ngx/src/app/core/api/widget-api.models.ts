@@ -131,6 +131,8 @@ export interface IAliasController {
   updateFilters(filters: Filters);
   updateAliases(aliasIds?: Array<string>);
   dashboardStateChanged();
+
+  resolveEntitiesInfo(aliasId: string): Observable<EntityInfo[]>;
 }
 
 export interface StateObject {

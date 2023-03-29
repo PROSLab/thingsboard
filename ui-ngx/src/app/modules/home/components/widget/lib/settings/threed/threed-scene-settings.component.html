@@ -1,0 +1,80 @@
+<!--
+
+    Copyright © 2016-2023 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<section class="tb-widget-settings" [formGroup]="threedSceneSettingsFormGroup">
+    <fieldset class="fields-group">
+        <legend class="group-title">Scene settings</legend>
+
+        <div class="tb-container"  style="color:white">
+            <div class="rendererContainer" #rendererContainer>
+                <div class="position-absolute w-100">
+                    <div fxLayout="row">
+
+                        <div fxFlex fxLayoutAlign="end center">
+                            <button mat-icon-button (click)="enterFullscreen()" *ngIf="!fullscreen">
+                                <mat-icon>fullscreen</mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="exitFullscreen()" *ngIf="fullscreen">
+                                <mat-icon>fullscreen_exit</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="position-absolute w-100" style="bottom:0!important">
+                    <div fxLayout="row" *ngIf="fullscreen">
+                        <div fxFlex="66" fxLayoutAlign="center center" fxFlexOffset="17">
+                            <button mat-icon-button (click)="changeControlMode('translate')">
+                                <mat-icon>open_with</mat-icon>
+                            </button>
+
+                            <button mat-icon-button (click)="changeControlMode('rotate')">
+                                <mat-icon>rotate_left</mat-icon>
+                            </button>
+
+                            <button mat-icon-button (click)="changeControlMode('scale')">
+                                <mat-icon>open_in_full</mat-icon>
+                            </button>
+
+                            <button mat-icon-button (click)="focusOnObject()">
+                                <mat-icon>center_focus_strong</mat-icon>
+                            </button>
+
+                            <!--
+                            <button mat-icon-button>
+                                <mat-icon>pan_tool</mat-icon>
+                            </button>
+                        -->
+                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <tb-threed-environment-settings [threedSceneEditor]="threedSceneEditor" [aliasController]="aliasController"
+            formControlName="threedEnvironmentSettings">
+        </tb-threed-environment-settings>
+
+        <tb-threed-camera-settings [threedSceneEditor]="threedSceneEditor" formControlName="threedCameraSettings">
+        </tb-threed-camera-settings>
+
+        <tb-threed-devices-settings [threedSceneEditor]="threedSceneEditor" [aliasController]="aliasController"
+            formControlName="threedDevicesSettings">
+        </tb-threed-devices-settings>
+    </fieldset>
+</section>

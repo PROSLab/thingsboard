@@ -242,6 +242,23 @@ export class AliasController implements IAliasController {
     );
   }
 
+  resolveEntitiesInfo(aliasId: string): Observable<EntityInfo[]> {
+    return this.getAliasInfo(aliasId).pipe(
+      mergeMap((aliasInfo) => {
+        if (aliasInfo.resolveMultiple) {
+          if (aliasInfo.entityFilter) {
+            return this.entityService.findFirst50EntityInfoByEntityFilter(aliasInfo.entityFilter,
+              {ignoreLoading: true, ignoreErrors: true});
+          } else {
+            return of(null);
+          }
+        } else {
+          return of(aliasInfo.currentEntity);
+        }
+      })
+    );
+  }
+
   private resolveDatasource(datasource: Datasource, forceFilter = false): Observable<Datasource> {
     const newDatasource = deepClone(datasource);
     if (newDatasource.type === DatasourceType.entity || newDatasource.type === DatasourceType.entityCount) {

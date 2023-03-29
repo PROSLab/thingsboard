@@ -1,0 +1,62 @@
+<!--
+
+    Copyright © 2016-2023 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div fxLayout="column" [formGroup]="threedDeviceGroupFormGroup">
+
+    <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;" type="button" (click)="removeDeviceGroup.emit()"
+        matTooltip="{{ 'action.remove' | translate }}" matTooltipPosition="above">
+        <mat-icon>delete</mat-icon>
+    </button>
+
+    <tb-threed-entity-alias-settings [aliasController]="aliasController" formControlName="threedEntityAliasSettings"
+        (onEntityAliasChanged)="onEntityAliasChanged()"></tb-threed-entity-alias-settings>
+    <div fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign="center center"
+        style="margin-bottom: 10px">
+        <mat-slide-toggle formControlName="useAttribute" fxFlex>Use Entity
+            Attribute</mat-slide-toggle>
+        <tb-threed-entity-key-settings fxFlex #entityKeySettings [aliasController]="aliasController"
+            formControlName="threedEntityKeySettings"
+            [entityAlias]="threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value"></tb-threed-entity-key-settings>
+    </div>
+    <br>
+
+    
+    <tb-threed-tooltip-settings formControlName="threedTooltipSettings"></tb-threed-tooltip-settings>
+
+
+    <section class="tb-widget-settings"
+        *ngFor="let objectControl of objectsFormArray().controls; trackBy: trackByObjectControl; let $index = index;">
+        <fieldset class="fields-group">
+            <legend class="group-title">{{objectControl.value.entity.name}} settings</legend>
+            <div fxLayout="column">
+                <tb-threed-object-settings 
+                    [threedSceneEditor]="threedSceneEditor"
+                    [aliasController]="aliasController" 
+                    [formControl]="objectControl"
+                    [entityAttribute]="entityAttribute" 
+                    [entityAlias]="entityAlias"
+                    (removeObject)="removeObject($index)">
+                </tb-threed-object-settings>
+            </div>
+        </fieldset>
+    </section>
+
+    <div *ngIf="!objectsFormArray().controls.length">
+        <span fxLayoutAlign="center center" class="tb-prompt">No devices found for this entity
+            alias</span>
+    </div>
+</div>

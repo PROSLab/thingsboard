@@ -533,6 +533,25 @@ export class EntityService {
     );
   }
 
+  public findFirst50EntityInfoByEntityFilter(filter: EntityFilter, config?: RequestConfig): Observable<EntityInfo[]> {
+    const query: EntityDataQuery = {
+      entityFilter: filter,
+      pageLink: createDefaultEntityDataPageLink(50),
+      entityFields: entityInfoFields
+    };
+    return this.findEntityDataByQuery(query, config).pipe(
+      map((data) => {
+        if (data.data.length) {
+          let entitiesInfo: EntityInfo[] = [];
+          data.data.forEach(entityData => entitiesInfo.push(entityDataToEntityInfo(entityData)));
+          return entitiesInfo;
+        } else {
+          return null;
+        }
+      })
+    );
+  }
+
   public getAliasFilterTypesByEntityTypes(entityTypes: Array<EntityType | AliasEntityType>): Array<AliasFilterType> {
     const authState = getCurrentAuthState(this.store);
     let allAliasFilterTypes: Array<AliasFilterType> = Object.values(AliasFilterType);

@@ -260,6 +260,19 @@ import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
 
+import { ThreedViewWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-view-widget-settings.component';
+import { ThreedModelSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-model-settings.component';
+import { ThreedSceneSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-scene-settings.component';
+import { ThreedVectorSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-vector-settings.component';
+import { ThreedDevicesSettingsComponent } from '@home/components/widget/lib/settings//threed/threed-devices-settings.component';
+import { ThreedEntityAliasSettingsComponent } from '@home/components/widget/lib/settings/threed/aliases/threed-entity-alias-settings.component';
+import { ThreedEntityKeySettingsComponent } from '@home/components/widget/lib/settings/threed/aliases/threed-entity-key-settings.component';
+import { ThreedDeviceGroupSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-device-group-settings.component';
+import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-object-settings.component';
+import { ThreedEnvironmentSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-environment-settings.component';
+import { ThreedTooltipSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-tooltip-settings.component';
+import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-camera-settings.component';
+
 @NgModule({
   declarations: [
     QrCodeWidgetSettingsComponent,
@@ -357,7 +370,20 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
-    TripAnimationWidgetSettingsComponent
+    TripAnimationWidgetSettingsComponent,
+    
+    ThreedViewWidgetSettingsComponent,
+    ThreedModelSettingsComponent,
+    ThreedSceneSettingsComponent,
+    ThreedVectorSettingsComponent,
+    ThreedDevicesSettingsComponent,
+    ThreedEntityAliasSettingsComponent,
+    ThreedEntityKeySettingsComponent,
+    ThreedDeviceGroupSettingsComponent,
+    ThreedObjectSettingsComponent,
+    ThreedEnvironmentSettingsComponent,
+    ThreedTooltipSettingsComponent,
+    ThreedCameraSettingsComponent,
   ],
   imports: [
     CommonModule,
@@ -460,13 +486,26 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
-    TripAnimationWidgetSettingsComponent
+    TripAnimationWidgetSettingsComponent,
+
+    ThreedViewWidgetSettingsComponent,
+    ThreedModelSettingsComponent,
+    ThreedSceneSettingsComponent,
+    ThreedVectorSettingsComponent,
+    ThreedDevicesSettingsComponent,
+    ThreedEntityAliasSettingsComponent,
+    ThreedEntityKeySettingsComponent,
+    ThreedDeviceGroupSettingsComponent,
+    ThreedObjectSettingsComponent,
+    ThreedEnvironmentSettingsComponent,
+    ThreedTooltipSettingsComponent,
+    ThreedCameraSettingsComponent,
   ]
 })
 export class WidgetSettingsModule {
 }
 
-export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsComponent>} = {
+export const widgetSettingsComponentsMap: { [key: string]: Type<IWidgetSettingsComponent> } = {
   'tb-qrcode-widget-settings': QrCodeWidgetSettingsComponent,
   'tb-timeseries-table-widget-settings': TimeseriesTableWidgetSettingsComponent,
   'tb-timeseries-table-key-settings': TimeseriesTableKeySettingsComponent,
@@ -527,5 +566,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-update-multiple-attributes-key-settings': UpdateMultipleAttributesKeySettingsComponent,
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
-  'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent
+  'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
+  
+  'tb-threed-view-widget-settings': ThreedViewWidgetSettingsComponent,
 };

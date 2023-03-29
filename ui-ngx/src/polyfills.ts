@@ -68,6 +68,11 @@
  *
  */
 
+/**
+ * Import @google/model-viewer must be there to model-viewer run in stackblitz.
+ */
+import '@google/model-viewer';
+
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
  */

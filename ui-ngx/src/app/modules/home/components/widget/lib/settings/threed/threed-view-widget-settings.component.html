@@ -1,0 +1,42 @@
+<!--
+
+    Copyright © 2016-2023 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+
+<section class="tb-widget-settings" [formGroup]="threedViewWidgetSettingsForm">
+
+  <tb-threed-scene-settings 
+    [aliasController]="aliasController" 
+    [threedModelSettingsFormGroup]="threedViewWidgetSettingsForm.get('threedModelSettings')"
+    formControlName="threedSceneSettings">
+  </tb-threed-scene-settings>
+
+  <tb-color-input
+    formControlName="hoverColor"
+    icon="format_color_fill"
+    label="Hovering color" openOnInput colorClearButton>
+  </tb-color-input>
+
+<!--  <mat-form-field>
+    <mat-label translate>widgets.qr-code.qr-code-text-pattern</mat-label>
+    <input required matInput formControlName="hexColor">
+    <mat-hint>0xff0000</mat-hint>
+    <mat-error *ngIf="threedViewWidgetSettingsForm.get('hexColor').hasError('required')">
+      {{ 'widgets.qr-code.qr-code-text-pattern-required' | translate }}
+    </mat-error>
+  </mat-form-field>-->
+</section>
