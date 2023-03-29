@@ -204,6 +204,7 @@ export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings, Thr
         const intersection = this.raycaster.intersectObjects(this.scene.children).filter(o => {
             return o.object.type != "TransformControlsPlane" &&
                 o.object.type != "BoxHelper" &&
+                o.object.type != "GridHelper" && 
                 //@ts-ignore
                 o.object.tag != "Helper"
         });

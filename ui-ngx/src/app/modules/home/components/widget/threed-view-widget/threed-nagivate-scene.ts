@@ -106,7 +106,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
     public override resize(width?: number, height?: number): void {
         super.resize(width, height);
 
-        this.labelRenderer.setSize(width, height);
+        this.labelRenderer?.setSize(width, height);
     }
 
     public override render(): void {
@@ -161,7 +161,14 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
 
         if (this.controls && this.controls.isLocked === true) {
             this.pointerRaycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera!);
-            const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true);
+            const intersects = this.pointerRaycaster.intersectObjects(this.scene!.children, true).filter(o => {
+                return o.object.type != "TransformControlsPlane" &&
+                    o.object.type != "BoxHelper" &&
+                    o.object.type != "GridHelper" && 
+                    //@ts-ignore
+                    o.object.tag != "Helper"
+            });
+
 
             if (intersects.length > 0) {
                 const intersectedObject = intersects[0].object;
