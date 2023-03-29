@@ -18,11 +18,6 @@ import { ElementRef, EventEmitter } from '@angular/core';
 import * as THREE from 'three';
 import { ThreedAbstractScene } from './threed-abstract-scene';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
-import { Object3D } from 'three';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { WidgetContext } from '@home/models/widget-component.models';
-
 
 export class ThreedFpsScene<S, C> extends ThreedAbstractScene<S, C> {
 

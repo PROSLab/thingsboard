@@ -31,7 +31,6 @@ import { ThreedNavigateScene } from '@home/components/widget/threed-view-widget/
 import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 
 
-
 /*
 Widget Type: Ultimi Valori
 Widget settings: 
@@ -47,11 +46,11 @@ Altrimenti, se si aggiunge il widget a mano (tramite librertia widget/amministra
 
 */
 @Component({
-  selector: 'tb-threed-view-widget',
-  templateUrl: './threed-view-widget.component.html',
-  styleUrls: ['./threed-view-widget.component.scss']
+  selector: 'tb-threed-navigation-widget',
+  templateUrl: './threed-navigation-widget.component.html',
+  styleUrls: ['./threed-navigation-widget.component.scss']
 })
-export class ThreedViewWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
+export class ThreedNavigationWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
 
   settings: ThreedViewWidgetSettings;
 
@@ -75,7 +74,7 @@ export class ThreedViewWidgetComponent extends PageComponent implements OnInit, 
   }
 
   ngOnInit(): void {
-    this.ctx.$scope.threedViewWidget = this;
+    this.ctx.$scope.threedNavigationWidget = this;
     this.settings = this.ctx.settings;
 
     console.log(this.settings);

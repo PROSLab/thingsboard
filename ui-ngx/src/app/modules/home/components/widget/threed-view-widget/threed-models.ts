@@ -15,8 +15,8 @@
 ///
 
 import { EntityInfo } from "@app/shared/public-api";
-import { ThreedEntityAliasSettings } from "../lib/settings/threed/aliases/threed-entity-alias-settings.component";
-import { ThreedEntityKeySettings } from "../lib/settings/threed/aliases/threed-entity-key-settings.component";
+import { ThreedEntityAliasSettings } from "@home/components/widget/lib/settings/threed/aliases/threed-entity-alias-settings.component";
+import { ThreedEntityKeySettings } from "@home/components/widget/lib/settings/threed/aliases/threed-entity-key-settings.component";
 
 export interface ThreedViewWidgetSettings {
     hoverColor: string;
