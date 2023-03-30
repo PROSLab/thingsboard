@@ -61,8 +61,6 @@ export class ThreedSimpleOrbitWidgetSettingsComponent extends WidgetSettingsComp
         this.entity = entity;
         this.entityAttributeChanged(false);
       });
-
-      console.log(entityAliasId);
     }
 
     this.threedSimpleOrbitWidgetSettingsForm.get('threedEntityKeySettings').valueChanges.subscribe(() => this.entityAttributeChanged());
@@ -81,13 +79,22 @@ export class ThreedSimpleOrbitWidgetSettingsComponent extends WidgetSettingsComp
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
+    console.log(this.settings);
     const t_settings = settings as ThreedSimpleOrbitWidgetSettings;
+
+    this.lastEntityKeySettings = t_settings.threedEntityKeySettings;
 
     this.threedSimpleOrbitWidgetSettingsForm = this.fb.group({
       threedEntityKeySettings: [t_settings.threedEntityKeySettings, []],
       useAttribute: [t_settings.useAttribute, []],
       modelUrl: [t_settings.modelUrl, []],
     });
+  }
+
+  protected doUpdateSettings(settingsForm: FormGroup, settings: WidgetSettings) {
+    const t_settings = settings as ThreedSimpleOrbitWidgetSettings;
+    this.lastEntityKeySettings = t_settings.threedEntityKeySettings;
+    this.entityAttributeChanged(false);
   }
 
   protected validatorTriggers(): string[] {
@@ -113,7 +120,6 @@ export class ThreedSimpleOrbitWidgetSettingsComponent extends WidgetSettingsComp
 
   private entityAttributeChanged(emitEvent: boolean = true) {
     this.updateEntityKeySettings();
-    console.log("entityAttributeChanged", this.entityAttribute, this.entityAlias);
     if (this.entityAttribute != null) {
       this.threedSimpleOrbitWidgetSettingsForm?.get("modelUrl").disable({ emitEvent });
       this.tryLoadModel();
@@ -131,8 +137,6 @@ export class ThreedSimpleOrbitWidgetSettingsComponent extends WidgetSettingsComp
   }
 
   private tryLoadModel() {
-    console.log("tryLoadModel", this.entity, this.entityAttribute, this.entityAlias);
-
     if (!this.entity || !this.entityAttribute || !this.entityAlias) return;
 
     const config: ThreedUniversalModelLoaderConfig = {
