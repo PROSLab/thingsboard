@@ -66,9 +66,12 @@ export class ThreedEntityKeySettingsComponent extends PageComponent implements O
 
   @Input()
   aliasController: IAliasController;
-  
+
   @Input()
   entityAlias?: string;
+
+  @Input()
+  entityAliasId?: string;
 
   private modelValue: ThreedEntityKeySettings;
 
@@ -147,8 +150,13 @@ export class ThreedEntityKeySettingsComponent extends PageComponent implements O
     this.propagateChange(this.modelValue);
   }
 
-  public updateEntityAlias(entityAlias: string){
+  public updateEntityAlias(entityAlias: string) {
     this.entityAlias = entityAlias;
+    this.onKeyFocus();
+  }
+
+  public updateEntityAliasId(entityAliasId: string) {
+    this.entityAliasId = entityAliasId;
     this.onKeyFocus();
   }
 
@@ -180,7 +188,9 @@ export class ThreedEntityKeySettingsComponent extends PageComponent implements O
     if (this.keysFetchObservable$ === null) {
       let fetchObservable: Observable<Array<DataKey>>;
       let entityAliasId: string;
-      if (this.entityAlias && this.aliasController) {
+      if (this.entityAliasId) {
+        entityAliasId = this.entityAliasId;
+      } else if (this.entityAlias && this.aliasController) {
         entityAliasId = this.aliasController.getEntityAliasId(this.entityAlias);
       }
       if (entityAliasId) {

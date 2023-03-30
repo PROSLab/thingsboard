@@ -157,3 +157,20 @@ export const defaultThreedSceneSettings: ThreedSceneSettings = {
     threedCameraSettings: defaultThreedCameraSettings,
     threedDevicesSettings: defaultThreedDevicesSettings,
 };
+
+
+
+/* -------------------------------------------------------------- */
+/*                      ORBIT SETTINGS                            */
+/* -------------------------------------------------------------- */
+export interface ThreedSimpleOrbitWidgetSettings {
+    threedEntityKeySettings: ThreedEntityKeySettings,
+    useAttribute: boolean,
+    modelUrl: string,
+}
+
+export interface ThreedComplexOrbitWidgetSettings {
+    threedEntityKeySettings: ThreedEntityKeySettings,
+    useAttribute: boolean,
+    modelUrl: string,
+}

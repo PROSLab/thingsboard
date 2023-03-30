@@ -18,7 +18,8 @@ import { Injectable } from '@angular/core';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
   ThreedDeviceGroupSettings,
-  ThreedEnvironmentSettings
+  ThreedEnvironmentSettings,
+  ThreedSimpleOrbitWidgetSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { AttributeService } from '@core/http/attribute.service';
@@ -80,21 +81,21 @@ export class ThreedModelLoaderService {
     return (config && config.aliasController && config.entityLoader) ? true : false;
   }
 
-  /*
-  public toEntityLoader(settings: ThreedModelSettings): ModelUrl | EntityAliasAttribute | undefined {
-    if (settings.modelUrl)
-      return { url: settings.modelUrl } as ModelUrl;
-    else if (settings.modelEntityAlias && settings.modelUrlAttribute)
+  public toEntityLoader2(settings: ThreedSimpleOrbitWidgetSettings, entityAlias: string): ModelUrl | EntityAliasAttribute | undefined {
+    if (!settings.useAttribute && settings.modelUrl)
       return {
-        entityAlias: settings.modelEntityAlias,
-        entityAttribute: settings.modelUrlAttribute
+        url: settings.modelUrl
+      } as ModelUrl;
+    else if (settings.useAttribute && entityAlias && settings.threedEntityKeySettings?.entityAttribute)
+      return {
+        entityAlias,
+        entityAttribute: settings.threedEntityKeySettings.entityAttribute
       } as EntityAliasAttribute;
 
     return undefined;
-  }*/
+  }
 
   public toEntityLoader(settings: ThreedEnvironmentSettings): ModelUrl | EntityAliasAttribute | undefined {
-
     if (!settings.useAlias && settings.objectSettings?.modelUrl)
       return {
         url: settings.objectSettings.modelUrl,

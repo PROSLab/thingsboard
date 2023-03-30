@@ -209,6 +209,7 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   private entityAttributeChanged(emitEvent: boolean = true) {
+    console.log("entityAttributeChanged", this.entityAttribute, this.entityAlias);
     if (this.entityAttribute != null) {
       this.threedObjectSettingsFormGroup?.get("modelUrl").disable({ emitEvent });
       this.tryLoadModel();

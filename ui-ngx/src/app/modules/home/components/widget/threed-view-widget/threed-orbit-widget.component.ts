@@ -20,15 +20,7 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import {
-  formattedDataFormDatasourceData,
-  mergeFormattedData,
-  processDataPattern,
-  fillDataPattern
-} from '@core/utils';
-import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedNavigateScene } from '@home/components/widget/threed-view-widget/threed-nagivate-scene';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ThreedComplexOrbitWidgetSettings, ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedOrbitScene } from './threed-orbit-scene';
 
 
@@ -39,7 +31,7 @@ import { ThreedOrbitScene } from './threed-orbit-scene';
 })
 export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
 
-  settings: ThreedViewWidgetSettings;
+  settings: ThreedSimpleOrbitWidgetSettings | ThreedComplexOrbitWidgetSettings;
 
   @Input()
   ctx: WidgetContext;
@@ -62,23 +54,44 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     this.ctx.$scope.threedOrbitWidget = this;
     this.settings = this.ctx.settings;
 
-    console.log(this.settings);
-    if (!this.settings.hoverColor || !this.settings.threedSceneSettings) {
-      console.warn("ThreedViewWidgetSettings object empty!")
-      return;
-    }
-
     this.threedOrbitScene.updateValue(this.settings);
 
     this.loadModels();
   }
 
+  private isThreedSimpleOrbitWidgetSettings(obj: any): obj is ThreedSimpleOrbitWidgetSettings {
+    return 'useAttribute' in obj;
+  }
+
+  private isThreedComplexOrbitWidgetSettings(obj: any): obj is ThreedSimpleOrbitWidgetSettings {
+    return 'type' in obj && obj.type == 'COMPLEX';
+  }
+
   private loadModels() {
-    this.loadEnvironment();
-    this.loadDevices();
+    if (this.isThreedSimpleOrbitWidgetSettings(this.settings)) {
+      this.loadSingleModel(this.settings);
+    } else if (this.isThreedComplexOrbitWidgetSettings(this.settings)) {
+      this.loadEnvironment();
+      this.loadDevices();
+    } else {
+      console.error("Orbit Settings not valid...");
+    }
+  }
+  
+  private loadSingleModel(settings: ThreedSimpleOrbitWidgetSettings) {
+    if(this.ctx.datasources && this.ctx.datasources[0]){
+      const datasource = this.ctx.datasources[0];
+
+      const config: ThreedUniversalModelLoaderConfig = {
+        entityLoader: this.threedModelLoader.toEntityLoader2(settings, datasource.aliasName),
+        aliasController: this.ctx.aliasController
+      }
+      this.loadModel(config);
+    }
   }
 
   private loadEnvironment() {
+    /*
     const config: ThreedUniversalModelLoaderConfig = {
       entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
@@ -87,9 +100,11 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     console.log(config);
 
     this.loadModel(config, ENVIRONMENT_ID, false);
+    */
   }
 
   private loadDevices() {
+    /*
     this.settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
       const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
       loaders.forEach(entityLoader => {
@@ -101,11 +116,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
         this.loadModel(config);
       })
     });
+    */
   }
 
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
     if (!this.threedModelLoader.isConfigValid(config)) return;
-          
+
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
       this.threedOrbitScene.replaceModel(res.model, id ? id : res.entityId/*TODO: , hasTooltip */);
     });

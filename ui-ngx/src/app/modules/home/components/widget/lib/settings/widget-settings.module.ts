@@ -260,7 +260,10 @@ import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
 
-import { ThreedViewWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-view-widget-settings.component';
+import { ThreedSimpleOrbitWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-simple-orbit-widget-settings.component';
+import { ThreedComplexOrbitWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-complex-orbit-widget-settings.component';
+import { ThreedNavigationWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-navigation-widget-settings.component';
+
 import { ThreedModelSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-model-settings.component';
 import { ThreedSceneSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-scene-settings.component';
 import { ThreedVectorSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-vector-settings.component';
@@ -272,6 +275,7 @@ import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/setti
 import { ThreedEnvironmentSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-environment-settings.component';
 import { ThreedTooltipSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-tooltip-settings.component';
 import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-camera-settings.component';
+
 
 @NgModule({
   declarations: [
@@ -372,7 +376,10 @@ import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/setti
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
     
-    ThreedViewWidgetSettingsComponent,
+
+    ThreedSimpleOrbitWidgetSettingsComponent,
+    ThreedComplexOrbitWidgetSettingsComponent,
+    ThreedNavigationWidgetSettingsComponent,
     ThreedModelSettingsComponent,
     ThreedSceneSettingsComponent,
     ThreedVectorSettingsComponent,
@@ -488,7 +495,9 @@ import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/setti
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
 
-    ThreedViewWidgetSettingsComponent,
+    ThreedSimpleOrbitWidgetSettingsComponent,
+    ThreedComplexOrbitWidgetSettingsComponent,
+    ThreedNavigationWidgetSettingsComponent,
     ThreedModelSettingsComponent,
     ThreedSceneSettingsComponent,
     ThreedVectorSettingsComponent,
@@ -567,6 +576,8 @@ export const widgetSettingsComponentsMap: { [key: string]: Type<IWidgetSettingsC
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
   'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
-  
-  'tb-threed-view-widget-settings': ThreedViewWidgetSettingsComponent,
+
+  'tb-threed-simple-orbit-widget-settings': ThreedSimpleOrbitWidgetSettingsComponent,
+  'tb-threed-complex-orbit-widget-settings': ThreedComplexOrbitWidgetSettingsComponent,
+  'tb-threed-navigation-widget-settings': ThreedNavigationWidgetSettingsComponent,
 };

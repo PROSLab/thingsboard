@@ -22,11 +22,11 @@ import { AppState } from '@core/core.state';
 import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
 
 @Component({
-  selector: 'tb-threed-view-widget-settings',
-  templateUrl: './threed-view-widget-settings.component.html',
+  selector: 'tb-threed-navigation-widget-settings',
+  templateUrl: './threed-navigation-widget-settings.component.html',
   styleUrls: ['./../widget-settings.scss']
 })
-export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
+export class ThreedNavigationWidgetSettingsComponent extends WidgetSettingsComponent {
 
   threedViewWidgetSettingsForm: FormGroup;
 
@@ -55,4 +55,5 @@ export class ThreedViewWidgetSettingsComponent extends WidgetSettingsComponent {
     });
   }
 }
+
 
