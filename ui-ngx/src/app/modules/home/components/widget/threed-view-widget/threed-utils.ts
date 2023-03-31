@@ -18,7 +18,6 @@ import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export class ThreedUtils {
-
     public static compareVector3(v1?: THREE.Vector3, v2?: THREE.Vector3): boolean {
         if (v1 == undefined || v2 == undefined) return false;
         return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
@@ -82,5 +81,44 @@ export class ThreedUtils {
         } else {
             return { color: new THREE.Color(colorString), alpha: 1 };
         }
+    }
+
+    public static splitIntoMeshes(object: THREE.Object3D, shadow: boolean = false): THREE.Group {
+        const parts = new THREE.Group();
+        const box = new THREE.Box3();
+
+        // Traverse through the scene to get all the parts
+        object.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+                // Get the world position, rotation, and scale of the child mesh
+                const position = new THREE.Vector3();
+                const quaternion = new THREE.Quaternion();
+                const scale = new THREE.Vector3();
+                child.getWorldPosition(position);
+                child.getWorldQuaternion(quaternion);
+                child.getWorldScale(scale);
+
+                // Create a new mesh with the same geometry and material
+                const mesh = new THREE.Mesh(child.geometry, child.material);
+
+                // Set the position, rotation, and scale of the new mesh
+                mesh.position.copy(position);
+                mesh.quaternion.copy(quaternion);
+                mesh.scale.copy(scale);
+
+                box.setFromObject(mesh);
+                mesh.userData.defaultCenterPosition = box.getCenter(new THREE.Vector3());
+                mesh.userData.defaultPosition = new THREE.Vector3().copy(mesh.position);
+
+                if (shadow) {
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                }
+
+                // Add the new mesh to the group
+                parts.add(mesh);
+            }
+        });
+        return parts;
     }
 }

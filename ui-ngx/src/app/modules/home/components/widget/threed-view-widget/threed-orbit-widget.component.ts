@@ -27,11 +27,12 @@ import {
   ThreedDeviceGroupSettings,
   ThreedSimpleOrbitWidgetSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedGenericOrbitScene } from '@app/modules/home/components/widget/threed-view-widget/threed-generic-orbit-scene';
 import { MatSliderChange } from '@angular/material/slider';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 import { ThreedOrbitScene } from './threed-orbit-scene';
+import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
+import { ThreedSceneA } from './threed/threed-scenes/threed-scene-a';
 
 
 @Component({
@@ -49,6 +50,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
   private threedOrbitScene: ThreedOrbitScene;
+  private sceneA: ThreedGenericSceneManager;
 
   public explodedView = false;
   public animating = false;
@@ -70,9 +72,24 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     this.ctx.$scope.threedOrbitWidget = this;
     this.settings = this.ctx.settings;
 
-    this.threedOrbitScene.updateValue(this.settings);
+    this.sceneA = ThreedSceneA.init();
 
-    this.loadModels();
+    if (this.ctx.datasources && this.ctx.datasources[0]) {
+      const datasource = this.ctx.datasources[0];
+
+      const config: ThreedUniversalModelLoaderConfig = {
+        entityLoader: this.threedModelLoader.toEntityLoader2(this.settings as ThreedSimpleOrbitWidgetSettings, datasource.aliasName),
+        aliasController: this.ctx.aliasController
+      }
+      this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
+        this.sceneA.modelManager.replaceModel(res.model, { id: this.DEFAULT_MODEL_ID, autoResize: true }/*TODO: , hasTooltip */);
+      });
+    }
+
+
+    //this.threedOrbitScene.updateValue(this.settings);
+
+    //this.loadModels();
   }
 
   private loadModels() {
@@ -132,7 +149,8 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   }
 
   ngAfterViewInit() {
-    this.threedOrbitScene.attachToElement(this.rendererContainer);
+    //this.threedOrbitScene.attachToElement(this.rendererContainer);
+    this.sceneA.attachToElement(this.rendererContainer);
   }
 
 
@@ -151,6 +169,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
         .to({ value: toValue }, duration)
         .onUpdate((update: { value: number }) => {
           this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
+          this.sceneA.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
         })
         .onComplete(() => {
           this.lastExplodeFactorValue = 0;
@@ -163,10 +182,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   public explodeFactorChange(e: MatSliderChange) {
     this.lastExplodeFactorValue = e.value;
     this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
+    this.sceneA.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
   }
 
   public onResize(width: number, height: number): void {
-    this.threedOrbitScene?.resize(width, height);
+    //this.threedOrbitScene?.resize(width, height);
+    this.sceneA.resize(width, height);
   }
 
   @HostListener('window:keyup', ['$event'])
