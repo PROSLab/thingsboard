@@ -16,10 +16,10 @@
 
 import { ElementRef, EventEmitter } from '@angular/core';
 import * as THREE from 'three';
-import { ThreedAbstractScene } from './threed-abstract-scene';
+import { ThreedAbstractScene, ThreedSceneConfig } from './threed-abstract-scene';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 
-export class ThreedFpsScene<S, C> extends ThreedAbstractScene<S, C> {
+export class ThreedFpsScene<S, C extends ThreedSceneConfig> extends ThreedAbstractScene<S, C> {
 
     private readonly gravity = 9.8;
     private readonly mass = 30;

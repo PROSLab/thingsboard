@@ -23,11 +23,13 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ThreedCameraSettings, ThreedSceneSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
 import { ThreedUtils } from '@home/components/widget/threed-view-widget/threed-utils';
+import { ThreedSceneConfig } from './threed-abstract-scene';
 
-export interface ThreedSceneEditorConfig {
+export interface ThreedSceneEditorConfig extends ThreedSceneConfig {
     controllerType: ThreedSceneControllerType;
 }
 export const defaultThreedSceneEditorConfig: ThreedSceneEditorConfig = {
+    createGrid: true,
     controllerType: ThreedSceneControllerType.FIRST_PERSON_CONTROLLER
 }
 

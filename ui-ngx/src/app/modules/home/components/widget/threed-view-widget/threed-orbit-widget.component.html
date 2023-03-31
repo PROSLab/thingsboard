@@ -21,9 +21,11 @@
         <div fxLayout="row">
 
             <div fxFlex fxLayoutAlign="end center">
-                <button mat-icon-button>
+                <button mat-icon-button (click)="explodedView()">
                     <mat-icon>rotate_left</mat-icon>
                 </button>
+
+                <mat-slider tickInterval="1" step="0.1" min="0" max="10" aria-label="units" (input)="explodeChange($event)"></mat-slider>
             </div>
         </div>
     </div>

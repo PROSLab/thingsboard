@@ -22,6 +22,7 @@ import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedComplexOrbitWidgetSettings, ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedOrbitScene } from './threed-orbit-scene';
+import { MatSliderChange } from '@angular/material/slider';
 
 
 @Component({
@@ -47,7 +48,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   ) {
     super(store);
 
-    this.threedOrbitScene = new ThreedOrbitScene();
+    this.threedOrbitScene = new ThreedOrbitScene(undefined, { createGrid: false, shadow: true });
   }
 
   ngOnInit(): void {
@@ -77,9 +78,9 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       console.error("Orbit Settings not valid...");
     }
   }
-  
+
   private loadSingleModel(settings: ThreedSimpleOrbitWidgetSettings) {
-    if(this.ctx.datasources && this.ctx.datasources[0]){
+    if (this.ctx.datasources && this.ctx.datasources[0]) {
       const datasource = this.ctx.datasources[0];
 
       const config: ThreedUniversalModelLoaderConfig = {
@@ -123,7 +124,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedOrbitScene.replaceModel(res.model, id ? id : res.entityId/*TODO: , hasTooltip */);
+      this.threedOrbitScene.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true }/*TODO: , hasTooltip */);
     });
   }
 
@@ -134,6 +135,14 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   public onDataUpdated() {
 
+  }
+
+  public explodeChange(e: MatSliderChange) { 
+    this.threedOrbitScene?.explodeObjectDistance(e.value);
+  }
+
+  public explodedView() {
+    this.threedOrbitScene?.explodeObjectDistance(10);
   }
 
   public onResize(width: number, height: number): void {

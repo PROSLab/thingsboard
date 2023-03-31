@@ -21,6 +21,7 @@ import { ThreedFpsScene } from "@home/components/widget/threed-view-widget/three
 import * as THREE from 'three';
 import { ThreedViewWidgetSettings } from "@home/components/widget/threed-view-widget/threed-models";
 import { OBJECT_ID_TAG } from "@home/components/widget/threed-view-widget/threed-constants";
+import { ModelConfig } from "./threed-abstract-scene";
 
 interface Label {
     divElement: HTMLDivElement;
@@ -83,8 +84,8 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
         this.labelRenderer.setSize(rect.width, rect.height);
     }
 
-    public addModel(model: GLTF, id?: string, tooltip: boolean = false): Label | undefined {
-        super.addModel(model, id);
+    public addModel(model: GLTF, configs: ModelConfig, tooltip: boolean = false): Label | undefined {
+        super.addModel(model, configs);
 
         if (tooltip) {
             const customId = model.scene.userData[OBJECT_ID_TAG];

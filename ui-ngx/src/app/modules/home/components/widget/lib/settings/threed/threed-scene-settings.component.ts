@@ -118,7 +118,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     if (!config.entityLoader) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedSceneEditor.replaceModel(res.model, id ? id : res.entityId);
+      this.threedSceneEditor.replaceModel(res.model, { id: id ? id : res.entityId });
     });
   }
 

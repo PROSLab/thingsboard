@@ -14,11 +14,11 @@
 /// limitations under the License.
 ///
 
-import { ThreedAbstractScene } from "./threed-abstract-scene";
+import { ThreedAbstractScene, ThreedSceneConfig } from "./threed-abstract-scene";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ElementRef } from '@angular/core';
 
-export class ThreedOrbitScene<S, C> extends ThreedAbstractScene<S, C> {
+export class ThreedOrbitScene<S, C extends ThreedSceneConfig> extends ThreedAbstractScene<S, C> {
 
     protected orbit?: OrbitControls;
 

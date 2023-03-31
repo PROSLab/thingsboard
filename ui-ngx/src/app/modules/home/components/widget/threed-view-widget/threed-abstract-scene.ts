@@ -26,11 +26,24 @@ import {
 import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { CAMERA_ID, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ThreedUtils } from './threed-utils';
+import { config } from 'process';
+
+export interface ThreedSceneConfig {
+    createGrid: boolean,
+    shadow?: boolean
+}
+export interface ModelConfig {
+    id?: string,
+    autoResize?: boolean,
+}
+const defaultModelConfig: ModelConfig = { autoResize: false }
+
 
 /**
  * @param S refert to the type of Settings
  */
-export abstract class ThreedAbstractScene<S, C> {
+export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
 
     private rendererContainer: ElementRef;
 
@@ -41,7 +54,7 @@ export abstract class ThreedAbstractScene<S, C> {
     protected models: Map<string, GLTF> = new Map();
     protected objects: Object3D[] = [];
     protected settingsValue?: S;
-    protected configs?: C; 
+    protected configs?: C;
 
     protected mouse = new THREE.Vector2();
     protected active = true;
@@ -62,10 +75,11 @@ export abstract class ThreedAbstractScene<S, C> {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xcccccc);
 
-        this.camera = new THREE.PerspectiveCamera(60, this.screenWidth / this.screenHeight, 1, 1000);
-        this.camera.position.set(0, 5, 0);
+        this.camera = new THREE.PerspectiveCamera(60, this.screenWidth / this.screenHeight, 0.01, 10000);
+        this.camera.position.set(0, 40, -70);
 
-        this.scene.add(new THREE.GridHelper(1000, 10, 0x888888, 0x444444));
+        if (this.configs?.createGrid) this.scene.add(new THREE.GridHelper(1000, 10, 0x888888, 0x444444));
+        if (this.configs?.shadow) this.createSimpleShadow();
 
         const ambientLight = new THREE.AmbientLight(0xFEFEFE, 1);
         ambientLight.position.set(0, 0, 0);
@@ -75,6 +89,41 @@ export abstract class ThreedAbstractScene<S, C> {
             this.updateRendererSize();
             this.startRendering();
         }
+    }
+
+    private createSimpleShadow() {
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        //Create a DirectionalLight and turn on shadows for the light
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(20, 250, 10);
+        light.target.position.set(0, 0, 0);
+        light.castShadow = true;
+        //Set up shadow properties for the light
+        const size = 200;
+        light.shadow.camera.left = -size;
+        light.shadow.camera.right = size;
+        light.shadow.camera.top = size;
+        light.shadow.camera.bottom = -size;
+        light.shadow.mapSize.width = 128;
+        light.shadow.mapSize.height = 128;
+        light.shadow.camera.near = 0.5;
+        light.shadow.camera.far = 500;
+        light.shadow.bias = 0.01;
+        light.shadow.blurSamples = 10;
+        this.scene.add(light);
+
+        //Create a plane that receives shadows (but does not cast them)
+        const planeGeometry = new THREE.PlaneGeometry(size, size);
+        const planeMaterial = new THREE.ShadowMaterial();
+        planeMaterial.opacity = 0.5;
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotateX(-Math.PI / 2);
+        plane.position.y = -2;
+        plane.castShadow = false;
+        plane.receiveShadow = true;
+        this.scene.add(plane);
     }
 
     public attachToElement(rendererContainer: ElementRef) {
@@ -111,6 +160,8 @@ export abstract class ThreedAbstractScene<S, C> {
 
     public render(): void {
         this.renderer.render(this.scene!, this.camera!);
+
+        //console.log(this.camera.position);
     }
 
     public onDataChanged(ctx: WidgetContext): void { }
@@ -128,20 +179,36 @@ export abstract class ThreedAbstractScene<S, C> {
         //this.render();
     }
 
-    public replaceModel(model: GLTF, id?: string): void {
-        this.removeModel(id || model.scene.uuid, false);
-        this.addModel(model, id);
+    public replaceModel(model: GLTF, configs: ModelConfig = defaultModelConfig): void {
+        this.removeModel(configs?.id || model.scene.uuid, false);
+        this.addModel(model, configs);
     }
 
-    protected addModel(model: GLTF, id?: string): void {
+    protected addModel(model: GLTF, configs: ModelConfig = defaultModelConfig): void {
         const root = model.scene;
-        const customId = id || root.uuid
+        const customId = configs.id || root.uuid
         model.userData[OBJECT_ID_TAG] = customId;
         model.userData[ROOT_TAG] = true;
         root.userData[OBJECT_ID_TAG] = customId;
         root.userData[ROOT_TAG] = true;
         this.models.set(customId, model);
         console.log("addModel", customId, this.models);
+
+        if (configs.autoResize) {
+            const distance = this.camera.position.distanceTo(new THREE.Vector3());
+            ThreedUtils.autoScaleModel(model, Math.floor(distance));
+        }
+
+        if (this.configs?.shadow) {
+            root.traverse(object => {
+                //@ts-ignore
+                if (object.isMesh) {
+                    object.castShadow = true;
+                    object.receiveShadow = true;
+                }
+            });
+        }
+
         this.scene!.add(root);
         this.setValues();
 
@@ -283,6 +350,98 @@ export abstract class ThreedAbstractScene<S, C> {
         if (position) model.scene.position.set(position.x, position.y, position.z);
         if (rotation) model.scene.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
         if (scale) model.scene.scale.set(scale.x, scale.y, scale.z);
+    }
+
+    private parts?: THREE.Group;
+    private center = new THREE.Vector3();
+
+    public explodeObjectDistance(distance: number) {
+        const [first] = this.models.values();
+        const object = first.scene;
+        object.visible = false;
+
+        if (!this.parts) {
+            this.parts = this.splitIntoParts(object);
+            this.scene.add(this.parts);
+
+            const box = new THREE.Box3().setFromObject(this.parts);
+            this.center = box.getCenter(new THREE.Vector3());
+
+            const axesHelper = new THREE.AxesHelper(50);
+            axesHelper.position.copy(this.center);
+            this.scene.add(axesHelper);
+        }
+        const parts = this.parts;
+
+        parts.updateMatrixWorld(); // make sure object's world matrix is up to date
+
+
+        // Collect all child meshes in the object hierarchy
+        const meshes: THREE.Mesh[] = [];
+        parts.traverse((node) => {
+            if (node instanceof THREE.Mesh) {
+                meshes.push(node);
+            }
+        });
+
+        const center = this.center;
+        //const center = parts.getWorldPosition(new THREE.Vector3());
+        // Move each mesh away from the object's center along a radial direction
+        meshes.forEach((mesh) => {
+            const position = mesh.userData.defaultPosition.clone();
+            const centerPosition = mesh.userData.defaultCenterPosition.clone();
+            const direction = centerPosition.clone().sub(center);
+            const offset = direction.multiplyScalar(distance);
+            mesh.position.copy(position.add(offset));
+        });
+    }
+
+    private splitIntoParts(object?: THREE.Object3D): THREE.Group {
+        const parts = new THREE.Group();
+
+        // Traverse through the scene to get all the parts
+        object.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+                // Get the world position, rotation, and scale of the child mesh
+                const position = new THREE.Vector3();
+                const quaternion = new THREE.Quaternion();
+                const scale = new THREE.Vector3();
+                child.getWorldPosition(position);
+                child.getWorldQuaternion(quaternion);
+                child.getWorldScale(scale);
+
+                // Create a new mesh with the same geometry and material
+                const mesh = new THREE.Mesh(child.geometry, child.material);
+
+                // Set the position, rotation, and scale of the new mesh
+                mesh.position.copy(position);
+                mesh.quaternion.copy(quaternion);
+                mesh.scale.copy(scale);
+
+                const box = new THREE.Box3().setFromObject(mesh);
+                mesh.userData.defaultCenterPosition = box.getCenter(new THREE.Vector3());
+                mesh.userData.defaultPosition = new THREE.Vector3().copy(mesh.position);
+
+                if (this.configs?.shadow) {
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                }
+
+                // Add the new mesh to the group
+                parts.add(mesh);
+
+                // Remove the original mesh from the scene
+                //gltf.scene.remove(child);
+            }
+        });
+
+        // Translate the parts to a new position
+        //const distance = 10;
+        //parts.position.set(distance, 0, 0);
+
+        // Add the parts to the scene
+        //scene.add(parts);
+        return parts;
     }
 
     public onMouseMove(event: MouseEvent): void {

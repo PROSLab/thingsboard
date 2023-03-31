@@ -124,9 +124,9 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
 
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
     if (!this.threedModelLoader.isConfigValid(config)) return;
-          
+
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedNavigateScene.addModel(res.model, id ? id : res.entityId, hasTooltip);
+      this.threedNavigateScene.addModel(res.model, { id: id ? id : res.entityId }, hasTooltip);
     });
   }
 
