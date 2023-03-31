@@ -19,7 +19,8 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { defaultThreedSceneSettings, ThreedComplexOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
 
 @Component({
   selector: 'tb-threed-complex-orbit-widget-settings',
@@ -29,6 +30,8 @@ import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from '@home/comp
 export class ThreedComplexOrbitWidgetSettingsComponent extends WidgetSettingsComponent {
 
   threedViewWidgetSettingsForm: FormGroup;
+
+  ThreedSceneControllerType = ThreedSceneControllerType;
 
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder) {
@@ -43,11 +46,11 @@ export class ThreedComplexOrbitWidgetSettingsComponent extends WidgetSettingsCom
     return {
       hoverColor: "rgba(255,0,0,0.5)",
       threedSceneSettings:  defaultThreedSceneSettings
-    };
+    } as ThreedComplexOrbitWidgetSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
-    const t_settings = settings as ThreedViewWidgetSettings;
+    const t_settings = settings as ThreedComplexOrbitWidgetSettings;
 
     this.threedViewWidgetSettingsForm = this.fb.group({
       hoverColor: [t_settings.hoverColor, [Validators.required]],

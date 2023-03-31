@@ -18,24 +18,17 @@
 
 <section class="tb-widget-settings" [formGroup]="threedViewWidgetSettingsForm">
 
-    <tb-threed-scene-settings 
-      [aliasController]="aliasController" 
-      [threedModelSettingsFormGroup]="threedViewWidgetSettingsForm.get('threedModelSettings')"
-      formControlName="threedSceneSettings">
-    </tb-threed-scene-settings>
-  
-    <tb-color-input
-      formControlName="hoverColor"
-      icon="format_color_fill"
-      label="Hovering color" openOnInput colorClearButton>
-    </tb-color-input>
-  
-  <!--  <mat-form-field>
-      <mat-label translate>widgets.qr-code.qr-code-text-pattern</mat-label>
-      <input required matInput formControlName="hexColor">
-      <mat-hint>0xff0000</mat-hint>
-      <mat-error *ngIf="threedViewWidgetSettingsForm.get('hexColor').hasError('required')">
-        {{ 'widgets.qr-code.qr-code-text-pattern-required' | translate }}
-      </mat-error>
-    </mat-form-field>-->
-  </section>
+  <tb-threed-scene-settings 
+    [aliasController]="aliasController" 
+    [sceneControllerType]="ThreedSceneControllerType.FIRST_PERSON_CONTROLLER"
+    formControlName="threedSceneSettings">
+  </tb-threed-scene-settings>
+
+  <tb-color-input 
+    formControlName="hoverColor" 
+    icon="format_color_fill" 
+    label="Hovering color" 
+    openOnInput
+    colorClearButton>
+  </tb-color-input>
+</section>

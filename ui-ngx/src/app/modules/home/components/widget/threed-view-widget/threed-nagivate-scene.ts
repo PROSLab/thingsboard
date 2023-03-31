@@ -22,6 +22,7 @@ import * as THREE from 'three';
 import { ThreedViewWidgetSettings } from "@home/components/widget/threed-view-widget/threed-models";
 import { OBJECT_ID_TAG } from "@home/components/widget/threed-view-widget/threed-constants";
 import { ModelConfig } from "./threed-abstract-scene";
+import { ThreedUtils } from "./threed-utils";
 
 interface Label {
     divElement: HTMLDivElement;
@@ -121,7 +122,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
         this.setCameraValues(this.settingsValue.threedSceneSettings.threedCameraSettings, this.camera);
         this.setDevicesValues(this.settingsValue.threedSceneSettings.threedDevicesSettings);
 
-        this.hoveringColor = this.getAlphaAndColorFromString(this.settingsValue?.hoverColor || '00ff00');
+        this.hoveringColor = ThreedUtils.getAlphaAndColorFromString(this.settingsValue?.hoverColor || '00ff00');
         this.hoveringMaterial = new THREE.MeshStandardMaterial({
             color: this.hoveringColor.color,
             opacity: this.hoveringColor.alpha,
@@ -138,24 +139,7 @@ export class ThreedNavigateScene extends ThreedFpsScene<ThreedViewWidgetSettings
         return false;
     }*/
 
-    private getAlphaAndColorFromString(colorString: string): { color: THREE.Color, alpha: number } {
-        const matchRGB = colorString.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
-        const matchHex = colorString.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i);
-        const matchHSL = colorString.match(/^hsla?\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,?\s*([\d.]+)?\)$/);
-
-        if (matchRGB) {
-            const alpha = matchRGB[4] ? parseFloat(matchRGB[4]) : 1;
-            return { color: new THREE.Color(colorString), alpha };
-        } else if (matchHex) {
-            const alpha = matchHex[4] ? parseInt(matchHex[4], 16) / 255 : 1;
-            return { color: new THREE.Color(colorString), alpha };
-        } else if (matchHSL) {
-            const alpha = matchHSL[4] ? parseFloat(matchHSL[4]) : 1;
-            return { color: new THREE.Color(colorString), alpha };
-        } else {
-            return { color: new THREE.Color(colorString), alpha: 1 };
-        }
-    }
+    
 
     protected override tick() {
         super.tick();

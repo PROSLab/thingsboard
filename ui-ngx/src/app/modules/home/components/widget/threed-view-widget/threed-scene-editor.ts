@@ -18,7 +18,7 @@ import { ElementRef, EventEmitter } from '@angular/core';
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { BoxHelper, Vector3 } from 'three';
-import { ThreedOrbitScene } from '@home/components/widget/threed-view-widget/threed-orbit-scene';
+import { ThreedGenericOrbitScene } from '@app/modules/home/components/widget/threed-view-widget/threed-generic-orbit-scene';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ThreedCameraSettings, ThreedSceneSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
@@ -33,7 +33,7 @@ export const defaultThreedSceneEditorConfig: ThreedSceneEditorConfig = {
     controllerType: ThreedSceneControllerType.FIRST_PERSON_CONTROLLER
 }
 
-export class ThreedSceneEditor extends ThreedOrbitScene<ThreedSceneSettings, ThreedSceneEditorConfig> {
+export class ThreedSceneEditor extends ThreedGenericOrbitScene<ThreedSceneSettings, ThreedSceneEditorConfig> {
 
     private readonly SCREEN_WIDTH_ASPECT_RATIO = 4;
     private readonly SCREEN_HEIGHT_ASPECT_RATIO = 4;

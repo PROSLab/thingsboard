@@ -20,10 +20,18 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ThreedComplexOrbitWidgetSettings, ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedOrbitScene } from './threed-orbit-scene';
+import {
+  isThreedComplexOrbitWidgetSettings,
+  isThreedSimpleOrbitWidgetSettings,
+  ThreedComplexOrbitWidgetSettings,
+  ThreedDeviceGroupSettings,
+  ThreedSimpleOrbitWidgetSettings
+} from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedGenericOrbitScene } from '@app/modules/home/components/widget/threed-view-widget/threed-generic-orbit-scene';
 import { MatSliderChange } from '@angular/material/slider';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
+import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ThreedOrbitScene } from './threed-orbit-scene';
 
 
 @Component({
@@ -40,12 +48,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
-  private threedOrbitScene: ThreedOrbitScene<any, any>;
+  private threedOrbitScene: ThreedOrbitScene;
 
   public explodedView = false;
   public animating = false;
   private lastExplodeFactorValue = 0;
-  
+
   private readonly DEFAULT_MODEL_ID = "DefaultModelId"
 
   constructor(
@@ -67,22 +75,14 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     this.loadModels();
   }
 
-  private isThreedSimpleOrbitWidgetSettings(obj: any): obj is ThreedSimpleOrbitWidgetSettings {
-    return 'useAttribute' in obj;
-  }
-
-  private isThreedComplexOrbitWidgetSettings(obj: any): obj is ThreedSimpleOrbitWidgetSettings {
-    return 'type' in obj && obj.type == 'COMPLEX';
-  }
-
   private loadModels() {
-    if (this.isThreedSimpleOrbitWidgetSettings(this.settings)) {
+    if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
       this.loadSingleModel(this.settings);
-    } else if (this.isThreedComplexOrbitWidgetSettings(this.settings)) {
-      this.loadEnvironment();
-      this.loadDevices();
+    } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
+      this.loadEnvironment(this.settings);
+      this.loadDevices(this.settings);
     } else {
-      console.error("Orbit Settings not valid...");
+      console.error("Orbit Settings not valid...", this.settings);
     }
   }
 
@@ -98,22 +98,19 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     }
   }
 
-  private loadEnvironment() {
-    /*
+  private loadEnvironment(settings: ThreedComplexOrbitWidgetSettings) {
     const config: ThreedUniversalModelLoaderConfig = {
-      entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
+      entityLoader: this.threedModelLoader.toEntityLoader(settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
     }
 
     console.log(config);
 
     this.loadModel(config, ENVIRONMENT_ID, false);
-    */
   }
 
-  private loadDevices() {
-    /*
-    this.settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
+  private loadDevices(settings: ThreedComplexOrbitWidgetSettings) {
+    settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
       const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
       loaders.forEach(entityLoader => {
         const config: ThreedUniversalModelLoaderConfig = {
@@ -124,7 +121,6 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
         this.loadModel(config);
       })
     });
-    */
   }
 
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
@@ -153,7 +149,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       const toValue = 0; // End value of variable
       new TWEEN.Tween({ value: fromValue })
         .to({ value: toValue }, duration)
-        .onUpdate((update: {value: number}) => {
+        .onUpdate((update: { value: number }) => {
           this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
         })
         .onComplete(() => {

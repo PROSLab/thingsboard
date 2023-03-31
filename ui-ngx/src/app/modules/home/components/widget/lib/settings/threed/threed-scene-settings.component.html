@@ -71,7 +71,10 @@
             formControlName="threedEnvironmentSettings">
         </tb-threed-environment-settings>
 
-        <tb-threed-camera-settings [threedSceneEditor]="threedSceneEditor" formControlName="threedCameraSettings">
+        <tb-threed-camera-settings 
+            *ngIf="hasCamera()"
+            [threedSceneEditor]="threedSceneEditor" 
+            formControlName="threedCameraSettings">
         </tb-threed-camera-settings>
 
         <tb-threed-devices-settings [threedSceneEditor]="threedSceneEditor" [aliasController]="aliasController"

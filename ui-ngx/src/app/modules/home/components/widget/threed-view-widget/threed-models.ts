@@ -168,9 +168,13 @@ export interface ThreedSimpleOrbitWidgetSettings {
     useAttribute: boolean,
     modelUrl: string,
 }
-
 export interface ThreedComplexOrbitWidgetSettings {
-    threedEntityKeySettings: ThreedEntityKeySettings,
-    useAttribute: boolean,
-    modelUrl: string,
+    hoverColor: string,
+    threedSceneSettings: ThreedSceneSettings
+}
+export const isThreedSimpleOrbitWidgetSettings = function (obj: any): obj is ThreedSimpleOrbitWidgetSettings {
+    return 'useAttribute' in obj;
+}
+export const isThreedComplexOrbitWidgetSettings = function (obj: any): obj is ThreedComplexOrbitWidgetSettings {
+    return 'threedSceneSettings' in obj && 'hoverColor' in obj;
 }

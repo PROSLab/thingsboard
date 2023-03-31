@@ -38,7 +38,7 @@ import {
 import { IAliasController } from '@app/core/public-api';
 import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -63,10 +63,10 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   disabled: boolean;
 
   @Input()
-  threedModelSettingsFormGroup?: FormGroup;
+  aliasController: IAliasController;
 
   @Input()
-  aliasController: IAliasController;
+  sceneControllerType: ThreedSceneControllerType;
 
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
@@ -89,15 +89,23 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     private renderer2: Renderer2) {
     super(store);
 
-    this.threedSceneEditor = new ThreedSceneEditor();
   }
 
   ngOnInit(): void {
-    this.threedSceneSettingsFormGroup = this.fb.group({
+    this.threedSceneEditor = new ThreedSceneEditor(undefined, {
+      createGrid: true,
+      controllerType: this.sceneControllerType
+    });
+
+    const controlsConfig = this.hasCamera() ? {
       threedEnvironmentSettings: [null, []],
       threedCameraSettings: [null, []],
       threedDevicesSettings: [null, []],
-    });
+    } : {
+      threedEnvironmentSettings: [null, []],
+      threedDevicesSettings: [null, []],
+    };
+    this.threedSceneSettingsFormGroup = this.fb.group(controlsConfig);
 
     this.threedSceneSettingsFormGroup.get("threedDevicesSettings").valueChanges.subscribe((newValues: ThreedDevicesSettings) => {
       // TODO: when changing models, this code is not triggered
@@ -112,6 +120,10 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.threedSceneSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+  }
+
+  public hasCamera(): boolean {
+    return this.sceneControllerType != ThreedSceneControllerType.ORBIT_CONTROLLER;
   }
 
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {

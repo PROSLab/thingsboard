@@ -19,8 +19,8 @@
 <section class="tb-widget-settings" [formGroup]="threedViewWidgetSettingsForm">
 
     <tb-threed-scene-settings 
-      [aliasController]="aliasController" 
-      [threedModelSettingsFormGroup]="threedViewWidgetSettingsForm.get('threedModelSettings')"
+      [aliasController]="aliasController"
+      [sceneControllerType]="ThreedSceneControllerType.ORBIT_CONTROLLER"
       formControlName="threedSceneSettings">
     </tb-threed-scene-settings>
   

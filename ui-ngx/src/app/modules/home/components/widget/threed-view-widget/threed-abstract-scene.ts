@@ -43,6 +43,7 @@ const defaultModelConfig: ModelConfig = { autoResize: false }
 
 /**
  * @param S refert to the type of Settings
+ * @param C refert to the type of Configs
  */
 export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
 
