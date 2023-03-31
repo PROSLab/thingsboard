@@ -27,7 +27,8 @@ import { Object3D } from 'three';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { CAMERA_ID, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
 import { ThreedUtils } from './threed-utils';
-import { config } from 'process';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
+
 
 export interface ThreedSceneConfig {
     createGrid: boolean,
@@ -52,6 +53,7 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
     protected camera?: THREE.PerspectiveCamera;
 
     protected models: Map<string, GLTF> = new Map();
+    protected explodedModels: Map<string, THREE.Group> = new Map();
     protected objects: Object3D[] = [];
     protected settingsValue?: S;
     protected configs?: C;
@@ -120,7 +122,7 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
         planeMaterial.opacity = 0.5;
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.rotateX(-Math.PI / 2);
-        plane.position.y = -2;
+        plane.position.y = -5;
         plane.castShadow = false;
         plane.receiveShadow = true;
         this.scene.add(plane);
@@ -154,6 +156,8 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
         this.tick();
 
         this.render();
+
+        TWEEN.update();
     }
 
     protected abstract tick(): void;
@@ -352,42 +356,38 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
         if (scale) model.scene.scale.set(scale.x, scale.y, scale.z);
     }
 
-    private parts?: THREE.Group;
-    private center = new THREE.Vector3();
+    public explodeObjectByDistance(id: string, distance: number) {
+        if (!this.models.has(id)) return;
 
-    public explodeObjectDistance(distance: number) {
-        const [first] = this.models.values();
-        const object = first.scene;
-        object.visible = false;
+        const gltf = this.models.get(id);
+        const object = gltf.scene;
+        if (!this.explodedModels.has(id)) {
+            const explodedModel = this.splitIntoMeshes(object);
+            const box = new THREE.Box3().setFromObject(explodedModel);
+            explodedModel.userData.defaultCenterPosition = box.getCenter(new THREE.Vector3());
+            this.scene.add(explodedModel);
 
-        if (!this.parts) {
-            this.parts = this.splitIntoParts(object);
-            this.scene.add(this.parts);
-
-            const box = new THREE.Box3().setFromObject(this.parts);
-            this.center = box.getCenter(new THREE.Vector3());
-
-            const axesHelper = new THREE.AxesHelper(50);
-            axesHelper.position.copy(this.center);
-            this.scene.add(axesHelper);
+            this.explodedModels.set(id, explodedModel);
+            // const axesHelper = new THREE.AxesHelper(100);
+            // axesHelper.position.copy(this.center);
+            // this.scene.add(axesHelper);
         }
-        const parts = this.parts;
 
-        parts.updateMatrixWorld(); // make sure object's world matrix is up to date
+        const explodedModel = this.explodedModels.get(id);
+        if (distance == 0) {
+            object.visible = true;
+            explodedModel.visible = false;
+            return;
+        } else {
+            object.visible = false;
+            explodedModel.visible = true;
+        }
 
+        explodedModel.updateMatrixWorld(); // make sure object's world matrix is up to date
 
-        // Collect all child meshes in the object hierarchy
-        const meshes: THREE.Mesh[] = [];
-        parts.traverse((node) => {
-            if (node instanceof THREE.Mesh) {
-                meshes.push(node);
-            }
-        });
-
-        const center = this.center;
-        //const center = parts.getWorldPosition(new THREE.Vector3());
+        const center = explodedModel.userData.defaultCenterPosition;
         // Move each mesh away from the object's center along a radial direction
-        meshes.forEach((mesh) => {
+        explodedModel.children.forEach((mesh) => {
             const position = mesh.userData.defaultPosition.clone();
             const centerPosition = mesh.userData.defaultCenterPosition.clone();
             const direction = centerPosition.clone().sub(center);
@@ -396,8 +396,9 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
         });
     }
 
-    private splitIntoParts(object?: THREE.Object3D): THREE.Group {
+    private splitIntoMeshes(object: THREE.Object3D): THREE.Group {
         const parts = new THREE.Group();
+        const box = new THREE.Box3();
 
         // Traverse through the scene to get all the parts
         object.traverse((child) => {
@@ -418,7 +419,7 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
                 mesh.quaternion.copy(quaternion);
                 mesh.scale.copy(scale);
 
-                const box = new THREE.Box3().setFromObject(mesh);
+                box.setFromObject(mesh);
                 mesh.userData.defaultCenterPosition = box.getCenter(new THREE.Vector3());
                 mesh.userData.defaultPosition = new THREE.Vector3().copy(mesh.position);
 
@@ -429,18 +430,8 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
 
                 // Add the new mesh to the group
                 parts.add(mesh);
-
-                // Remove the original mesh from the scene
-                //gltf.scene.remove(child);
             }
         });
-
-        // Translate the parts to a new position
-        //const distance = 10;
-        //parts.position.set(distance, 0, 0);
-
-        // Add the parts to the scene
-        //scene.add(parts);
         return parts;
     }
 

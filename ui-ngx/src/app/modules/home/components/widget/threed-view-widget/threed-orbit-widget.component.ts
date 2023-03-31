@@ -23,6 +23,7 @@ import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@cor
 import { ThreedComplexOrbitWidgetSettings, ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedOrbitScene } from './threed-orbit-scene';
 import { MatSliderChange } from '@angular/material/slider';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 
 
 @Component({
@@ -40,6 +41,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
   private threedOrbitScene: ThreedOrbitScene<any, any>;
+
+  public explodedView = false;
+  public animating = false;
+  private lastExplodeFactorValue = 0;
+  
+  private readonly DEFAULT_MODEL_ID = "DefaultModelId"
 
   constructor(
     protected store: Store<AppState>,
@@ -87,7 +94,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
         entityLoader: this.threedModelLoader.toEntityLoader2(settings, datasource.aliasName),
         aliasController: this.ctx.aliasController
       }
-      this.loadModel(config);
+      this.loadModel(config, this.DEFAULT_MODEL_ID);
     }
   }
 
@@ -137,12 +144,29 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   }
 
-  public explodeChange(e: MatSliderChange) { 
-    this.threedOrbitScene?.explodeObjectDistance(e.value);
+  public toggleExplodedView() {
+    this.explodedView = !this.explodedView;
+    if (!this.explodedView && this.lastExplodeFactorValue > 0) {
+      this.animating = true;
+      const duration = 300; // Duration of animation in milliseconds
+      const fromValue = this.lastExplodeFactorValue; // Start value of variable
+      const toValue = 0; // End value of variable
+      new TWEEN.Tween({ value: fromValue })
+        .to({ value: toValue }, duration)
+        .onUpdate((update: {value: number}) => {
+          this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
+        })
+        .onComplete(() => {
+          this.lastExplodeFactorValue = 0;
+          this.animating = false;
+        })
+        .start();
+    }
   }
 
-  public explodedView() {
-    this.threedOrbitScene?.explodeObjectDistance(10);
+  public explodeFactorChange(e: MatSliderChange) {
+    this.lastExplodeFactorValue = e.value;
+    this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
   }
 
   public onResize(width: number, height: number): void {

@@ -21,11 +21,16 @@
         <div fxLayout="row">
 
             <div fxFlex fxLayoutAlign="end center">
-                <button mat-icon-button (click)="explodedView()">
-                    <mat-icon>rotate_left</mat-icon>
-                </button>
 
-                <mat-slider tickInterval="1" step="0.1" min="0" max="10" aria-label="units" (input)="explodeChange($event)"></mat-slider>
+                <div fxLayout="column" fxLayoutAlign="space-around center">
+                    <button mat-icon-button (click)="toggleExplodedView()" matTooltip="Exploded view" [disabled]="animating">
+                        <mat-icon>view_module</mat-icon>
+                    </button>
+
+                    <mat-slider *ngIf="explodedView" tickInterval="1" step="0.1" min="0" max="10" aria-label="units" matTooltip="Explode factor"
+                        (input)="explodeFactorChange($event)"></mat-slider>
+                </div>
+
             </div>
         </div>
     </div>
