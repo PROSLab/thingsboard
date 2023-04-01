@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { ThreedSceneManager } from "../threed-managers/threed-scene-manager";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ThreedBaseComponent } from "./threed-base-component";
 
@@ -23,7 +23,7 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent {
 
     private orbit?: OrbitControls;
 
-    initialize(sceneManager: ThreedSceneManager): void {
+    initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
         this.orbit = new OrbitControls(sceneManager.camera, sceneManager.getRenderer().domElement);
@@ -33,6 +33,4 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent {
     tick(): void { 
         this.orbit.update();
     }
-
-    resize(): void { }
 }

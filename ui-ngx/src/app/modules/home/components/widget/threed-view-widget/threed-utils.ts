@@ -121,4 +121,10 @@ export class ThreedUtils {
         });
         return parts;
     }
+
+    public static findParentByChild(child: THREE.Object3D, tag: string, value: any): THREE.Object3D | undefined {
+        if (child.userData[tag] == value) return child;
+        else if (child.parent != null) return ThreedUtils.findParentByChild(child.parent, tag, value);
+        else return undefined;
+    }
 }

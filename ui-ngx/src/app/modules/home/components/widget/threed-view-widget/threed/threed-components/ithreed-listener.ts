@@ -14,21 +14,15 @@
 /// limitations under the License.
 ///
 
-import { Camera, Scene } from 'three';
-import { ThreedSceneConfig } from '../threed-scenes/threed-scene-builder';
-import { ThreedModelManager } from './threed-model-manager';
-
-export interface ThreedSceneManager {
-    scene: Scene;
-    camera: Camera;
-    
-    get configs(): ThreedSceneConfig;
-    get modelManager(): ThreedModelManager;
-    get screenWidth() : number;
-    get screenHeight() : number;
-    
-
-    initialize(): void;
-
-    getRenderer(): THREE.WebGLRenderer;
+export const isIThreedListener = function (obj: any): obj is IThreedListener {
+    return 'onKeyDown' in obj && typeof obj['onKeyDown'] === 'function'
+        && 'onKeyUp' in obj && typeof obj['onKeyUp'] === 'function'
+        && 'onMouseMove' in obj && typeof obj['onMouseMove'] === 'function'
+        && 'onMouseClick' in obj && typeof obj['onMouseClick'] === 'function';
+}
+export interface IThreedListener {
+    onKeyDown(event: KeyboardEvent): void;
+    onKeyUp(event: KeyboardEvent): void;
+    onMouseMove(event: MouseEvent): void;
+    onMouseClick(event: MouseEvent): void;
 }

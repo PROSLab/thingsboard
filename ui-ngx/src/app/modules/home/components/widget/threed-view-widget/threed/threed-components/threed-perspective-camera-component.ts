@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { ThreedSceneManager } from "../threed-managers/threed-scene-manager";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
 import { ThreedBaseComponent } from "./threed-base-component";
 
@@ -24,7 +24,7 @@ export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent {
 
     private camera: THREE.PerspectiveCamera;
 
-    initialize(sceneManager: ThreedSceneManager): void {
+    initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
         this.camera = new THREE.PerspectiveCamera(60, this.sceneManager.screenWidth / this.sceneManager.screenHeight, 0.01, 10000);
@@ -32,8 +32,6 @@ export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent {
 
         sceneManager.camera = this.camera;
     }
-
-    tick(): void { }
 
     resize(): void { 
         this.camera!.aspect = this.sceneManager.screenWidth / this.sceneManager.screenHeight;

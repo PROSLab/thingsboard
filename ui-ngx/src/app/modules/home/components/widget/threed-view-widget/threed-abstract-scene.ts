@@ -313,13 +313,11 @@ export abstract class ThreedAbstractScene<S, C extends ThreedSceneConfig> {
             if (position) camera.position.set(position.x, position.y, position.z);
             if (rotation) camera.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
 
-            //@ts-ignore
-            if (camera.isPerspectiveCamera) {
-                const cam = camera as THREE.PerspectiveCamera;
-                cam.far = threedCameraSettings.far || cam.far;
-                cam.near = threedCameraSettings.near || cam.near;
-                cam.fov = threedCameraSettings.fov || cam.fov;
-                cam.updateProjectionMatrix();
+            if (camera instanceof THREE.PerspectiveCamera) {
+                camera.far = threedCameraSettings.far || camera.far;
+                camera.near = threedCameraSettings.near || camera.near;
+                camera.fov = threedCameraSettings.fov || camera.fov;
+                camera.updateProjectionMatrix();
             }
         }
     }

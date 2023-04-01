@@ -33,6 +33,7 @@ import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/three
 import { ThreedOrbitScene } from './threed-orbit-scene';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedSceneA } from './threed/threed-scenes/threed-scene-a';
+import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 
 
 @Component({
@@ -72,8 +73,19 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     this.ctx.$scope.threedOrbitWidget = this;
     this.settings = this.ctx.settings;
 
-    this.sceneA = ThreedSceneA.init();
 
+    if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
+      this.sceneA = ThreedSceneA.createSimpleOrbitScene();
+      this.loadSingleModel(this.settings);
+    } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
+      this.sceneA = ThreedSceneA.createNavigationScene();//ThreedSceneA.createComplexOrbitScene();
+      this.loadEnvironment(this.settings);
+      this.loadDevices(this.settings);
+    } else {
+      console.error("Orbit Settings not valid...", this.settings);
+    }
+
+    /*
     if (this.ctx.datasources && this.ctx.datasources[0]) {
       const datasource = this.ctx.datasources[0];
 
@@ -82,11 +94,11 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
         aliasController: this.ctx.aliasController
       }
       this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-        this.sceneA.modelManager.replaceModel(res.model, { id: this.DEFAULT_MODEL_ID, autoResize: true }/*TODO: , hasTooltip */);
+        this.sceneA.modelManager.replaceModel(res.model, { id: this.DEFAULT_MODEL_ID, autoResize: true });
       });
-    }
+    }*/
 
-
+    this.sceneA.setValues(this.settings);
     //this.threedOrbitScene.updateValue(this.settings);
 
     //this.loadModels();
@@ -144,7 +156,8 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedOrbitScene.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true }/*TODO: , hasTooltip */);
+      this.sceneA.modelManager.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true });
+      //this.threedOrbitScene.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true }/*TODO: , hasTooltip */);
     });
   }
 
@@ -159,6 +172,9 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   }
 
   public toggleExplodedView() {
+
+    this.sceneA.getComponent(ThreedFirstPersonControllerComponent).lockControls();
+
     this.explodedView = !this.explodedView;
     if (!this.explodedView && this.lastExplodeFactorValue > 0) {
       this.animating = true;

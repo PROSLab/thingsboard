@@ -14,10 +14,14 @@
 /// limitations under the License.
 ///
 
-import { ThreedSceneManager } from "../threed-managers/threed-scene-manager";
+import { ElementRef } from "@angular/core";
+import { IThreedSceneManager } from "./ithreed-scene-manager";
 
-export interface ThreedComponent {
-    initialize(sceneManager: ThreedSceneManager): void;
-    tick(): void;
-    resize(): void;
+export interface IThreedRenderer {
+    attachToElement(rendererContainer: ElementRef): void;
+    resize(width?: number, height?: number): void;
+    render(threedSceneManager: IThreedSceneManager): void;
+    tick(threedSceneManager: IThreedSceneManager): void;
+
+    getRenderer(): any;
 }

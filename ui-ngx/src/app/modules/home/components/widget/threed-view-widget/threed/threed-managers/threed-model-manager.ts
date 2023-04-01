@@ -16,9 +16,11 @@
 
 import { OBJECT_ID_TAG, ROOT_TAG } from "../../threed-constants";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { ThreedSceneManager } from "./threed-scene-manager";
+import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
 import { ThreedUtils } from "../../threed-utils";
+import { ThreedObjectSettings, ThreedVectorSettings } from "../../threed-models";
+import { EventEmitter } from "@angular/core";
 
 export interface ModelData {
     id: string;
@@ -33,13 +35,15 @@ export interface ModelConfig {
 const defaultModelConfig: ModelConfig = { autoResize: false }
 
 export class ThreedModelManager {
-    private models: Map<string, ModelData> = new Map();
-    private sceneManager: ThreedSceneManager;
-    private onRemoveModel?: (model: ModelData) => void;
 
-    constructor(sceneManager: ThreedSceneManager, onRemoveModel?: (model: ModelData) => void) {
+    private models: Map<string, ModelData> = new Map();
+    private sceneManager: IThreedSceneManager;
+
+    public onAfterAddModel = new EventEmitter<ModelData>();
+    public onBeforeRemoveModel = new EventEmitter<ModelData>();
+
+    constructor(sceneManager: IThreedSceneManager) {
         this.sceneManager = sceneManager;
-        this.onRemoveModel = onRemoveModel;
     }
 
     public replaceModel(model: GLTF, configs: ModelConfig = defaultModelConfig): void {
@@ -54,7 +58,8 @@ export class ThreedModelManager {
         model.userData[ROOT_TAG] = true;
         root.userData[OBJECT_ID_TAG] = customId;
         root.userData[ROOT_TAG] = true;
-        this.models.set(customId, { id: customId, gltf: model, root });
+        const modelData = { id: customId, gltf: model, root };
+        this.models.set(customId, modelData);
 
         if (configs.autoResize) {
             const distance = this.sceneManager.camera.position.distanceTo(new THREE.Vector3());
@@ -74,16 +79,14 @@ export class ThreedModelManager {
 
         this.sceneManager.scene!.add(root);
 
-        /* TODO
-        this.setValues();*/
+        this.onAfterAddModel.emit(modelData);
     }
 
     public removeModel(id: string): void {
         if (!this.models.has(id)) return;
 
         const modelData = this.models.get(id);
-        if (this.onRemoveModel)
-            this.onRemoveModel(modelData);
+        this.onBeforeRemoveModel.emit(modelData);
 
         const parent = modelData.root.parent;
         parent.remove(modelData.root);
@@ -128,5 +131,24 @@ export class ThreedModelManager {
             const offset = direction.multiplyScalar(distance);
             mesh.position.copy(position.add(offset));
         });
+    }
+
+    public updateModelTransforms(id: string,
+        settings: {
+            threedPositionVectorSettings?: ThreedVectorSettings,
+            threedRotationVectorSettings?: ThreedVectorSettings,
+            threedScaleVectorSettings?: ThreedVectorSettings
+        }) {
+
+        const model = this.models.get(id);
+        if (!model) return;
+
+        const position = settings.threedPositionVectorSettings;
+        const rotation = settings.threedRotationVectorSettings;
+        const scale = settings.threedScaleVectorSettings;
+
+        if (position) model.root.position.set(position.x, position.y, position.z);
+        if (rotation) model.root.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+        if (scale) model.root.scale.set(scale.x, scale.y, scale.z);
     }
 }

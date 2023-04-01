@@ -14,18 +14,29 @@
 /// limitations under the License.
 ///
 
-import { ThreedSceneManager } from "../threed-managers/threed-scene-manager";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
 import { ThreedBaseComponent } from "./threed-base-component";
 
 export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 
-    initialize(sceneManager: ThreedSceneManager): void {
+    private createGridHelper: boolean;
+
+    constructor(createGridHelper: boolean) {
+        super();
+        this.createGridHelper = createGridHelper;
+    }
+
+    initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
         this.initializeScene();
-        this.initializeGrid();
+
+        if (this.createGridHelper)
+            this.initializeGrid();
+
         this.initializeLights();
+
         if (this.sceneManager.configs.shadow)
             this.initializeShadow();
     }
@@ -79,8 +90,4 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
         plane.receiveShadow = true;
         this.sceneManager.scene.add(plane);
     }
-
-    tick(): void { }
-
-    resize(): void { }
 }

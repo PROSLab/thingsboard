@@ -14,19 +14,9 @@
 /// limitations under the License.
 ///
 
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { IThreedComponent } from "./ithreed-component";
-
-export abstract class ThreedBaseComponent implements IThreedComponent {
-
-    protected sceneManager: IThreedSceneManager;
-    protected initialized: boolean = false;
-
-    initialize(sceneManager: IThreedSceneManager): void {
-        this.sceneManager = sceneManager;
-        this.initialized = true;
-    }
-
-    tick(): void { }
-    resize(): void { }
+export const isIThreedUpdatable = function(obj: any) : obj is IThreedUpdatable {
+    return 'onUpdateValues' in obj && typeof obj['onUpdateValues'] === 'function';
+}
+export interface IThreedUpdatable {
+    onUpdateValues(values: any): void;
 }

@@ -19,17 +19,43 @@ import { ThreedDefaultAmbientComponent } from "../threed-components/threed-defau
 import { ThreedOrbitControllerComponent } from "../threed-components/threed-orbit-controller-component";
 import { ThreedPerspectiveCameraComponent } from "../threed-components/threed-perspective-camera-component";
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
-import { ThreedListenersComponent } from "../threed-components/threed-listeners-component";
+import { ThreedUpdateViewSettingsComponent } from "../threed-components/updatable/threed-update-view-settings-component";
+import { ThreedRaycasterComponent } from "../threed-components/threed-raycaster-component";
+import { ThreedFirstPersonControllerComponent } from "../threed-components/threed-first-person-controller-component";
 
 export class ThreedSceneA {
 
-    public static init(): ThreedGenericSceneManager {
+    //* INFO: Simple Orbit scene 
+    public static createSimpleOrbitScene(): ThreedGenericSceneManager {
         const builder = new ThreedSceneBuilder({ shadow: true })
             .add(new ThreedPerspectiveCameraComponent())
-            .add(new ThreedDefaultAmbientComponent())
+            .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedOrbitControllerComponent())
-            .add(new ThreedListenersComponent());
-        //.add(new IntersectObserver());
+            .add(new ThreedUpdateViewSettingsComponent());
+
+        return builder.build();
+    }
+
+    //* INFO: Complex Orbit scene 
+    public static createComplexOrbitScene(): ThreedGenericSceneManager {
+        const builder = new ThreedSceneBuilder({ shadow: true })
+            .add(new ThreedPerspectiveCameraComponent())
+            .add(new ThreedDefaultAmbientComponent(false))
+            .add(new ThreedOrbitControllerComponent())
+            .add(new ThreedUpdateViewSettingsComponent())
+            .add(new ThreedRaycasterComponent('click'));
+
+        return builder.build();
+    }
+
+    //* INFO: Navigation scene 
+    public static createNavigationScene(): ThreedGenericSceneManager {
+        const builder = new ThreedSceneBuilder({ shadow: true })
+            .add(new ThreedPerspectiveCameraComponent())
+            .add(new ThreedDefaultAmbientComponent(true))
+            .add(new ThreedFirstPersonControllerComponent())
+            .add(new ThreedUpdateViewSettingsComponent())
+            .add(new ThreedRaycasterComponent('hover'));
 
         return builder.build();
     }

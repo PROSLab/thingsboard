@@ -15,7 +15,7 @@
 ///
 
 import { defaultThreedSceneEditorConfig } from "../../threed-scene-editor";
-import { ThreedComponent } from "../threed-components/threed-component";
+import { IThreedComponent } from "../threed-components/ithreed-component";
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 
 export interface ThreedSceneConfig {
@@ -34,7 +34,7 @@ export class ThreedSceneBuilder {
         this.sceneManager.initialize();
     }
 
-    public add(component: ThreedComponent): ThreedSceneBuilder {
+    public add(component: IThreedComponent): ThreedSceneBuilder {
         this.sceneManager.add(component);
         return this;
     }

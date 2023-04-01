@@ -17,8 +17,8 @@
 import { ElementRef } from "@angular/core";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { OBJECT_ID_TAG } from "../../threed-constants";
-import { ThreedSceneManager } from "./threed-scene-manager";
-import { ThreedRenderer } from "./threed-renderer";
+import { IThreedSceneManager } from "./ithreed-scene-manager";
+import { IThreedRenderer } from "./ithreed-renderer";
 
 export interface CssData {
     divElement: HTMLDivElement;
@@ -26,7 +26,7 @@ export interface CssData {
     layer: number;
 }
 
-export class ThreedCssManager implements ThreedRenderer {
+export class ThreedCssManager implements IThreedRenderer {
     protected cssRenderer?: CSS2DRenderer;
     protected cssObjects: Map<string, CssData> = new Map();
 
@@ -58,11 +58,11 @@ export class ThreedCssManager implements ThreedRenderer {
         this.cssRenderer?.setSize(width, height);
     }
 
-    public tick(threedScene: ThreedSceneManager): void { 
+    public tick(threedScene: IThreedSceneManager): void { 
 
     }
 
-    public render(threedScene: ThreedSceneManager): void {
+    public render(threedScene: IThreedSceneManager): void {
         this.cssRenderer.render(threedScene.scene, threedScene.camera);
     }
 
