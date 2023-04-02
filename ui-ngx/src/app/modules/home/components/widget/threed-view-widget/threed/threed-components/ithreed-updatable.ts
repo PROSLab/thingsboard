@@ -14,9 +14,6 @@
 /// limitations under the License.
 ///
 
-export const isIThreedUpdatable = function(obj: any) : obj is IThreedUpdatable {
-    return 'onUpdateValues' in obj && typeof obj['onUpdateValues'] === 'function';
-}
 export interface IThreedUpdatable {
     onUpdateValues(values: any): void;
 }

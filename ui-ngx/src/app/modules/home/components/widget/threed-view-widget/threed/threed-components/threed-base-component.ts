@@ -28,5 +28,6 @@ export abstract class ThreedBaseComponent implements IThreedComponent {
     }
 
     tick(): void { }
+    render(): void { }
     resize(): void { }
 }

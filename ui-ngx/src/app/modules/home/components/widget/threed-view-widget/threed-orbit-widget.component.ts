@@ -32,7 +32,7 @@ import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 import { ThreedOrbitScene } from './threed-orbit-scene';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
-import { ThreedSceneA } from './threed/threed-scenes/threed-scene-a';
+import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
 import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 
 
@@ -75,10 +75,10 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
 
     if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
-      this.sceneA = ThreedSceneA.createSimpleOrbitScene();
+      this.sceneA = ThreedScenes.createSimpleOrbitScene();
       this.loadSingleModel(this.settings);
     } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
-      this.sceneA = ThreedSceneA.createNavigationScene();//ThreedSceneA.createComplexOrbitScene();
+      this.sceneA = ThreedScenes.createEditorScene();//ThreedSceneA.createComplexOrbitScene();
       this.loadEnvironment(this.settings);
       this.loadDevices(this.settings);
     } else {

@@ -16,25 +16,32 @@
 
 import { ThreedBaseComponent } from "../threed-base-component";
 import { IThreedUpdatable } from "../ithreed-updatable";
-import { ThreedEnvironmentSettings, ThreedSceneSettings } from "../../../threed-models";
-import { ENVIRONMENT_ID } from "../../../threed-constants";
+import { ThreedSceneSettings } from "../../../threed-models";
 import { IThreedSceneManager } from "../../threed-managers/ithreed-scene-manager";
 import { ThreedUpdateEnvironmentComponent } from "./threed-update-environment-component";
 import { ThreedUpdateCameraComponent } from "./threed-update-camera-component";
 import { ThreedUpdateDevicesComponent } from "./threed-update-devices-component";
+import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
 
 
 export class ThreedUpdateSceneSettingsComponent extends ThreedBaseComponent implements IThreedUpdatable {
 
+    private cameraToUpdate: IThreedPerspectiveCamera;
+    
     private environment: ThreedUpdateEnvironmentComponent;
     private camera: ThreedUpdateCameraComponent;
     private devices: ThreedUpdateDevicesComponent;
+
+    constructor(cameraToUpdate?: IThreedPerspectiveCamera) {
+        super();
+        this.cameraToUpdate = cameraToUpdate;
+    }
 
     override initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
         this.environment = new ThreedUpdateEnvironmentComponent();
-        this.camera = new ThreedUpdateCameraComponent(/* TODO: pass camera! */);
+        this.camera = new ThreedUpdateCameraComponent(this.cameraToUpdate);
         this.devices = new ThreedUpdateDevicesComponent();
 
         this.environment.initialize(sceneManager);

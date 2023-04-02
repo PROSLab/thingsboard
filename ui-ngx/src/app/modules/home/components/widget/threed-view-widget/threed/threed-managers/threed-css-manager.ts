@@ -14,11 +14,9 @@
 /// limitations under the License.
 ///
 
-import { ElementRef } from "@angular/core";
-import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { OBJECT_ID_TAG } from "../../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
-import { IThreedRenderer } from "./ithreed-renderer";
 
 export interface CssData {
     divElement: HTMLDivElement;
@@ -26,54 +24,22 @@ export interface CssData {
     layer: number;
 }
 
-export class ThreedCssManager implements IThreedRenderer {
-    protected cssRenderer?: CSS2DRenderer;
-    protected cssObjects: Map<string, CssData> = new Map();
+export class ThreedCssManager {
+
+    private cssObjects: Map<string, CssData> = new Map();
+    private sceneManager: IThreedSceneManager;
 
     private readonly initialLabelLayerIndex = 5;
     private lastLayerIndex = this.initialLabelLayerIndex;
 
-    constructor() {
-        this.initialize();
+    constructor(sceneManager: IThreedSceneManager) {
+        this.sceneManager = sceneManager;
     }
 
-    private initialize() {
-        this.initializeCssRenderer();
-    }
-
-    private initializeCssRenderer() {
-        this.cssRenderer = new CSS2DRenderer();
-        this.cssRenderer.domElement.style.position = 'absolute';
-        this.cssRenderer.domElement.style.top = '0px';
-        this.cssRenderer.domElement.style.pointerEvents = 'none'
-    }
-
-    public attachToElement(rendererContainer: ElementRef) {
-        rendererContainer.nativeElement.appendChild(this.cssRenderer.domElement);
-        const rect = rendererContainer.nativeElement.getBoundingClientRect();
-        this.cssRenderer.setSize(rect.width, rect.height);
-    }
-
-    public resize(width?: number, height?: number): void {
-        this.cssRenderer?.setSize(width, height);
-    }
-
-    public tick(threedScene: IThreedSceneManager): void { 
-
-    }
-
-    public render(threedScene: IThreedSceneManager): void {
-        this.cssRenderer.render(threedScene.scene, threedScene.camera);
-    }
-
-    public getRenderer() {
-        return this.cssRenderer;
-    }
-
-    public createLabel(id: string): CssData {
+    public createLabel(id: string, className?: string): CssData {
         const layer = this.lastLayerIndex++;
         const divElement = document.createElement('div');
-        divElement.className = 'label';
+        divElement.className = className || 'label';
         divElement.textContent = 'initial content';
         divElement.style.marginTop = '-1em';
         const cssObject = new CSS2DObject(divElement);
@@ -83,6 +49,10 @@ export class ThreedCssManager implements IThreedRenderer {
         const label = { divElement, cssObject, layer };
         this.cssObjects.set(id, label)
         return label;
+    }
+
+    public removeLabel(id: string): void {
+        this.cssObjects.delete(id);
     }
 
     /**
@@ -110,7 +80,7 @@ export class ThreedCssManager implements IThreedRenderer {
         if (index == -1) return;
 
         const id = ids[index];
-        const divLabel = this.cssObjects.get(id).divElement;
+        const divLabel = this.cssObjects.get(id)!.divElement;
         divLabel.innerHTML = content;
     }
 }

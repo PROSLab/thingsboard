@@ -21,67 +21,39 @@ import { IThreedListener } from "./ithreed-listener";
 import { ThreedBaseComponent } from "./threed-base-component";
 import * as THREE from 'three';
 
-export class ThreedRaycasterComponent extends ThreedBaseComponent implements IThreedListener {
+export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseComponent implements IThreedListener {
 
-    private highlightObjectType: 'click' | 'hover';
+    private raycastUpdate: 'click' | 'hover';
     private raycaster?: THREE.Raycaster;
-    private selectedObject: any;
-    private hoveringColor: {
-        color: THREE.Color;
-        alpha: number;
-    };
-    private hoveringMaterial: THREE.MeshStandardMaterial;
+    protected selectedObject: any;
 
-    constructor(highlightObjectType: 'click' | 'hover' = 'click') {
+    constructor(raycastUpdate: 'click' | 'hover' = 'click') {
         super();
-        this.highlightObjectType = highlightObjectType;
+        this.raycastUpdate = raycastUpdate;
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
-        this.setHoveringColor();
         this.raycaster = new THREE.Raycaster();
     }
 
     onKeyDown(event: KeyboardEvent): void { }
     onKeyUp(event: KeyboardEvent): void { }
     onMouseMove(event: MouseEvent): void {
-        if (this.highlightObjectType == 'hover')
+        if (this.raycastUpdate == 'hover')
             this.updateRaycaster();
     }
     onMouseClick(event: MouseEvent): void {
-        if (this.highlightObjectType == 'click')
+        if (this.raycastUpdate == 'click')
             this.updateRaycaster();
     }
 
-    public setHoveringColor(hoveringColor: string = "rgba(0,0,255,0.5)") {
-        if(!hoveringColor) return;
-
-        console.log(hoveringColor);
-        this.hoveringColor = ThreedUtils.getAlphaAndColorFromString(hoveringColor);
-        this.hoveringMaterial = new THREE.MeshStandardMaterial({
-            color: this.hoveringColor.color,
-            opacity: this.hoveringColor.alpha,
-            transparent: true,
-            //wireframe: true,
-        });
-
-        console.log(this.hoveringColor, this.hoveringMaterial);
-
-    }
-
     private updateRaycaster() {
-        if (!this.initialized) return;
+        if (!this.initialized || !this.canUpdateRaycaster()) return;
 
         this.raycaster.setFromCamera(this.sceneManager.mouse, this.sceneManager.camera);
-        const intersection = this.raycaster.intersectObjects(this.sceneManager.scene.children).filter(o => {
-            return o.object.type != "TransformControlsPlane" &&
-                o.object.type != "BoxHelper" &&
-                o.object.type != "GridHelper" &&
-                //@ts-ignore
-                o.object.tag != "Helper"
-        });
+        const intersection = this.raycaster.intersectObjects(this.getIntersectionObjects()).filter(o => this.getIntersectedObjectFilter(o));
 
         if (intersection.length > 0) {
             const intersectedObject = intersection[0].object;
@@ -99,33 +71,36 @@ export class ThreedRaycasterComponent extends ThreedBaseComponent implements ITh
         if (!object) {
             this.deselectObject();
 
-            // hide tooltip
         } else if (this.selectedObject != object) {
             this.deselectObject();
             this.selectedObject = object;
-            this.toggleHightlightGLTF(this.selectedObject, true);
-
-            // popup tooltip
+            this.onSelectObject(this.selectedObject);
         }
     }
 
     private deselectObject() {
         if (this.selectedObject) {
-            this.toggleHightlightGLTF(this.selectedObject, false);
+            this.onDeselectObject(this.selectedObject);
         }
         this.selectedObject = null;
     }
 
-    private toggleHightlightGLTF(root: THREE.Group, enable: boolean) {
-        root.traverse(o => {
-            if (o instanceof THREE.Mesh) {
-                if (enable) {
-                    o.userData.currentMaterial = o.material;
-                    o.material = this.hoveringMaterial;
-                } else {
-                    o.material = o.userData.currentMaterial;
-                }
-            }
-        });
+    protected canUpdateRaycaster(): boolean {
+        return true;
     }
+
+    protected getIntersectionObjects(): THREE.Object3D[] {
+        return this.sceneManager.scene.children;
+    }
+    protected getIntersectedObjectFilter(o: THREE.Intersection) {
+        return o.object.type != "TransformControlsPlane" &&
+            o.object.type != "BoxHelper" &&
+            o.object.type != "GridHelper" &&
+            //@ts-ignore
+            o.object.tag != "Helper"
+    }
+
+    protected abstract onSelectObject(object: any): void;
+    protected abstract onDeselectObject(object: any): void;
+
 }

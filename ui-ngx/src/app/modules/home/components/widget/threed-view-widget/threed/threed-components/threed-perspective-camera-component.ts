@@ -17,10 +17,11 @@
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
 import { ThreedBaseComponent } from "./threed-base-component";
+import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
 
 
 
-export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent {
+export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent implements IThreedPerspectiveCamera {
 
     private camera: THREE.PerspectiveCamera;
 
@@ -36,5 +37,9 @@ export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent {
     resize(): void { 
         this.camera!.aspect = this.sceneManager.screenWidth / this.sceneManager.screenHeight;
         this.camera!.updateProjectionMatrix();
+    }
+
+    getPerspectiveCamera(): THREE.PerspectiveCamera {
+        return this.camera;
     }
 }

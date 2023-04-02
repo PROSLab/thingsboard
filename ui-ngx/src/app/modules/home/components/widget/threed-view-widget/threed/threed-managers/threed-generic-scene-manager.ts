@@ -16,17 +16,17 @@
 
 import { IThreedRenderer } from "./ithreed-renderer";
 import { ElementRef } from "@angular/core";
-import { ThreedCssManager } from "./threed-css-manager";
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { IThreedSceneManager } from "./ithreed-scene-manager";
-import { ThreedRendererManager } from "./threed-renderer-manager";
+import { ThreedRendererManager as ThreedWebRenderer } from "./threed-web-renderer";
 import { Scene, Camera, WebGLRenderer } from "three";
 import { IThreedComponent } from "../threed-components/ithreed-component";
 import { ThreedModelManager } from "./threed-model-manager";
 import { ThreedSceneConfig } from "../threed-scenes/threed-scene-builder";
-import { isIThreedUpdatable } from "../threed-components/ithreed-updatable";
-import { isIThreedListener } from "../threed-components/ithreed-listener";
 import * as THREE from 'three';
+import { ThreedCssRenderer } from "./threed-css-renderer";
+import { ThreedCssManager } from "./threed-css-manager";
+import { IThreedTester } from "../threed-components/ithreed-tester";
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 
@@ -39,6 +39,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
+    public cssManager: ThreedCssManager;
     public screenWidth = window.innerWidth;
     public screenHeight = window.innerHeight;
     public currentValues: any;
@@ -49,16 +50,19 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     public initialize() {
-        this.threedRenderers.push(new ThreedRendererManager());
-        this.threedRenderers.push(new ThreedCssManager());
+        this.threedRenderers.push(new ThreedWebRenderer());
+        this.threedRenderers.push(new ThreedCssRenderer());
         this.initializeEventListeners();
 
         this.modelManager = new ThreedModelManager(this);
         this.modelManager.onAfterAddModel.subscribe(_ => this.updateValues());
+
+        this.cssManager = new ThreedCssManager(this);
+
+        this.components.forEach(c => c.initialize(this));
     }
 
     public add(component: IThreedComponent) {
-        component.initialize(this);
         this.components.push(component);
         return this;
     }
@@ -93,6 +97,16 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         return this.components.find(c => c instanceof type) as T | undefined;
     }
 
+    public findComponentsByTester<T>(tester: (obj: any) => obj is T): T[] {
+        let components: T[] = [];
+        for (let index = 0; index < this.components.length; index++) {
+            const component = this.components[index];
+            if (tester(component))
+                components.push(component);
+        }
+        return components;
+    }
+
     /**========================================================================
      *                           UPDATE VALUES
      *========================================================================**/
@@ -104,13 +118,15 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.updateValues();
     }
 
+    public forceUpdateValues() {
+        this.updateValues();
+    }
+
     private updateValues() {
         if (!this.currentValues) return;
 
-        this.components.forEach(c => {
-            if (isIThreedUpdatable(c))
-                c.onUpdateValues(this.currentValues);
-        });
+        const updatables = this.findComponentsByTester(IThreedTester.isIThreedUpdatable)
+        updatables.forEach(c => c.onUpdateValues(this.currentValues));
 
         this.render();
     }
@@ -141,6 +157,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     private render(): void {
         this.threedRenderers.forEach(r => r.render(this));
+        this.components.forEach(c => c.render());
     }
     /*============================ END OF UNDATE & RENDERING ============================*/
 
@@ -159,30 +176,22 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private mouseMove(event: MouseEvent) {
         this.calculateMousePosition(event);
 
-        this.components.forEach(c => {
-            if (isIThreedListener(c))
-                c.onMouseMove(event);
-        });
+        const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
+        listeners.forEach(c => c.onMouseMove(event));
     }
     private mouseClick(event: MouseEvent) {
         this.calculateMousePosition(event);
 
-        this.components.forEach(c => {
-            if (isIThreedListener(c))
-                c.onMouseClick(event);
-        });
+        const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
+        listeners.forEach(c => c.onMouseClick(event));
     }
     private keyDown(event: KeyboardEvent) {
-        this.components.forEach(c => {
-            if (isIThreedListener(c))
-                c.onKeyDown(event);
-        });
+        const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
+        listeners.forEach(c => c.onKeyDown(event));
     }
     private keyUp(event: KeyboardEvent) {
-        this.components.forEach(c => {
-            if (isIThreedListener(c))
-                c.onKeyUp(event);
-        });
+        const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
+        listeners.forEach(c => c.onKeyUp(event));
     }
 
     private calculateMousePosition(event: MouseEvent) {

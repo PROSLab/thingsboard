@@ -15,51 +15,47 @@
 ///
 
 import { ElementRef } from "@angular/core";
-import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
-import { OBJECT_ID_TAG } from "../../threed-constants";
+import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import { IThreedRenderer } from "./ithreed-renderer";
-import * as THREE from 'three';
 
-export interface CssData {
-    divElement: HTMLDivElement;
-    cssObject: CSS2DObject;
-    layer: number;
-}
-
-export class ThreedRendererManager implements IThreedRenderer {
-    protected renderer?: THREE.WebGLRenderer;
+export class ThreedCssRenderer implements IThreedRenderer {
+    protected cssRenderer?: CSS2DRenderer;
 
     constructor() {
         this.initialize();
     }
 
     private initialize() {
-        this.initializeRenderer();
+        this.initializeCssRenderer();
     }
 
-    private initializeRenderer() {
-        this.renderer = new THREE.WebGLRenderer();
+    private initializeCssRenderer() {
+        this.cssRenderer = new CSS2DRenderer();
+        this.cssRenderer.domElement.style.position = 'absolute';
+        this.cssRenderer.domElement.style.top = '0px';
+        this.cssRenderer.domElement.style.pointerEvents = 'none'
     }
 
     public attachToElement(rendererContainer: ElementRef) {
-        rendererContainer.nativeElement.appendChild(this.renderer.domElement);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        rendererContainer.nativeElement.appendChild(this.cssRenderer.domElement);
+        const rect = rendererContainer.nativeElement.getBoundingClientRect();
+        this.cssRenderer.setSize(rect.width, rect.height);
     }
 
     public resize(width?: number, height?: number): void {
-        this.renderer?.setSize(width, height);
+        this.cssRenderer?.setSize(width, height);
     }
 
-    public tick(threedSceneManager: IThreedSceneManager): void { 
-        
+    public tick(threedScene: IThreedSceneManager): void { 
+
     }
 
-    public render(threedSceneManager: IThreedSceneManager): void {
-        this.renderer.render(threedSceneManager.scene, threedSceneManager.camera);
+    public render(threedScene: IThreedSceneManager): void {
+        this.cssRenderer.render(threedScene.scene, threedScene.camera);
     }
 
     public getRenderer() {
-        return this.renderer;
+        return this.cssRenderer;
     }
 }

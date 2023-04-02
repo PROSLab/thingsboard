@@ -19,15 +19,16 @@ import { IThreedUpdatable } from "../ithreed-updatable";
 import { ThreedCameraSettings } from "../../../threed-models";
 import { CAMERA_ID } from "../../../threed-constants";
 import * as THREE from 'three';
+import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
 
 
 export class ThreedUpdateCameraComponent extends ThreedBaseComponent implements IThreedUpdatable {
 
-    private camera?: THREE.PerspectiveCamera;
+    private threedCamera?: IThreedPerspectiveCamera;
 
-    constructor(camera?: THREE.PerspectiveCamera) {
+    constructor(threedCamera?: IThreedPerspectiveCamera) {
         super();
-        this.camera = camera;
+        this.threedCamera = threedCamera;
     }
 
     onUpdateValues(values: any): void {
@@ -37,18 +38,18 @@ export class ThreedUpdateCameraComponent extends ThreedBaseComponent implements 
 
         this.sceneManager.modelManager.updateModelTransforms(CAMERA_ID, { threedPositionVectorSettings: settings.initialPosition, threedRotationVectorSettings: settings.initialRotation });
 
-        if (this.camera) {
+        if (this.threedCamera) {
+            const camera = this.threedCamera.getPerspectiveCamera();
+
             const position = settings.initialPosition;
             const rotation = settings.initialRotation;
-            if (position) this.camera.position.set(position.x, position.y, position.z);
-            if (rotation) this.camera.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+            if (position) camera.position.set(position.x, position.y, position.z);
+            if (rotation) camera.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
 
-            if (this.camera) {
-                this.camera.far = settings.far || this.camera.far;
-                this.camera.near = settings.near || this.camera.near;
-                this.camera.fov = settings.fov || this.camera.fov;
-                this.camera.updateProjectionMatrix();
-            }
+            camera.far = settings.far || camera.far;
+            camera.near = settings.near || camera.near;
+            camera.fov = settings.fov || camera.fov;
+            camera.updateProjectionMatrix();
         }
     }
 }

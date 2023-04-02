@@ -20,10 +20,15 @@ import { ThreedOrbitControllerComponent } from "../threed-components/threed-orbi
 import { ThreedPerspectiveCameraComponent } from "../threed-components/threed-perspective-camera-component";
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 import { ThreedUpdateViewSettingsComponent } from "../threed-components/updatable/threed-update-view-settings-component";
-import { ThreedRaycasterComponent } from "../threed-components/threed-raycaster-component";
+import { ThreedHightlightRaycasterComponent } from "../threed-components/threed-hightlight-raycaster-component";
 import { ThreedFirstPersonControllerComponent } from "../threed-components/threed-first-person-controller-component";
+import { ThreedUpdateSceneSettingsComponent } from "../threed-components/updatable/threed-update-scene-settings-component";
+import { ThreedTransformControllerComponent } from "../threed-components/threed-transform-controller-component";
+import { ThreedTransformRaycasterComponent } from "../threed-components/threed-transform-raycaster-component";
+import { ThreedCameraPreviewComponent } from "../threed-components/threed-camera-preview-component";
+import { CAMERA_ID, OBJECT_ID_TAG } from "../../threed-constants";
 
-export class ThreedSceneA {
+export class ThreedScenes {
 
     //* INFO: Simple Orbit scene 
     public static createSimpleOrbitScene(): ThreedGenericSceneManager {
@@ -43,19 +48,42 @@ export class ThreedSceneA {
             .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedOrbitControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent())
-            .add(new ThreedRaycasterComponent('click'));
+            .add(new ThreedHightlightRaycasterComponent('click'));
 
         return builder.build();
     }
 
     //* INFO: Navigation scene 
     public static createNavigationScene(): ThreedGenericSceneManager {
+        const cameraComponent = new ThreedPerspectiveCameraComponent();
+
         const builder = new ThreedSceneBuilder({ shadow: true })
-            .add(new ThreedPerspectiveCameraComponent())
+            .add(cameraComponent)
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())
-            .add(new ThreedUpdateViewSettingsComponent())
-            .add(new ThreedRaycasterComponent('hover'));
+            .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
+            .add(new ThreedHightlightRaycasterComponent('hover'));
+
+        return builder.build();
+    }
+
+    //* INFO: Editor scene 
+    public static createEditorScene(): ThreedGenericSceneManager {
+        const transformControllercomponent = new ThreedTransformControllerComponent(true);
+        const cameraPreviewComponent = new ThreedCameraPreviewComponent();
+        const builder = new ThreedSceneBuilder({ shadow: false })
+            .add(new ThreedPerspectiveCameraComponent())
+            .add(new ThreedDefaultAmbientComponent(true))
+            .add(new ThreedOrbitControllerComponent())
+            .add(transformControllercomponent)
+            .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
+            .add(cameraPreviewComponent)
+            .add(new ThreedUpdateSceneSettingsComponent(cameraPreviewComponent))
+            .add(new ThreedHightlightRaycasterComponent('hover'));
+
+        transformControllercomponent.onChangeAttachTransformController.subscribe(model => {
+            cameraPreviewComponent.enabled = model ? model.userData[OBJECT_ID_TAG] == CAMERA_ID : false;
+        })
 
         return builder.build();
     }

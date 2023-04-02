@@ -17,9 +17,10 @@
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ThreedBaseComponent } from "./threed-base-component";
+import { IThreedOrbitController } from "./ithreed-orbit-controller";
 
 
-export class ThreedOrbitControllerComponent extends ThreedBaseComponent {
+export class ThreedOrbitControllerComponent extends ThreedBaseComponent implements IThreedOrbitController {
 
     private orbit?: OrbitControls;
 
@@ -32,5 +33,9 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent {
 
     tick(): void { 
         this.orbit.update();
+    }
+
+    getOrbitController(): OrbitControls {
+        return this.orbit;
     }
 }

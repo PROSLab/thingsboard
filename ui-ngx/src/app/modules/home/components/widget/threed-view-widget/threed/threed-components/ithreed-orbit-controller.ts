@@ -14,9 +14,8 @@
 /// limitations under the License.
 ///
 
-export interface IThreedListener {
-    onKeyDown(event: KeyboardEvent): void;
-    onKeyUp(event: KeyboardEvent): void;
-    onMouseMove(event: MouseEvent): void;
-    onMouseClick(event: MouseEvent): void;
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+
+export interface IThreedOrbitController {
+    getOrbitController(): OrbitControls;
 }

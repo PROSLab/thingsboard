@@ -19,16 +19,23 @@ import { IThreedUpdatable } from "../ithreed-updatable";
 import { ThreedComplexOrbitWidgetSettings } from "../../../threed-models";
 import { IThreedSceneManager } from "../../threed-managers/ithreed-scene-manager";
 import { ThreedUpdateSceneSettingsComponent } from "./threed-update-scene-settings-component";
-import { ThreedRaycasterComponent } from "../threed-raycaster-component";
+import { ThreedHightlightRaycasterComponent } from "../threed-hightlight-raycaster-component";
+import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
 
 export class ThreedUpdateViewSettingsComponent extends ThreedBaseComponent implements IThreedUpdatable {
 
     private scene: ThreedUpdateSceneSettingsComponent; 
+    private cameraToUpdate?: IThreedPerspectiveCamera;
+
+    constructor(cameraToUpdate?: IThreedPerspectiveCamera) {
+        super();
+        this.cameraToUpdate = cameraToUpdate;
+    }
 
     override initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
-        this.scene = new ThreedUpdateSceneSettingsComponent();
+        this.scene = new ThreedUpdateSceneSettingsComponent(this.cameraToUpdate);
         this.scene.initialize(sceneManager);
     }
 
@@ -38,7 +45,7 @@ export class ThreedUpdateViewSettingsComponent extends ThreedBaseComponent imple
         if(!settings) return;
 
         this.scene.onUpdateValues(settings.threedSceneSettings);
-        const raycasterComponent = this.sceneManager.getComponent(ThreedRaycasterComponent);
+        const raycasterComponent = this.sceneManager.getComponent(ThreedHightlightRaycasterComponent);
         raycasterComponent?.setHoveringColor(settings.hoverColor);
     }
 }

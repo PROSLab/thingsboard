@@ -33,5 +33,7 @@ export interface IThreedSceneManager {
     initialize(): void;
     getRenderer(): THREE.WebGLRenderer;
     isActive(): boolean;
+    forceUpdateValues(): void;
     getComponent<T extends IThreedComponent>(type: new () => T): T | undefined;
+    findComponentsByTester<T>(tester: (obj: any) => obj is T): T[]
 }

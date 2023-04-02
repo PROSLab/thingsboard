@@ -31,7 +31,6 @@ export class ThreedSceneBuilder {
 
     constructor(configs: ThreedSceneConfig = defaultThreedSceneEditorConfig) {
         this.sceneManager = new ThreedGenericSceneManager(configs);
-        this.sceneManager.initialize();
     }
 
     public add(component: IThreedComponent): ThreedSceneBuilder {
@@ -40,6 +39,7 @@ export class ThreedSceneBuilder {
     }
 
     public build(): ThreedGenericSceneManager {
+        this.sceneManager.initialize();
         return this.sceneManager;
     }
 }
