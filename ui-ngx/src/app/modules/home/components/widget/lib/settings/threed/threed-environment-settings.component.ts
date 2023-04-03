@@ -16,27 +16,27 @@
 
 import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
   FormBuilder,
   FormGroup,
-  NG_VALUE_ACCESSOR,
   NG_VALIDATORS,
-  Validator,
-  AbstractControl,
-  ValidationErrors
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
+import { IAliasController } from '@app/core/public-api';
 import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
+import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 import {
   ThreedEnvironmentSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { IAliasController } from '@app/core/public-api';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 
 
 @Component({
@@ -65,7 +65,7 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
   aliasController: IAliasController;
 
   @Input()
-  threedSceneEditor: ThreedSceneEditor;
+  sceneEditor: ThreedGenericSceneManager;
 
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;

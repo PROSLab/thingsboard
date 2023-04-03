@@ -14,29 +14,29 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, Component, EventEmitter, Output, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild, forwardRef } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
+  FormArray,
   FormBuilder,
   FormGroup,
-  NG_VALUE_ACCESSOR,
   NG_VALIDATORS,
-  Validator,
-  AbstractControl,
+  NG_VALUE_ACCESSOR,
   ValidationErrors,
-  Validators,
-  FormArray
+  Validator,
+  Validators
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@app/core/public-api';
+import { EntityInfo } from '@app/shared/public-api';
+import { AppState } from '@core/core.state';
+import { ThreedDeviceGroupSettings, ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
-import { EntityInfo } from '@app/shared/public-api';
-import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedDeviceGroupSettings, ThreedObjectSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
 
 
 @Component({
@@ -65,7 +65,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   aliasController: IAliasController;
 
   @Input()
-  threedSceneEditor: ThreedSceneEditor;
+  sceneEditor: ThreedGenericSceneManager;
 
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;

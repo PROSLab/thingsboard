@@ -16,25 +16,26 @@
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
   FormBuilder,
   FormGroup,
-  NG_VALUE_ACCESSOR,
   NG_VALIDATORS,
-  Validator,
-  AbstractControl,
+  NG_VALUE_ACCESSOR,
   ValidationErrors,
+  Validator,
   Validators
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
+import { CAMERA_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 import {
   ThreedCameraSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
-import { CAMERA_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
+import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 
 
 @Component({
@@ -60,7 +61,7 @@ export class ThreedCameraSettingsComponent extends PageComponent implements OnIn
   disabled: boolean;
 
   @Input()
-  threedSceneEditor: ThreedSceneEditor;
+  sceneEditor: ThreedGenericSceneManager;
 
   private modelValue: ThreedCameraSettings;
 
@@ -84,8 +85,9 @@ export class ThreedCameraSettingsComponent extends PageComponent implements OnIn
       initialRotation: [null, []],
     });
 
-    this.threedSceneEditor.positionChanged.subscribe(v => this.updateObjectVector(v, "initialPosition"));
-    this.threedSceneEditor.rotationChanged.subscribe(v => this.updateObjectVector(v, "initialRotation"));
+    const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
+    transformComponent.positionChanged.subscribe(v => this.updateObjectVector(v, "initialPosition"));
+    transformComponent.rotationChanged.subscribe(v => this.updateObjectVector(v, "initialRotation"));
 
     //this.threedCameraSettingsFormGroup.get('useAlias').valueChanges.subscribe(() => this.updateValidators(true));
     this.threedCameraSettingsFormGroup.valueChanges.subscribe(() => {

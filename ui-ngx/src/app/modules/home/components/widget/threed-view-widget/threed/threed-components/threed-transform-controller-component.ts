@@ -46,7 +46,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     /**
      * @param orbitController The orbit controller component used; when using transform controls, the controller must be disabled. If no controllers are provided, it tries to find the component automatically. 
      */
-    constructor(visualizeBoxHelper: boolean, orbitController?: IThreedOrbitController) {
+    constructor(visualizeBoxHelper: boolean = true, orbitController?: IThreedOrbitController) {
         super();
         this.visualizeBoxHelper = visualizeBoxHelper;
         this.orbitController = orbitController;

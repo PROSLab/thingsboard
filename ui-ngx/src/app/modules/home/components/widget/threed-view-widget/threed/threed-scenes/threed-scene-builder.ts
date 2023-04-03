@@ -14,7 +14,6 @@
 /// limitations under the License.
 ///
 
-import { defaultThreedSceneEditorConfig } from "../../threed-scene-editor";
 import { IThreedComponent } from "../threed-components/ithreed-component";
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 
@@ -29,7 +28,7 @@ export class ThreedSceneBuilder {
 
     private sceneManager: ThreedGenericSceneManager;
 
-    constructor(configs: ThreedSceneConfig = defaultThreedSceneEditorConfig) {
+    constructor(configs: ThreedSceneConfig = defaultThreedSceneConfig) {
         this.sceneManager = new ThreedGenericSceneManager(configs);
     }
 

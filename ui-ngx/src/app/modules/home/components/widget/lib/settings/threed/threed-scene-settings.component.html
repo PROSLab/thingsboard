@@ -67,17 +67,17 @@
             </div>
         </div>
 
-        <tb-threed-environment-settings [threedSceneEditor]="threedSceneEditor" [aliasController]="aliasController"
+        <tb-threed-environment-settings [sceneEditor]="sceneEditor" [aliasController]="aliasController"
             formControlName="threedEnvironmentSettings">
         </tb-threed-environment-settings>
 
         <tb-threed-camera-settings 
             *ngIf="hasCamera()"
-            [threedSceneEditor]="threedSceneEditor" 
+            [sceneEditor]="sceneEditor" 
             formControlName="threedCameraSettings">
         </tb-threed-camera-settings>
 
-        <tb-threed-devices-settings [threedSceneEditor]="threedSceneEditor" [aliasController]="aliasController"
+        <tb-threed-devices-settings [sceneEditor]="sceneEditor" [aliasController]="aliasController"
             formControlName="threedDevicesSettings">
         </tb-threed-devices-settings>
     </fieldset>

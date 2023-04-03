@@ -14,26 +14,26 @@
 /// limitations under the License.
 ///
 
-import { Component, forwardRef, Input, OnInit, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges, SimpleChanges, AfterContentChecked, Renderer2 } from '@angular/core';
+import { Component, Input, OnInit, forwardRef } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
+  FormArray,
   FormBuilder,
   FormGroup,
-  NG_VALUE_ACCESSOR,
   NG_VALIDATORS,
-  Validator,
-  AbstractControl,
+  NG_VALUE_ACCESSOR,
   ValidationErrors,
-  Validators,
-  FormArray
+  Validator,
+  Validators
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
 import { IAliasController } from '@app/core/public-api';
-import { defaultThreedDeviceGroupSettings, ThreedDeviceGroupSettings, ThreedDevicesSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
+import { AppState } from '@core/core.state';
+import { ThreedDeviceGroupSettings, ThreedDevicesSettings, defaultThreedDeviceGroupSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 
 @Component({
   selector: 'tb-threed-devices-settings',
@@ -59,7 +59,7 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
   aliasController: IAliasController;
 
   @Input()
-  threedSceneEditor: ThreedSceneEditor;
+  sceneEditor: ThreedGenericSceneManager;
 
   @Input()
   disabled: boolean;

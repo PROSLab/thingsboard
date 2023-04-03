@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { Component, EventEmitter, Output, forwardRef, Input, OnChanges, OnInit, AfterViewInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -24,19 +24,20 @@ import {
   NG_VALUE_ACCESSOR,
   Validator
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
-import { IAliasController } from '@core/api/widget-api.models';
-import { defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings, ThreedObjectSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
+import { IAliasController } from '@core/api/widget-api.models';
+import { AppState } from '@core/core.state';
 import {
-  ShowTooltipAction, 
+  ShowTooltipAction,
   showTooltipActionTranslationMap
 } from '@home/components/widget/lib/maps/map-models';
+import { ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
+import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 
 @Component({
   selector: 'tb-threed-object-settings',
@@ -76,7 +77,7 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   entityAlias?: string;
 
   @Input()
-  threedSceneEditor: ThreedSceneEditor;
+  sceneEditor: ThreedGenericSceneManager;
 
   @Input()
   customObjectId?: string;
@@ -124,9 +125,10 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
       this.updateValidators(true);
     });
 
-    this.threedSceneEditor.positionChanged.subscribe(v => this.updateObjectVector(v, "threedPositionVectorSettings"));
-    this.threedSceneEditor.rotationChanged.subscribe(v => this.updateObjectVector(v, "threedRotationVectorSettings"));
-    this.threedSceneEditor.scaleChanged.subscribe(v => this.updateObjectVector(v, "threedScaleVectorSettings"));
+    const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
+    transformComponent.positionChanged.subscribe(v => this.updateObjectVector(v, "threedPositionVectorSettings"));
+    transformComponent.rotationChanged.subscribe(v => this.updateObjectVector(v, "threedRotationVectorSettings"));
+    transformComponent.scaleChanged.subscribe(v => this.updateObjectVector(v, "threedScaleVectorSettings"));
   }
 
   ngOnChanges(changes: SimpleChanges): void {

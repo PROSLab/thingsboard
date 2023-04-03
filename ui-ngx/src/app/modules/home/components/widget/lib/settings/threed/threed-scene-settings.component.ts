@@ -14,31 +14,34 @@
 /// limitations under the License.
 ///
 
-import { Component, forwardRef, Input, OnInit, ElementRef, ViewChild, AfterViewInit, HostListener, OnChanges, SimpleChanges, AfterContentChecked, Renderer2 } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, Renderer2, ViewChild, forwardRef } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
   FormBuilder,
   FormGroup,
-  NG_VALUE_ACCESSOR,
   NG_VALIDATORS,
-  Validator,
-  AbstractControl,
-  ValidationErrors
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
+import { IAliasController } from '@app/core/public-api';
 import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
+import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
+import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
 import {
   ThreedDeviceGroupSettings,
   ThreedDevicesSettings,
   ThreedEnvironmentSettings,
   ThreedSceneSettings,
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { IAliasController } from '@app/core/public-api';
-import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
-import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedOrbitControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-orbit-controller-component';
+import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
+import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
+import { ThreedScenes } from '../../../threed-view-widget/threed/threed-scenes/threed-scenes';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -76,7 +79,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
   public threedSceneSettingsFormGroup: FormGroup;
 
-  public threedSceneEditor: ThreedSceneEditor;
+  public sceneEditor: ThreedGenericSceneManager;
   private isVisible: boolean = false;
   fullscreen: boolean = false;
 
@@ -92,10 +95,15 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   }
 
   ngOnInit(): void {
-    this.threedSceneEditor = new ThreedSceneEditor(undefined, {
+    /*this.threedSceneEditor = new ThreedSceneEditor(undefined, {
       createGrid: true,
       controllerType: this.sceneControllerType
-    });
+    });*/
+    if (this.hasCamera()) {
+      this.sceneEditor = ThreedScenes.createEditorSceneWithCameraDebug();
+    } else {
+      this.sceneEditor = ThreedScenes.createEditorSceneWithoutCameraDebug();
+    }
 
     const controlsConfig = this.hasCamera() ? {
       threedEnvironmentSettings: [null, []],
@@ -130,7 +138,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     if (!config.entityLoader) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedSceneEditor.replaceModel(res.model, { id: id ? id : res.entityId });
+      this.sceneEditor.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
+      //this.threedSceneEditor.replaceModel(res.model, { id: id ? id : res.entityId });
     });
   }
 
@@ -147,7 +156,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   }
 
   ngAfterViewInit(): void {
-    this.threedSceneEditor.attachToElement(this.rendererContainer);
+    this.sceneEditor.attachToElement(this.rendererContainer);
+    //this.threedSceneEditor.attachToElement(this.rendererContainer);
   }
 
   registerOnChange(fn: any): void {
@@ -177,7 +187,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   writeValue(value: ThreedSceneSettings): void {
     this.modelValue = value;
 
-    this.threedSceneEditor.updateValue(this.modelValue);
+    this.sceneEditor.setValues(this.modelValue);
+    //this.threedSceneEditor.updateValue(this.modelValue);
     this.threedSceneSettingsFormGroup.patchValue(
       this.modelValue, { emitEvent: false }
     );
@@ -191,7 +202,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     const value = this.threedSceneSettingsFormGroup.value;
     this.modelValue = value;
 
-    this.threedSceneEditor.updateValue(this.modelValue);
+    this.sceneEditor.setValues(this.modelValue);
+    //this.threedSceneEditor.updateValue(this.modelValue);
 
     this.propagateChange(this.modelValue);
   }
@@ -249,27 +261,34 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
   private onExitFullscreen() {
     this.renderer2.addClass(this.rendererContainer.nativeElement, "zero-size");
-    this.threedSceneEditor?.resize();
+    this.sceneEditor?.resize();
+    //this.threedSceneEditor?.resize();
     setTimeout(() => {
       this.renderer2.removeClass(this.rendererContainer.nativeElement, "zero-size");
-      this.threedSceneEditor?.resize();
+      this.sceneEditor?.resize();
+      //this.threedSceneEditor?.resize();
     }, 50);
     this.fullscreen = false;
   }
 
   public changeControlMode(mode: "translate" | "rotate" | "scale") {
-    this.threedSceneEditor?.changeTransformControlMode(mode);
+    this.sceneEditor?.getComponent(ThreedTransformControllerComponent).changeTransformControllerMode(mode);
+    //this.threedSceneEditor?.changeTransformControlMode(mode);
   }
 
   public focusOnObject() {
-    this.threedSceneEditor?.focusOnObject();
+    // TODO: pass the selected object or compute it inside 
+    this.sceneEditor?.getComponent(ThreedOrbitControllerComponent).focusOnObject();
+    //this.threedSceneEditor?.focusOnObject();
   }
 
   @HostListener('window:resize')
   public detectResize(): void {
-    this.threedSceneEditor?.resize();
+    this.sceneEditor?.resize();
+    //this.threedSceneEditor?.resize();
     setTimeout(() => {
-      this.threedSceneEditor?.resize();
+      this.sceneEditor?.resize();
+      //this.threedSceneEditor?.resize();
     }, 1000);
   }
 
@@ -282,25 +301,5 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
       // Leaving fullscreen mode
       this.onExitFullscreen();
     }
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  public keydown(event: KeyboardEvent): void {
-    this.threedSceneEditor?.onKeyDown(event);
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  public keyup(event: KeyboardEvent): void {
-    this.threedSceneEditor?.onKeyUp(event);
-  }
-
-  @HostListener('window:mousemove', ['$event'])
-  public mousemove(event: MouseEvent): void {
-    this.threedSceneEditor?.onMouseMove(event);
-  }
-
-  @HostListener('window:click', ['$event'])
-  public mouseclick(event: MouseEvent): void {
-    this.threedSceneEditor?.onMouseClick(event);
   }
 }

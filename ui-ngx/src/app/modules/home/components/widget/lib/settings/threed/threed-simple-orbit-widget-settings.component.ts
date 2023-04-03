@@ -14,18 +14,16 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, Component, ViewChild, ElementRef, HostListener, OnInit, AfterContentChecked } from '@angular/core';
-import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneEditor } from '@home/components/widget/threed-view-widget/threed-scene-editor';
-import { ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
-import { ThreedEntityKeySettings } from './aliases/threed-entity-key-settings.component';
+import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { EntityInfo } from '@app/shared/public-api';
-import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
+import { AppState } from '@core/core.state';
+import { ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { Store } from '@ngrx/store';
+import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
+import { ThreedEntityKeySettings } from './aliases/threed-entity-key-settings.component';
 
 @Component({
   selector: 'tb-threed-simple-orbit-widget-settings',
