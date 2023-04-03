@@ -64,8 +64,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
 
   public pointerLocked: boolean = false;
 
-  //private threedNavigateScene: ThreedNavigateScene;
-  private scene: ThreedGenericSceneManager;
+  private navigationScene: ThreedGenericSceneManager;
 
   constructor(
     protected store: Store<AppState>,
@@ -74,8 +73,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   ) {
     super(store);
 
-    //this.threedNavigateScene = new ThreedNavigateScene();
-    this.scene = ThreedScenes.createNavigationScene();
+    this.navigationScene = ThreedScenes.createNavigationScene();
   }
 
   ngOnInit(): void {
@@ -88,17 +86,11 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
       return;
     }
 
-    this.scene.setValues(this.settings);
-    this.scene.getComponent(ThreedFirstPersonControllerComponent).onPointerLockedChanged.subscribe(v => {
+    this.navigationScene.setValues(this.settings);
+    this.navigationScene.getComponent(ThreedFirstPersonControllerComponent).onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
     });
-    /*
-    this.threedNavigateScene.updateValue(this.settings);
-    this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
-      this.pointerLocked = v;
-      this.cd.detectChanges();
-    });*/
 
     this.loadModels();
   }
@@ -135,21 +127,18 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      // TODO: add tooltip
       const customId = id ? id : res.entityId;
-      this.scene.modelManager.replaceModel(res.model, { id: customId });
-      this.scene.cssManager.createLabel(customId);
+      this.navigationScene.modelManager.replaceModel(res.model, { id: customId });
+      if(hasTooltip) this.navigationScene.cssManager.createLabel(customId);
     });
   }
 
   ngAfterViewInit() {
-    this.scene.attachToElement(this.rendererContainer);
-    //this.threedNavigateScene.attachToElement(this.rendererContainer);
+    this.navigationScene.attachToElement(this.rendererContainer);
   }
 
   lockCursor() {
-    this.scene.getComponent(ThreedFirstPersonControllerComponent).lockControls();
-    //this.threedNavigateScene.lockControls();
+    this.navigationScene.getComponent(ThreedFirstPersonControllerComponent)?.lockControls();
   }
 
   public onDataUpdated() {
@@ -177,7 +166,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
             const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
             const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
 
-            this.scene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
+            this.navigationScene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
           }
         }
       });
@@ -197,7 +186,6 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }*/
 
   public onResize(width: number, height: number): void {
-    this.scene.resize(width, height);
-    //this.threedNavigateScene?.resize(width, height);
+    this.navigationScene.resize(width, height);
   }
 }

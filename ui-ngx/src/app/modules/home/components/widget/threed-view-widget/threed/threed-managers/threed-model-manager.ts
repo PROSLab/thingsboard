@@ -26,6 +26,7 @@ export interface ModelData {
     id: string;
     gltf: GLTF;
     root: THREE.Group;
+    flatModel: THREE.Object3D[];
     explodedModel?: THREE.Group;
 }
 export interface ModelConfig {
@@ -38,12 +39,17 @@ export class ThreedModelManager {
 
     public models: Map<string, ModelData> = new Map();
     private sceneManager: IThreedSceneManager;
+    private flatModels: THREE.Object3D[] = [];
 
     public onAfterAddModel = new EventEmitter<ModelData>();
     public onBeforeRemoveModel = new EventEmitter<ModelData>();
 
     constructor(sceneManager: IThreedSceneManager) {
         this.sceneManager = sceneManager;
+    }
+
+    public getAllFlatModels(): THREE.Object3D[] {
+        return this.flatModels;
     }
 
     public replaceModel(model: GLTF, configs: ModelConfig = defaultModelConfig): void {
@@ -58,7 +64,12 @@ export class ThreedModelManager {
         model.userData[ROOT_TAG] = true;
         root.userData[OBJECT_ID_TAG] = customId;
         root.userData[ROOT_TAG] = true;
-        const modelData = { id: customId, gltf: model, root };
+        let flatModel: THREE.Object3D[] = [];
+        root.traverse(o => {
+            if (o instanceof THREE.Mesh)
+                flatModel.push(o);
+        })
+        const modelData = { id: customId, gltf: model, root, flatModel };
         this.models.set(customId, modelData);
 
         if (configs.autoResize) {
@@ -69,8 +80,7 @@ export class ThreedModelManager {
 
         if (this.sceneManager.configs?.shadow) {
             root.traverse(object => {
-                //@ts-ignore
-                if (object.isMesh) {
+                if (object instanceof THREE.Mesh) {
                     object.castShadow = true;
                     object.receiveShadow = true;
                 }
@@ -80,6 +90,7 @@ export class ThreedModelManager {
         this.sceneManager.scene!.add(root);
 
         this.onAfterAddModel.emit(modelData);
+        this.recalculateFlatModels();
     }
 
     public removeModel(id: string): void {
@@ -91,6 +102,15 @@ export class ThreedModelManager {
         const parent = modelData.root.parent;
         parent.remove(modelData.root);
         this.models.delete(id);
+
+        this.recalculateFlatModels();
+    }
+
+    private recalculateFlatModels() {
+        this.flatModels = [];
+        for (const flatModel of this.models.values()) {
+            flatModel.flatModel.forEach(m => this.flatModels.push(m));
+        }
     }
 
     public explodeObjectByDistance(id: string, distance: number) {

@@ -100,6 +100,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     protected getIntersectionObjects(): THREE.Object3D[] {
         return this.sceneManager.scene.children;
     }
+    
     protected getIntersectedObjectFilter(o: THREE.Intersection) {
         return o.object.type != "TransformControlsPlane" &&
             o.object.type != "BoxHelper" &&
