@@ -18,10 +18,12 @@ import { IThreedComponent } from "../threed-components/ithreed-component";
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 
 export interface ThreedSceneConfig {
-    shadow?: boolean
+    shadow?: boolean,
+    vr?: boolean
 }
 export const defaultThreedSceneConfig: ThreedSceneConfig = {
-    shadow: false
+    shadow: false,
+    vr: false
 }
 
 export class ThreedSceneBuilder {

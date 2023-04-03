@@ -27,6 +27,7 @@ import * as THREE from 'three';
 import { ThreedCssRenderer } from "./threed-css-renderer";
 import { ThreedCssManager } from "./threed-css-manager";
 import { IThreedTester } from "../threed-components/ithreed-tester";
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 
@@ -37,6 +38,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private rendererContainer: ElementRef;
     private threedRenderers: IThreedRenderer[] = [];
     private components: IThreedComponent[] = [];
+    private vrActive = false;
 
     public scene: Scene;
     public camera: Camera;
@@ -60,6 +62,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.threedRenderers.push(new ThreedWebRenderer());
         this.threedRenderers.push(new ThreedCssRenderer());
         this.initializeEventListeners();
+        this.initializeVR();
+        this.scene = new THREE.Scene();
 
         this.modelManager = new ThreedModelManager(this);
         this.modelManager.onAfterAddModel.subscribe(_ => this.updateValues());
@@ -84,6 +88,13 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
         this.threedRenderers.forEach(r => r.attachToElement(rendererContainer));
         this.rendererContainer = rendererContainer;
+
+        if (this.configs.vr) {
+            const vrButton = VRButton.createButton(this.getRenderer());
+            vrButton.addEventListener('click', () => this.vrActive = !this.vrActive);
+            this.rendererContainer.nativeElement.appendChild(vrButton);
+        }
+
         this.startRendering();
     }
 
@@ -146,12 +157,19 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
      *========================================================================**/
     private startRendering() {
         this.resize();
-        this.animate();
+
+        if (this.configs.vr) {
+            this.getRenderer().setAnimationLoop(() => this.loop());
+        } else this.animate();
     }
 
     private animate() {
         window.requestAnimationFrame(() => this.animate());
 
+        this.loop();
+    }
+
+    private loop() {
         this.tick();
         TWEEN.update();
         this.render();
@@ -222,6 +240,18 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         } else ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, false);
     }
     /*============================ END OF EVENTS ============================*/
+
+
+    /**========================================================================
+     *                           VR SECTION
+     *========================================================================**/
+
+    private initializeVR() {
+        if (this.configs.vr) {
+            this.getRenderer().xr.enabled = true;
+        }
+    }
+    /*============================ END OF VR ============================*/
 
 
 }

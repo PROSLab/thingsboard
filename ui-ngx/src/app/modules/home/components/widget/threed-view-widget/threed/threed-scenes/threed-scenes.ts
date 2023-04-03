@@ -59,7 +59,7 @@ export class ThreedScenes {
     public static createNavigationScene(): ThreedGenericSceneManager {
         const cameraComponent = new ThreedPerspectiveCameraComponent();
 
-        const builder = new ThreedSceneBuilder({ shadow: false })
+        const builder = new ThreedSceneBuilder({ vr: true })
             .add(cameraComponent)
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())

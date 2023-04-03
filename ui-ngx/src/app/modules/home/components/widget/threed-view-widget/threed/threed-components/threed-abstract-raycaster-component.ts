@@ -35,6 +35,8 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     public onObjectSelected: EventEmitter<any> = new EventEmitter();
     public onObjectDeselected: EventEmitter<any> = new EventEmitter();
 
+    private hoverIndex = 0;
+
     constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'root') {
         super();
 
@@ -51,6 +53,9 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     onKeyDown(event: KeyboardEvent): void { }
     onKeyUp(event: KeyboardEvent): void { }
     onMouseMove(event: MouseEvent): void {
+        // Used to increase the performaces!
+        if (this.hoverIndex++ % 4 == 0) return;
+
         if (this.raycastUpdate == 'hover')
             this.updateRaycaster();
     }
@@ -97,23 +102,24 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
         this.selectedObject = null;
     }
 
-    
+
     protected canUpdateRaycaster(): boolean {
         return true;
     }
 
-    protected getRaycasterOriginCoords(): {x:number, y: number} {
+    protected getRaycasterOriginCoords(): { x: number, y: number } {
         return this.sceneManager.mouse;
     }
 
     protected getIntersectionObjects(): THREE.Object3D[] {
         return this.sceneManager.scene.children;
     }
-    
+
     protected getIntersectedObjectFilter(o: THREE.Intersection) {
         return o.object.type != "TransformControlsPlane" &&
             o.object.type != "BoxHelper" &&
             o.object.type != "GridHelper" &&
+            o.object.type != "Line" &&
             //@ts-ignore
             o.object.tag != "Helper"
     }

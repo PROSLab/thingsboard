@@ -42,7 +42,6 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
     }
 
     private initializeScene() {
-        this.sceneManager.scene = new THREE.Scene();
         this.sceneManager.scene.background = new THREE.Color(0xcccccc);
     }
 
