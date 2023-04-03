@@ -14,25 +14,23 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import { PageComponent } from '@shared/components/page.component';
-import { WidgetContext } from '@home/models/widget-component.models';
-import { Store } from '@ngrx/store';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import {
+  fillDataPattern,
   formattedDataFormDatasourceData,
   mergeFormattedData,
-  processDataPattern,
-  fillDataPattern
+  processDataPattern
 } from '@core/utils';
-import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedNavigateScene } from '@home/components/widget/threed-view-widget/threed-nagivate-scene';
 import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { WidgetContext } from '@home/models/widget-component.models';
+import { Store } from '@ngrx/store';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
-import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
-
 
 /*
 Widget Type: Ultimi Valori

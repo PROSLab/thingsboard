@@ -14,26 +14,25 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import { PageComponent } from '@shared/components/page.component';
-import { WidgetContext } from '@home/models/widget-component.models';
-import { Store } from '@ngrx/store';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { MatSliderChange } from '@angular/material/slider';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
+import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
 import {
-  isThreedComplexOrbitWidgetSettings,
-  isThreedSimpleOrbitWidgetSettings,
   ThreedComplexOrbitWidgetSettings,
   ThreedDeviceGroupSettings,
-  ThreedSimpleOrbitWidgetSettings
+  ThreedSimpleOrbitWidgetSettings,
+  isThreedComplexOrbitWidgetSettings,
+  isThreedSimpleOrbitWidgetSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
-import { MatSliderChange } from '@angular/material/slider';
+import { WidgetContext } from '@home/models/widget-component.models';
+import { Store } from '@ngrx/store';
+import { PageComponent } from '@shared/components/page.component';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
-import { ThreedOrbitScene } from './threed-orbit-scene';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
-import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
+import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
 
 
 @Component({
@@ -163,6 +162,10 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   public explodeFactorChange(e: MatSliderChange) {
     this.lastExplodeFactorValue = e.value;
     this.orbitScene.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
+  }
+
+  public focusOnObject() {
+    this.orbitScene.getComponent(ThreedOrbitControllerComponent).focusOnObject(undefined, 500);
   }
 
   public onResize(width: number, height: number): void {
