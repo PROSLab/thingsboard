@@ -19,7 +19,7 @@
 <div class="rendererContainer" #rendererContainer>
     <div class="position-absolute w-100" style="bottom:0!important; color:white">
         <div fxLayout="row">
-            <div fxFlex="66" fxLayoutAlign="center end" fxFlexOffset="17">
+            <div fxFlex="66" (click)="$event.stopPropagation()" fxLayoutAlign="center end" fxFlexOffset="17">
 
                 <button mat-icon-button *ngIf="!explodedView" (click)="focusOnObject()" matTooltip="Focus on object">
                     <mat-icon>center_focus_strong</mat-icon>
@@ -43,7 +43,7 @@
                             matTooltip="Explode factor" (input)="explodeFactorChange($event)"></mat-slider>
                     </div>
 
-                    <button mat-icon-button (click)="toggleExplodedView($event)" matTooltip="Exploded view"
+                    <button mat-icon-button (click)="toggleExplodedView()" matTooltip="Exploded view"
                         [disabled]="animating">
                         <mat-icon>view_module</mat-icon>
                     </button>

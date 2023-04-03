@@ -18,6 +18,12 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit,
 import { MatSliderChange } from '@angular/material/slider';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
+import {
+  fillDataPattern,
+  formattedDataFormDatasourceData,
+  mergeFormattedData,
+  processDataPattern
+} from '@core/utils';
 import { ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
 import {
   ThreedComplexOrbitWidgetSettings,
@@ -30,13 +36,12 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
+import { ThreedUtils } from './threed-utils';
+import { IThreedTester } from './threed/threed-components/ithreed-tester';
+import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
+import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
-import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
-import { ThreedAbstractRaycasterComponent } from './threed/threed-components/threed-abstract-raycaster-component';
-import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
-import { IThreedTester } from './threed/threed-components/ithreed-tester';
-import { ThreedUtils } from './threed-utils';
 
 
 @Component({
@@ -135,7 +140,9 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.orbitScene.modelManager.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true }/*TODO: , hasTooltip */);
+      const customId = id ? id : res.entityId;
+      this.orbitScene.modelManager.replaceModel(res.model, { id: customId });
+      if (hasTooltip) this.orbitScene.cssManager.createLabel(customId);
     });
   }
 
@@ -145,12 +152,39 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
 
   public onDataUpdated() {
+    if (this.orbitType == 'simple') return;
 
+    if (this.ctx.datasources.length > 0) {
+      var tbDatasource = this.ctx.datasources[0];
+      // TODO...
+    }
+
+    const data = this.ctx.data;
+    let formattedData = formattedDataFormDatasourceData(data);
+    if (this.ctx.latestData && this.ctx.latestData.length) {
+      const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
+      formattedData = mergeFormattedData(formattedData, formattedLatestData);
+    }
+
+    // We associate the new data with the tooltip settings, according to the entity alias
+    formattedData.forEach(fd => {
+      (this.settings as ThreedComplexOrbitWidgetSettings).threedSceneSettings?.threedDevicesSettings?.threedDeviceGroupSettings?.forEach(deviceGroup => {
+        if (deviceGroup.threedTooltipSettings.showTooltip) {
+          if (deviceGroup.threedEntityAliasSettings.entityAlias == fd.aliasName) {
+            const pattern = deviceGroup.threedTooltipSettings.tooltipPattern;
+            const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
+            const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
+
+            this.orbitScene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
+          }
+        }
+      });
+    });
+
+    //this.updateMarkers(formattedData, false, markerClickCallback);
   }
 
-  public toggleExplodedView(event: any) {
-    event.preventDefault();
-
+  public toggleExplodedView() {
     this.explodedView = !this.explodedView;
 
     const raycastComponent = this.orbitScene.getComponent(ThreedHightlightRaycasterComponent);

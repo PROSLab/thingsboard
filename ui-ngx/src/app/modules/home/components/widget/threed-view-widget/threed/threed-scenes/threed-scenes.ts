@@ -50,7 +50,8 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedOrbitControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent())
-            .add(new ThreedHightlightRaycasterComponent('click', 'root'));
+            .add(new ThreedHightlightTooltipRaycasterComponent('click', 'root'));
+            //.add(new ThreedHightlightRaycasterComponent('click', 'root'));
 
         return builder.build();
     }
