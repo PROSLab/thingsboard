@@ -18,6 +18,7 @@ import { Camera, Scene } from 'three';
 import { ThreedSceneConfig } from '../threed-scenes/threed-scene-builder';
 import { ThreedModelManager } from './threed-model-manager';
 import { IThreedComponent } from '../threed-components/ithreed-component';
+import { ThreedCssManager } from './threed-css-manager';
 
 export interface IThreedSceneManager {
     scene: Scene;
@@ -25,6 +26,7 @@ export interface IThreedSceneManager {
 
     get configs(): ThreedSceneConfig;
     get modelManager(): ThreedModelManager;
+    get cssManager(): ThreedCssManager;
     get screenWidth(): number;
     get screenHeight(): number;
     get currentValues(): any;

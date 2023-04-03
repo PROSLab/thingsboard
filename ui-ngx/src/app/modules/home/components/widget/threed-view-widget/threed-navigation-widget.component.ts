@@ -136,8 +136,9 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
       // TODO: add tooltip
-      this.scene.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
-      //this.threedNavigateScene.addModel(res.model, { id: id ? id : res.entityId }, hasTooltip);
+      const customId = id ? id : res.entityId;
+      this.scene.modelManager.replaceModel(res.model, { id: customId });
+      this.scene.cssManager.createLabel(customId);
     });
   }
 
@@ -176,8 +177,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
             const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
             const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
 
-            // TODO:
-            //this.threedNavigateScene.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
+            this.scene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
           }
         }
       });

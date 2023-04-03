@@ -36,7 +36,7 @@ const defaultModelConfig: ModelConfig = { autoResize: false }
 
 export class ThreedModelManager {
 
-    private models: Map<string, ModelData> = new Map();
+    public models: Map<string, ModelData> = new Map();
     private sceneManager: IThreedSceneManager;
 
     public onAfterAddModel = new EventEmitter<ModelData>();

@@ -43,7 +43,6 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
     public setHoveringColor(hoveringColor: string = "rgba(0,0,255,0.5)") {
         if(!hoveringColor) return;
 
-        console.log(hoveringColor);
         this.hoveringColor = ThreedUtils.getAlphaAndColorFromString(hoveringColor);
         this.hoveringMaterial = new THREE.MeshStandardMaterial({
             color: this.hoveringColor.color,
@@ -51,9 +50,6 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
             transparent: true,
             //wireframe: true,
         });
-
-        console.log(this.hoveringColor, this.hoveringMaterial);
-
     }
 
     protected getRaycasterOriginCoords(): { x: number; y: number; } {
@@ -61,13 +57,10 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
     }
 
     protected onSelectObject(object: any): void {
-        console.log("on select");
         this.toggleHightlightGLTF(object, true);
     }
 
     protected onDeselectObject(object: any): void {
-        console.log("on deselect");
-
         this.toggleHightlightGLTF(object, false);
     }
 

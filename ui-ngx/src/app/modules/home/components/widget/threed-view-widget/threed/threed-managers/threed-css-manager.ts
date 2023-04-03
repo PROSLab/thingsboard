@@ -17,6 +17,7 @@
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { OBJECT_ID_TAG } from "../../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
+import * as THREE from 'three';
 
 export interface CssData {
     divElement: HTMLDivElement;
@@ -26,11 +27,13 @@ export interface CssData {
 
 export class ThreedCssManager {
 
-    private cssObjects: Map<string, CssData> = new Map();
+    public cssObjects: Map<string, CssData> = new Map();
     private sceneManager: IThreedSceneManager;
 
-    private readonly initialLabelLayerIndex = 5;
+    public readonly initialLabelLayerIndex = 5;
     private lastLayerIndex = this.initialLabelLayerIndex;
+
+
 
     constructor(sceneManager: IThreedSceneManager) {
         this.sceneManager = sceneManager;
@@ -46,8 +49,16 @@ export class ThreedCssManager {
         cssObject.layers.set(layer);
         cssObject.userData[OBJECT_ID_TAG] = id;
 
+        const model = this.sceneManager.modelManager.models.get(id);
+        if (model) {
+            // it places the label to the center of the model if it exists
+            new THREE.Box3().setFromObject(model.root).getCenter(cssObject.position);
+        }
+
         const label = { divElement, cssObject, layer };
         this.cssObjects.set(id, label)
+
+        this.sceneManager.scene.add(label.cssObject);
         return label;
     }
 

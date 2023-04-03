@@ -28,6 +28,7 @@ import { ThreedTransformRaycasterComponent } from "../threed-components/threed-t
 import { ThreedCameraPreviewComponent } from "../threed-components/threed-camera-preview-component";
 import { CAMERA_ID, OBJECT_ID_TAG } from "../../threed-constants";
 import * as THREE from 'three';
+import { ThreedHightlightTooltipRaycasterComponent } from "../threed-components/threed-hightlight-tooltip-raycaster-component";
 
 export class ThreedScenes {
 
@@ -58,12 +59,12 @@ export class ThreedScenes {
     public static createNavigationScene(): ThreedGenericSceneManager {
         const cameraComponent = new ThreedPerspectiveCameraComponent();
 
-        const builder = new ThreedSceneBuilder({ shadow: true })
+        const builder = new ThreedSceneBuilder({ shadow: false })
             .add(cameraComponent)
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
-            .add(new ThreedHightlightRaycasterComponent('hover', 'single', new THREE.Vector2()));
+            .add(new ThreedHightlightTooltipRaycasterComponent('hover', 'single', new THREE.Vector2()));
 
         return builder.build();
     }
