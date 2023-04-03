@@ -19,6 +19,8 @@ import { ThreedSceneConfig } from '../threed-scenes/threed-scene-builder';
 import { ThreedModelManager } from './threed-model-manager';
 import { IThreedComponent } from '../threed-components/ithreed-component';
 import { ThreedCssManager } from './threed-css-manager';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { IThreedRenderer } from './ithreed-renderer';
 
 export interface IThreedSceneManager {
     scene: Scene;
@@ -33,7 +35,7 @@ export interface IThreedSceneManager {
     get mouse(): THREE.Vector2;
 
     initialize(): void;
-    getRenderer(): THREE.WebGLRenderer;
+    getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined;
     isActive(): boolean;
     forceUpdateValues(): void;
     getComponent<T extends IThreedComponent>(type: new () => T): T | undefined;

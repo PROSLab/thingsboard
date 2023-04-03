@@ -14,14 +14,14 @@
 /// limitations under the License.
 ///
 
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { ThreedBaseComponent } from "./threed-base-component";
-import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { ThreedTransformControllerComponent } from "./threed-transform-controller-component";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
+import { ThreedCssRenderer } from "../threed-managers/threed-css-renderer";
+import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import { IThreedTester } from "./ithreed-tester";
+import { ThreedBaseComponent } from "./threed-base-component";
 
 
 export class ThreedOrbitControllerComponent extends ThreedBaseComponent implements IThreedOrbitController {
@@ -32,7 +32,7 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent implemen
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
-        this.orbit = new OrbitControls(sceneManager.camera, sceneManager.getRenderer().domElement);
+        this.orbit = new OrbitControls(sceneManager.camera, sceneManager.getTRenderer(ThreedCssRenderer).getRenderer().domElement);
         this.orbit.update();
     }
 

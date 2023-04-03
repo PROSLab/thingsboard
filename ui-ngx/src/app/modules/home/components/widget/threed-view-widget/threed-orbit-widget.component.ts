@@ -29,6 +29,7 @@ import {
   ThreedComplexOrbitWidgetSettings,
   ThreedDeviceGroupSettings,
   ThreedSimpleOrbitWidgetSettings,
+  ThreedTooltipSettings,
   isThreedComplexOrbitWidgetSettings,
   isThreedSimpleOrbitWidgetSettings
 } from '@home/components/widget/threed-view-widget/threed-models';
@@ -42,6 +43,8 @@ import { ThreedHightlightRaycasterComponent } from './threed/threed-components/t
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
+import { parseWithTranslation } from '../lib/maps/common-maps-utils';
+import { Datasource, WidgetActionDescriptor } from '@app/shared/public-api';
 
 
 @Component({
@@ -70,6 +73,8 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   private readonly DEFAULT_MODEL_ID = "DefaultModelId"
 
+  private tooltipAction: any;
+
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef,
@@ -96,8 +101,36 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       console.error("Orbit Settings not valid...", this.settings);
     }
 
+    this.tooltipAction = this.getDescriptors('tooltipAction');
     this.orbitScene.setValues(this.settings);
   }
+
+
+
+
+
+  getDescriptors(name: string): { [name: string]: ($event: Event, datasource: Datasource) => void } {
+    const descriptors = this.ctx.actionsApi.getActionDescriptors(name);
+    const actions = {};
+    descriptors.forEach(descriptor => {
+      actions[descriptor.name] = ($event: Event, datasource: Datasource) => this.onCustomAction(descriptor, $event, datasource);
+    }, actions);
+    return actions;
+  }
+  private onCustomAction(descriptor: WidgetActionDescriptor, $event: Event, entityInfo: Datasource) {
+    if ($event) {
+      $event.preventDefault();
+      $event.stopPropagation();
+    }
+    const { entityId, entityName, entityLabel, entityType } = entityInfo;
+    this.ctx.actionsApi.handleWidgetAction($event, descriptor, {
+      entityType,
+      id: entityId
+    }, entityName, null, entityLabel);
+  }
+
+
+
 
   private loadSingleModel(settings: ThreedSimpleOrbitWidgetSettings) {
     if (this.ctx.datasources && this.ctx.datasources[0]) {
@@ -141,7 +174,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
       const customId = id ? id : res.entityId;
-      this.orbitScene.modelManager.replaceModel(res.model, { id: customId });
+      this.orbitScene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
       if (hasTooltip) this.orbitScene.cssManager.createLabel(customId);
     });
   }
@@ -172,16 +205,31 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
         if (deviceGroup.threedTooltipSettings.showTooltip) {
           if (deviceGroup.threedEntityAliasSettings.entityAlias == fd.aliasName) {
             const pattern = deviceGroup.threedTooltipSettings.tooltipPattern;
-            const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
-            const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
+            const tooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
+            const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
+            const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
 
-            this.orbitScene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
+            const tooltip = this.orbitScene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
+            if (tooltip) this.bindPopupActions(tooltip.divElement, fd.$datasource);
           }
         }
       });
     });
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
+  }
+
+  private bindPopupActions(tooltip: HTMLDivElement, datasource: Datasource) {
+    const actions = tooltip.getElementsByClassName('tb-custom-action');
+    Array.from(actions).forEach(
+      (element: HTMLElement) => {
+        const actionName = element.getAttribute('data-action-name');
+        if (element && this.tooltipAction[actionName]) {
+          element.addEventListener('pointerdown', $event => {
+            this.tooltipAction[actionName]($event, datasource);
+          });
+        }
+      });
   }
 
   public toggleExplodedView() {

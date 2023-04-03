@@ -17,6 +17,7 @@
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
 import { ThreedBaseComponent } from "./threed-base-component";
+import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 
 export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 
@@ -56,8 +57,8 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
     }
 
     private initializeShadow() {
-        this.sceneManager.getRenderer().shadowMap.enabled = true;
-        this.sceneManager.getRenderer().shadowMap.type = THREE.PCFSoftShadowMap;
+        this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().shadowMap.enabled = true;
+        this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().shadowMap.type = THREE.PCFSoftShadowMap;
 
         //Create a DirectionalLight and turn on shadows for the light
         const light = new THREE.DirectionalLight(0xffffff, 1);

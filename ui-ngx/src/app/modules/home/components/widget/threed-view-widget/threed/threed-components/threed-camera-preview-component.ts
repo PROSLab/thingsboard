@@ -20,6 +20,7 @@ import { ThreedBaseComponent } from "./threed-base-component";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from "../../threed-constants";
 import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
+import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 
 
 export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements IThreedPerspectiveCamera {
@@ -50,7 +51,7 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
     render(): void {
         if (!this.enabled) return;
 
-        const renderer = this.sceneManager.getRenderer();
+        const renderer = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer();
         const originalViewport = renderer.getViewport(new THREE.Vector4());
 
         //const boxHelperVisible = this.boxHelper?.visible || false;

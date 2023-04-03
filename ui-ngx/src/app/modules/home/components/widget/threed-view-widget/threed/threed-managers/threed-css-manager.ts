@@ -77,7 +77,7 @@ export class ThreedCssManager {
      * @param content the new content
      * @returns 
      */
-    public updateLabelContent(ids: string[], content: string) {
+    public updateLabelContent(ids: string[], content: string): CssData | undefined {
         let index = -1;
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -91,7 +91,9 @@ export class ThreedCssManager {
         if (index == -1) return;
 
         const id = ids[index];
-        const divLabel = this.cssObjects.get(id)!.divElement;
+        const cssData = this.cssObjects.get(id);
+        const divLabel = cssData!.divElement;
         divLabel.innerHTML = content;
+        return cssData;
     }
 }

@@ -43,3 +43,9 @@
 .active-mode {
     color: rgba(0,0,255,0.75);
 }
+
+.tools-panel {
+    bottom:0!important; 
+    color:white;
+    z-index: 10;
+}

@@ -36,6 +36,7 @@ export class ThreedComplexOrbitWidgetSettingsComponent extends WidgetSettingsCom
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder) {
     super(store);
+
   }
 
   protected settingsForm(): FormGroup {

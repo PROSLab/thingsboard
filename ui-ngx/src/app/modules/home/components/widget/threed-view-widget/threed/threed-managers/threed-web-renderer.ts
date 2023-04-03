@@ -19,7 +19,7 @@ import { IThreedSceneManager } from "./ithreed-scene-manager";
 import { IThreedRenderer } from "./ithreed-renderer";
 import * as THREE from 'three';
 
-export class ThreedRendererManager implements IThreedRenderer {
+export class ThreedWebRenderer implements IThreedRenderer {
     protected renderer?: THREE.WebGLRenderer;
 
     constructor() {

@@ -34,7 +34,7 @@ export class ThreedCssRenderer implements IThreedRenderer {
         this.cssRenderer = new CSS2DRenderer();
         this.cssRenderer.domElement.style.position = 'absolute';
         this.cssRenderer.domElement.style.top = '0px';
-        this.cssRenderer.domElement.style.pointerEvents = 'none'
+        //this.cssRenderer.domElement.style.pointerEvents = 'none'
     }
 
     public attachToElement(rendererContainer: ElementRef) {

@@ -18,7 +18,7 @@ import { IThreedRenderer } from "./ithreed-renderer";
 import { ElementRef } from "@angular/core";
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { IThreedSceneManager } from "./ithreed-scene-manager";
-import { ThreedRendererManager as ThreedWebRenderer } from "./threed-web-renderer";
+import { ThreedWebRenderer as ThreedWebRenderer } from "./threed-web-renderer";
 import { Scene, Camera, WebGLRenderer } from "three";
 import { IThreedComponent } from "../threed-components/ithreed-component";
 import { ThreedModelManager } from "./threed-model-manager";
@@ -78,8 +78,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         return this;
     }
 
-    public getRenderer(): WebGLRenderer {
-        return this.threedRenderers[0].getRenderer();
+    public getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined {
+        return this.threedRenderers.find(c => c instanceof type) as T | undefined;
     }
 
     public attachToElement(rendererContainer: ElementRef) {
@@ -90,7 +90,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.rendererContainer = rendererContainer;
 
         if (this.configs.vr) {
-            const vrButton = VRButton.createButton(this.getRenderer());
+            const vrButton = VRButton.createButton(this.getTRenderer(ThreedWebRenderer).getRenderer());
             vrButton.addEventListener('click', () => this.vrActive = !this.vrActive);
             this.rendererContainer.nativeElement.appendChild(vrButton);
         }
@@ -159,7 +159,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.resize();
 
         if (this.configs.vr) {
-            this.getRenderer().setAnimationLoop(() => this.loop());
+            this.getTRenderer(ThreedWebRenderer).getRenderer().setAnimationLoop(() => this.loop());
         } else this.animate();
     }
 
@@ -248,7 +248,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     private initializeVR() {
         if (this.configs.vr) {
-            this.getRenderer().xr.enabled = true;
+            this.getTRenderer(ThreedWebRenderer).getRenderer().xr.enabled = true;
         }
     }
     /*============================ END OF VR ============================*/

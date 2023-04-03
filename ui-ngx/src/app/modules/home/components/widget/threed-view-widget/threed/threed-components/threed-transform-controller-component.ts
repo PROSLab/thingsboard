@@ -26,6 +26,7 @@ import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import { IThreedTester } from "./ithreed-tester";
 import { IThreedListener } from "./ithreed-listener";
 import { IThreedObjectSelector } from "./ithreed-object-selector";
+import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 
 export class ThreedTransformControllerComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 
@@ -110,7 +111,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     onMouseClick(event: MouseEvent): void { }
 
     private initializeController() {
-        this.transformControl = new TransformControls(this.sceneManager.camera, this.sceneManager.getRenderer().domElement);
+        this.transformControl = new TransformControls(this.sceneManager.camera, this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().domElement);
         this.transformControl.addEventListener('dragging-changed', (event) => {
             this.onDraggingChanged.emit(event);
             const draggingChanged = event.value;
