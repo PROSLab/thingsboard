@@ -21,6 +21,7 @@ import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ThreedTransformControllerComponent } from "./threed-transform-controller-component";
+import { IThreedTester } from "./ithreed-tester";
 
 
 export class ThreedOrbitControllerComponent extends ThreedBaseComponent implements IThreedOrbitController {
@@ -47,8 +48,8 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent implemen
         if (this.focusingOnObject) return;
 
         //this.raycastEnabledLastFrame = false;
-        const transformComponent = this.sceneManager.getComponent(ThreedTransformControllerComponent);
-        object = object || transformComponent?.getSelectedObject();
+        const selectorComponents = this.sceneManager.findComponentsByTester(IThreedTester.isIThreedObjectSelector);
+        object = object || selectorComponents[0]?.getSelectedObject();
 
         if (millis > 0) {
             this.focusingOnObject = true;

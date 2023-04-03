@@ -21,8 +21,8 @@ import { ThreedTransformControllerComponent } from "./threed-transform-controlle
 export class ThreedTransformRaycasterComponent extends ThreedAbstractRaycasterComponent {
 
     private transformController: ThreedTransformControllerComponent;
-    private raycastEnabled = true;
-    private raycastEnabledLastFrame = true;
+    private updateRaycast = true;
+    private updateRaycastLastFrame = true;
 
     constructor(raycastUpdate: 'click' | 'hover' = 'click', transformController: ThreedTransformControllerComponent) {
         super(raycastUpdate);
@@ -33,15 +33,15 @@ export class ThreedTransformRaycasterComponent extends ThreedAbstractRaycasterCo
         super.initialize(sceneManager);
 
         this.transformController.onDraggingChanged.subscribe(event => {
-            this.raycastEnabled = !event.value;
-            if (event.value) this.raycastEnabledLastFrame = false;
+            this.updateRaycast = !event.value;
+            if (event.value) this.updateRaycastLastFrame = false;
         });
     }
 
     protected canUpdateRaycaster(): boolean {
-        if (!this.raycastEnabled) return false;
-        if (!this.raycastEnabledLastFrame) {
-            this.raycastEnabledLastFrame = true;
+        if (!this.updateRaycast) return false;
+        if (!this.updateRaycastLastFrame) {
+            this.updateRaycastLastFrame = true;
             return false;
         }
         return true;

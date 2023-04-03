@@ -19,14 +19,21 @@ import { ThreedUtils } from "../../threed-utils";
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { IThreedListener } from "./ithreed-listener";
 import { ThreedBaseComponent } from "./threed-base-component";
+import { EventEmitter } from '@angular/core';
 import * as THREE from 'three';
+import { IThreedObjectSelector } from "./ithreed-object-selector";
 
-export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseComponent implements IThreedListener {
+export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 
     private raycastUpdate: 'click' | 'hover';
     private resolveRaycastObject: 'single' | 'root';
     private raycaster?: THREE.Raycaster;
+
     protected selectedObject: any;
+
+    public raycastEnabled: boolean = true;
+    public onObjectSelected: EventEmitter<any> = new EventEmitter();
+    public onObjectDeselected: EventEmitter<any> = new EventEmitter();
 
     constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'root') {
         super();
@@ -53,7 +60,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     }
 
     private updateRaycaster() {
-        if (!this.initialized || !this.canUpdateRaycaster()) return;
+        if (!this.initialized || !this.canUpdateRaycaster() || !this.raycastEnabled) return;
 
         this.raycaster.setFromCamera(this.getRaycasterOriginCoords(), this.sceneManager.camera);
         const intersection = this.raycaster.intersectObjects(this.getIntersectionObjects()).filter(o => this.getIntersectedObjectFilter(o));
@@ -78,12 +85,14 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
             this.deselectObject();
             this.selectedObject = object;
             this.onSelectObject(this.selectedObject);
+            this.onObjectSelected.emit(this.selectedObject);
         }
     }
 
     private deselectObject() {
         if (this.selectedObject) {
             this.onDeselectObject(this.selectedObject);
+            this.onObjectDeselected.emit(this.selectObject);
         }
         this.selectedObject = null;
     }
@@ -111,5 +120,9 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
 
     protected abstract onSelectObject(object: any): void;
     protected abstract onDeselectObject(object: any): void;
+
+    public getSelectedObject(): THREE.Object3D {
+        return this.selectedObject;
+    }
 
 }

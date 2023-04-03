@@ -15,6 +15,7 @@
 ///
 
 import { IThreedListener } from "./ithreed-listener";
+import { IThreedObjectSelector } from "./ithreed-object-selector";
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import { IThreedUpdatable } from "./ithreed-updatable";
 
@@ -33,6 +34,10 @@ export class IThreedTester {
 
     public static isIThreedOrbitController = function (obj: any): obj is IThreedOrbitController {
         return 'getOrbitController' in obj && typeof obj['getOrbitController'] === 'function';
+    }
+
+    public static isIThreedObjectSelector = function (obj: any): obj is IThreedObjectSelector {
+        return 'getSelectedObject' in obj && typeof obj['getSelectedObject'] === 'function';
     }
 
 }

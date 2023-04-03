@@ -17,32 +17,37 @@
 -->
 
 <div class="rendererContainer" #rendererContainer>
-    <div class="position-absolute w-100">
+    <div class="position-absolute w-100" style="bottom:0!important; color:white">
         <div fxLayout="row">
+            <div fxFlex="66" fxLayoutAlign="center end" fxFlexOffset="17">
 
-            <div fxFlex fxLayoutAlign="end center">
-
-                <div fxLayout="column" fxLayoutAlign="space-around center">
-                    <button mat-icon-button (click)="toggleExplodedView()" matTooltip="Exploded view" [disabled]="animating">
-                        <mat-icon>view_module</mat-icon>
-                    </button>
-
-                    <mat-slider *ngIf="explodedView" tickInterval="1" step="0.1" min="0" max="10" aria-label="units" matTooltip="Explode factor"
-                        (input)="explodeFactorChange($event)"></mat-slider>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="position-absolute w-100" style="bottom:0!important">
-        <div fxLayout="row">
-            <div fxFlex="66" fxLayoutAlign="center center" fxFlexOffset="17">
-
-                <button mat-icon-button (click)="focusOnObject()">
+                <button mat-icon-button *ngIf="!explodedView" (click)="focusOnObject()" matTooltip="Focus on object">
                     <mat-icon>center_focus_strong</mat-icon>
                 </button>
-            
+
+                <div *ngIf="orbitType=='complex'">
+                    <button mat-icon-button *ngIf="!explodedView" (click)="clickMode('selection')"
+                        matTooltip="Select object" [ngClass]="activeMode == 'selection' ? 'active-mode' : ''">
+                        <mat-icon>touch_app</mat-icon>
+                    </button>
+
+                    <button mat-icon-button *ngIf="!explodedView" (click)="clickMode('pan')"
+                        matTooltip="Move, rotate and zoom" [ngClass]="activeMode == 'pan' ? 'active-mode' : ''">
+                        <mat-icon>pan_tool</mat-icon>
+                    </button>
+                </div>
+
+                <div fxLayout="column" fxLayoutAlign="space-around center">
+                    <div class="slider-tooltip" *ngIf="explodedView">
+                        <mat-slider tickInterval="1" step="0.1" min="0" max="10" aria-label="units"
+                            matTooltip="Explode factor" (input)="explodeFactorChange($event)"></mat-slider>
+                    </div>
+
+                    <button mat-icon-button (click)="toggleExplodedView($event)" matTooltip="Exploded view"
+                        [disabled]="animating">
+                        <mat-icon>view_module</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

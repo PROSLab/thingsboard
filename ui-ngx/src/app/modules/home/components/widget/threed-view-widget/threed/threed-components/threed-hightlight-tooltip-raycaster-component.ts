@@ -14,12 +14,10 @@
 /// limitations under the License.
 ///
 
-import { ThreedUtils } from "../../threed-utils";
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
-import { ThreedHightlightRaycasterComponent } from "./threed-hightlight-raycaster-component";
 import { OBJECT_ID_TAG, ROOT_TAG } from "../../threed-constants";
-import { id } from "date-fns/locale";
+import { ThreedUtils } from "../../threed-utils";
+import { ThreedHightlightRaycasterComponent } from "./threed-hightlight-raycaster-component";
 
 export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightRaycasterComponent {
 
@@ -40,9 +38,6 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
     }
 
     private enableTooltip(object: THREE.Group) {
-        console.log(this.sceneManager.cssManager.cssObjects.values());
-        console.log(object);
-
         const root = ThreedUtils.findParentByChild(object, ROOT_TAG, true);
         const customId = root.userData[OBJECT_ID_TAG];
 

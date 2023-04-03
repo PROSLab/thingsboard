@@ -25,8 +25,9 @@ import { ThreedUtils } from '@home/components/widget/threed-view-widget/threed-u
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import { IThreedTester } from "./ithreed-tester";
 import { IThreedListener } from "./ithreed-listener";
+import { IThreedObjectSelector } from "./ithreed-object-selector";
 
-export class ThreedTransformControllerComponent extends ThreedBaseComponent implements IThreedListener {
+export class ThreedTransformControllerComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 
     private transformControl?: TransformControls;
     private orbitController?: IThreedOrbitController;

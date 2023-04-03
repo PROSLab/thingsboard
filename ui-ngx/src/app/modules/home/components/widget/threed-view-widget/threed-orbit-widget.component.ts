@@ -18,7 +18,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit,
 import { MatSliderChange } from '@angular/material/slider';
 import { AppState } from '@core/core.state';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
 import {
   ThreedComplexOrbitWidgetSettings,
   ThreedDeviceGroupSettings,
@@ -33,6 +33,10 @@ import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
+import { ThreedAbstractRaycasterComponent } from './threed/threed-components/threed-abstract-raycaster-component';
+import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
+import { IThreedTester } from './threed/threed-components/ithreed-tester';
+import { ThreedUtils } from './threed-utils';
 
 
 @Component({
@@ -51,9 +55,13 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   private orbitScene: ThreedGenericSceneManager;
 
+  public activeMode = 'selection';
   public explodedView = false;
   public animating = false;
   private lastExplodeFactorValue = 0;
+  private currentExplodedObjectId?: string;
+
+  public orbitType: 'simple' | 'complex' = 'simple';
 
   private readonly DEFAULT_MODEL_ID = "DefaultModelId"
 
@@ -71,9 +79,11 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     this.settings = this.ctx.settings;
 
     if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
+      this.orbitType = 'simple';
       this.orbitScene = ThreedScenes.createSimpleOrbitScene();
       this.loadSingleModel(this.settings);
     } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
+      this.orbitType = 'complex';
       this.orbitScene = ThreedScenes.createComplexOrbitScene();
       this.loadEnvironment(this.settings);
       this.loadDevices(this.settings);
@@ -138,8 +148,16 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   }
 
-  public toggleExplodedView() {
+  public toggleExplodedView(event: any) {
+    event.preventDefault();
+
     this.explodedView = !this.explodedView;
+
+    const raycastComponent = this.orbitScene.getComponent(ThreedHightlightRaycasterComponent);
+    if (raycastComponent) {
+      raycastComponent.raycastEnabled = !this.explodedView && this.activeMode == 'selection';
+    }
+
     if (!this.explodedView && this.lastExplodeFactorValue > 0) {
       this.animating = true;
       const duration = 300; // Duration of animation in milliseconds
@@ -148,11 +166,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       new TWEEN.Tween({ value: fromValue })
         .to({ value: toValue }, duration)
         .onUpdate((update: { value: number }) => {
-          this.orbitScene.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
+          this.orbitScene.modelManager.explodeObjectByDistance(this.currentExplodedObjectId || this.DEFAULT_MODEL_ID, update.value);
         })
         .onComplete(() => {
           this.lastExplodeFactorValue = 0;
           this.animating = false;
+          this.currentExplodedObjectId = undefined;
           this.cd.detectChanges();
         })
         .start();
@@ -161,11 +180,32 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   public explodeFactorChange(e: MatSliderChange) {
     this.lastExplodeFactorValue = e.value;
-    this.orbitScene.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
+
+    const selectorComponents = this.orbitScene.findComponentsByTester(IThreedTester.isIThreedObjectSelector);
+    let selectedObject: THREE.Object3D | undefined;
+    for (const c of selectorComponents) {
+      selectedObject = c.getSelectedObject();
+      if (selectedObject) break;
+    }
+
+    let objectId = this.DEFAULT_MODEL_ID;
+    if (selectedObject) {
+      const root = ThreedUtils.findParentByChild(selectedObject, ROOT_TAG, true);
+      objectId = root?.userData[OBJECT_ID_TAG] || objectId;
+    }
+
+    this.currentExplodedObjectId = objectId;
+    this.orbitScene.modelManager.explodeObjectByDistance(objectId, e.value);
   }
 
   public focusOnObject() {
     this.orbitScene.getComponent(ThreedOrbitControllerComponent).focusOnObject(undefined, 500);
+  }
+
+  public clickMode(mode: 'selection' | 'pan') {
+    this.activeMode = mode;
+    const raycastComponent = this.orbitScene.getComponent(ThreedHightlightRaycasterComponent);
+    if (raycastComponent) raycastComponent.raycastEnabled = mode == 'selection';
   }
 
   public onResize(width: number, height: number): void {
