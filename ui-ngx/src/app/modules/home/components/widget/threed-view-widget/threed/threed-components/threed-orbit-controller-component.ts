@@ -20,6 +20,7 @@ import { ThreedBaseComponent } from "./threed-base-component";
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
+import { ThreedTransformControllerComponent } from "./threed-transform-controller-component";
 
 
 export class ThreedOrbitControllerComponent extends ThreedBaseComponent implements IThreedOrbitController {
@@ -46,7 +47,9 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent implemen
         if (this.focusingOnObject) return;
 
         //this.raycastEnabledLastFrame = false;
-        //object = object || this.transformControl?.object;
+        const transformComponent = this.sceneManager.getComponent(ThreedTransformControllerComponent);
+        object = object || transformComponent?.getSelectedObject();
+
         if (millis > 0) {
             this.focusingOnObject = true;
             const duration = 300; // Duration of animation in milliseconds

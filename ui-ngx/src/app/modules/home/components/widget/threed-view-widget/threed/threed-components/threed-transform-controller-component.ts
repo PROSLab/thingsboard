@@ -173,4 +173,8 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     public changeTransformControllerMode(mode: 'translate' | 'rotate' | 'scale') {
         this.transformControl?.setMode(mode);
     }
+
+    public getSelectedObject(): THREE.Object3D | undefined {
+        return this.transformControl?.object;
+    }
 }
