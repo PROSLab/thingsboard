@@ -29,6 +29,9 @@ import {
 import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
 import { ThreedNavigateScene } from '@home/components/widget/threed-view-widget/threed-nagivate-scene';
 import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
+import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
+import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 
 
 /*
@@ -61,7 +64,8 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
 
   public pointerLocked: boolean = false;
 
-  private threedNavigateScene: ThreedNavigateScene;
+  //private threedNavigateScene: ThreedNavigateScene;
+  private scene: ThreedGenericSceneManager;
 
   constructor(
     protected store: Store<AppState>,
@@ -70,7 +74,8 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   ) {
     super(store);
 
-    this.threedNavigateScene = new ThreedNavigateScene();
+    //this.threedNavigateScene = new ThreedNavigateScene();
+    this.scene = ThreedScenes.createNavigationScene();
   }
 
   ngOnInit(): void {
@@ -83,11 +88,17 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
       return;
     }
 
+    this.scene.setValues(this.settings);
+    this.scene.getComponent(ThreedFirstPersonControllerComponent).onPointerLockedChanged.subscribe(v => {
+      this.pointerLocked = v;
+      this.cd.detectChanges();
+    });
+    /*
     this.threedNavigateScene.updateValue(this.settings);
     this.threedNavigateScene.onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
-    });
+    });*/
 
     this.loadModels();
   }
@@ -102,8 +113,6 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
       entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
       aliasController: this.ctx.aliasController
     }
-
-    console.log(config);
 
     this.loadModel(config, ENVIRONMENT_ID, false);
   }
@@ -126,16 +135,20 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.threedNavigateScene.addModel(res.model, { id: id ? id : res.entityId }, hasTooltip);
+      // TODO: add tooltip
+      this.scene.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
+      //this.threedNavigateScene.addModel(res.model, { id: id ? id : res.entityId }, hasTooltip);
     });
   }
 
   ngAfterViewInit() {
-    this.threedNavigateScene.attachToElement(this.rendererContainer);
+    this.scene.attachToElement(this.rendererContainer);
+    //this.threedNavigateScene.attachToElement(this.rendererContainer);
   }
 
   lockCursor() {
-    this.threedNavigateScene.lockControls();
+    this.scene.getComponent(ThreedFirstPersonControllerComponent).lockControls();
+    //this.threedNavigateScene.lockControls();
   }
 
   public onDataUpdated() {
@@ -163,7 +176,8 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
             const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
             const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
 
-            this.threedNavigateScene.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
+            // TODO:
+            //this.threedNavigateScene.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
           }
         }
       });
@@ -183,23 +197,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }*/
 
   public onResize(width: number, height: number): void {
-    this.threedNavigateScene?.resize(width, height);
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  keyUpEvent(event: KeyboardEvent) {
-    this.threedNavigateScene?.onKeyUp(event);
-  }
-  @HostListener('window:keydown', ['$event'])
-  keyDownEvent(event: KeyboardEvent) {
-    this.threedNavigateScene?.onKeyDown(event);
-  }
-  @HostListener('window:mousemove', ['$event'])
-  public mousemove(event: MouseEvent): void {
-    this.threedNavigateScene?.onMouseMove(event);
-  }
-  @HostListener('window:click', ['$event'])
-  public mouseclick(event: MouseEvent): void {
-    this.threedNavigateScene?.onMouseClick(event);
+    this.scene.resize(width, height);
+    //this.threedNavigateScene?.resize(width, height);
   }
 }

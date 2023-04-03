@@ -19,7 +19,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ThreedBaseComponent } from "./threed-base-component";
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
 
-
 export class ThreedOrbitControllerComponent extends ThreedBaseComponent implements IThreedOrbitController {
 
     private orbit?: OrbitControls;

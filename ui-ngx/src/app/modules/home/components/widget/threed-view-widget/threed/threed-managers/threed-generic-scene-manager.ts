@@ -30,6 +30,10 @@ import { IThreedTester } from "../threed-components/ithreed-tester";
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 
+    private static activeSceneManagers: Map<number, boolean> = new Map();
+    private static lastSceneId = 1;
+
+    private sceneId: number;
     private rendererContainer: ElementRef;
     private threedRenderers: IThreedRenderer[] = [];
     private components: IThreedComponent[] = [];
@@ -47,6 +51,9 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
+
+        this.sceneId = ThreedGenericSceneManager.lastSceneId++;
+        ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, false);
     }
 
     public initialize() {
@@ -90,7 +97,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     public isActive(): boolean {
-        return true;
+        return ThreedGenericSceneManager.activeSceneManagers.get(this.sceneId) == true;
     }
 
     public getComponent<T extends IThreedComponent>(type: new () => T): T | undefined {
@@ -166,9 +173,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
      *                           EVENTS
      *========================================================================**/
     private initializeEventListeners() {
-        const rendererElement = this.getRenderer().domElement;
-        rendererElement.addEventListener('mousemove', (event: MouseEvent) => this.mouseMove(event));
-        rendererElement.addEventListener('click', (event: MouseEvent) => this.mouseClick(event));
+        window.addEventListener('mousemove', (event: MouseEvent) => this.mouseMove(event));
+        window.addEventListener('click', (event: MouseEvent) => this.mouseClick(event));
         window.addEventListener('keydown', (event: KeyboardEvent) => this.keyDown(event));
         window.addEventListener('keyup', (event: KeyboardEvent) => this.keyUp(event));
     }
@@ -176,26 +182,34 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private mouseMove(event: MouseEvent) {
         this.calculateMousePosition(event);
 
+        if (!this.isActive()) return;
+
         const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
         listeners.forEach(c => c.onMouseMove(event));
     }
     private mouseClick(event: MouseEvent) {
         this.calculateMousePosition(event);
 
+        if (!this.isActive()) return;
+
         const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
         listeners.forEach(c => c.onMouseClick(event));
     }
     private keyDown(event: KeyboardEvent) {
+        if (!this.isActive()) return;
+
         const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
         listeners.forEach(c => c.onKeyDown(event));
     }
     private keyUp(event: KeyboardEvent) {
+        if (!this.isActive()) return;
+
         const listeners = this.findComponentsByTester(IThreedTester.isIThreedListener)
         listeners.forEach(c => c.onKeyUp(event));
     }
 
     private calculateMousePosition(event: MouseEvent) {
-        if (!this.rendererContainer || !this.isActive()) return;
+        if (!this.rendererContainer) return;
 
         const rect = this.rendererContainer.nativeElement.getBoundingClientRect();
 
@@ -203,8 +217,9 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         if (this.mouse.x < 1 && this.mouse.x > -1 && this.mouse.y < 1 && this.mouse.y > -1) {
+            ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, true);
             event.preventDefault();
-        }
+        } else ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, false);
     }
     /*============================ END OF EVENTS ============================*/
 

@@ -20,10 +20,7 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import { EventEmitter } from '@angular/core';
 import * as THREE from 'three';
 import { BoxHelper, Vector3 } from 'three';
-import { ThreedGenericOrbitScene } from '@app/modules/home/components/widget/threed-view-widget/threed-generic-orbit-scene';
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { ThreedCameraSettings, ThreedSceneSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
+import { OBJECT_ID_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
 import { ThreedUtils } from '@home/components/widget/threed-view-widget/threed-utils';
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import { IThreedTester } from "./ithreed-tester";
@@ -113,8 +110,6 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
 
     private initializeController() {
         this.transformControl = new TransformControls(this.sceneManager.camera, this.sceneManager.getRenderer().domElement);
-        // TODO: check if it works without 
-        // this.transformControl.addEventListener('change', () => this.sceneManager.render());
         this.transformControl.addEventListener('dragging-changed', (event) => {
             this.onDraggingChanged.emit(event);
             const draggingChanged = event.value;
@@ -163,8 +158,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
         if (model) {
             this.transformControl.attach(model);
             if (this.visualizeBoxHelper) this.boxHelper.setFromObject(model);
-            //this.showDebugCameraPreview = model.userData[OBJECT_ID_TAG] == CAMERA_ID;
-
+            
             this.lastPosition.copy(model.position);
             const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);
             this.lastRotation = new THREE.Vector3(

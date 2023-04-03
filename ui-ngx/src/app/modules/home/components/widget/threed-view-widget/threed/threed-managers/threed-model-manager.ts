@@ -19,7 +19,7 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
 import { ThreedUtils } from "../../threed-utils";
-import { ThreedObjectSettings, ThreedVectorSettings } from "../../threed-models";
+import { ThreedVectorSettings } from "../../threed-models";
 import { EventEmitter } from "@angular/core";
 
 export interface ModelData {

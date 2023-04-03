@@ -19,8 +19,6 @@ import * as THREE from 'three';
 import { ThreedBaseComponent } from "./threed-base-component";
 import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
 
-
-
 export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent implements IThreedPerspectiveCamera {
 
     private camera: THREE.PerspectiveCamera;

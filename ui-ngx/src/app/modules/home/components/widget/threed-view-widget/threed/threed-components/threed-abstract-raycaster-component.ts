@@ -24,12 +24,15 @@ import * as THREE from 'three';
 export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseComponent implements IThreedListener {
 
     private raycastUpdate: 'click' | 'hover';
+    private resolveRaycastObject: 'single' | 'root';
     private raycaster?: THREE.Raycaster;
     protected selectedObject: any;
 
-    constructor(raycastUpdate: 'click' | 'hover' = 'click') {
+    constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'root') {
         super();
+
         this.raycastUpdate = raycastUpdate;
+        this.resolveRaycastObject = resolveRaycastObject;
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -52,13 +55,13 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     private updateRaycaster() {
         if (!this.initialized || !this.canUpdateRaycaster()) return;
 
-        this.raycaster.setFromCamera(this.sceneManager.mouse, this.sceneManager.camera);
+        this.raycaster.setFromCamera(this.getRaycasterOriginCoords(), this.sceneManager.camera);
         const intersection = this.raycaster.intersectObjects(this.getIntersectionObjects()).filter(o => this.getIntersectedObjectFilter(o));
 
         if (intersection.length > 0) {
             const intersectedObject = intersection[0].object;
-            const root = ThreedUtils.findParentByChild(intersectedObject, ROOT_TAG, true);
-            if (root) this.selectObject(root);
+            const obj = this.resolveRaycastObject == 'root' ? ThreedUtils.findParentByChild(intersectedObject, ROOT_TAG, true) : intersectedObject;
+            if (obj) this.selectObject(obj);
             else this.selectObject(undefined);
         } else {
             // if hover tooltip => nothing
@@ -85,8 +88,13 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
         this.selectedObject = null;
     }
 
+    
     protected canUpdateRaycaster(): boolean {
         return true;
+    }
+
+    protected getRaycasterOriginCoords(): {x:number, y: number} {
+        return this.sceneManager.mouse;
     }
 
     protected getIntersectionObjects(): THREE.Object3D[] {

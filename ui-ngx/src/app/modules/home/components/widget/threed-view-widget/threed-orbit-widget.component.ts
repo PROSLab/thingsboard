@@ -50,8 +50,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
-  private threedOrbitScene: ThreedOrbitScene;
-  private sceneA: ThreedGenericSceneManager;
+  private orbitScene: ThreedGenericSceneManager;
 
   public explodedView = false;
   public animating = false;
@@ -66,53 +65,24 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   ) {
     super(store);
 
-    this.threedOrbitScene = new ThreedOrbitScene(undefined, { createGrid: false, shadow: true });
   }
 
   ngOnInit(): void {
     this.ctx.$scope.threedOrbitWidget = this;
     this.settings = this.ctx.settings;
 
-
     if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
-      this.sceneA = ThreedScenes.createSimpleOrbitScene();
+      this.orbitScene = ThreedScenes.createSimpleOrbitScene();
       this.loadSingleModel(this.settings);
     } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
-      this.sceneA = ThreedScenes.createEditorScene();//ThreedSceneA.createComplexOrbitScene();
+      this.orbitScene = ThreedScenes.createComplexOrbitScene();
       this.loadEnvironment(this.settings);
       this.loadDevices(this.settings);
     } else {
       console.error("Orbit Settings not valid...", this.settings);
     }
 
-    /*
-    if (this.ctx.datasources && this.ctx.datasources[0]) {
-      const datasource = this.ctx.datasources[0];
-
-      const config: ThreedUniversalModelLoaderConfig = {
-        entityLoader: this.threedModelLoader.toEntityLoader2(this.settings as ThreedSimpleOrbitWidgetSettings, datasource.aliasName),
-        aliasController: this.ctx.aliasController
-      }
-      this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-        this.sceneA.modelManager.replaceModel(res.model, { id: this.DEFAULT_MODEL_ID, autoResize: true });
-      });
-    }*/
-
-    this.sceneA.setValues(this.settings);
-    //this.threedOrbitScene.updateValue(this.settings);
-
-    //this.loadModels();
-  }
-
-  private loadModels() {
-    if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
-      this.loadSingleModel(this.settings);
-    } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
-      this.loadEnvironment(this.settings);
-      this.loadDevices(this.settings);
-    } else {
-      console.error("Orbit Settings not valid...", this.settings);
-    }
+    this.orbitScene.setValues(this.settings);
   }
 
   private loadSingleModel(settings: ThreedSimpleOrbitWidgetSettings) {
@@ -156,14 +126,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
     this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      this.sceneA.modelManager.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true });
-      //this.threedOrbitScene.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true }/*TODO: , hasTooltip */);
+      this.orbitScene.modelManager.replaceModel(res.model, { id: id ? id : res.entityId, autoResize: true }/*TODO: , hasTooltip */);
     });
   }
 
   ngAfterViewInit() {
-    //this.threedOrbitScene.attachToElement(this.rendererContainer);
-    this.sceneA.attachToElement(this.rendererContainer);
+    this.orbitScene.attachToElement(this.rendererContainer);
   }
 
 
@@ -172,9 +140,6 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   }
 
   public toggleExplodedView() {
-
-    this.sceneA.getComponent(ThreedFirstPersonControllerComponent).lockControls();
-
     this.explodedView = !this.explodedView;
     if (!this.explodedView && this.lastExplodeFactorValue > 0) {
       this.animating = true;
@@ -184,12 +149,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       new TWEEN.Tween({ value: fromValue })
         .to({ value: toValue }, duration)
         .onUpdate((update: { value: number }) => {
-          this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
-          this.sceneA.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
+          this.orbitScene.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, update.value);
         })
         .onComplete(() => {
           this.lastExplodeFactorValue = 0;
           this.animating = false;
+          this.cd.detectChanges();
         })
         .start();
     }
@@ -197,29 +162,10 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
   public explodeFactorChange(e: MatSliderChange) {
     this.lastExplodeFactorValue = e.value;
-    this.threedOrbitScene?.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
-    this.sceneA.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
+    this.orbitScene.modelManager.explodeObjectByDistance(this.DEFAULT_MODEL_ID, e.value);
   }
 
   public onResize(width: number, height: number): void {
-    //this.threedOrbitScene?.resize(width, height);
-    this.sceneA.resize(width, height);
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  keyUpEvent(event: KeyboardEvent) {
-    this.threedOrbitScene?.onKeyUp(event);
-  }
-  @HostListener('window:keydown', ['$event'])
-  keyDownEvent(event: KeyboardEvent) {
-    this.threedOrbitScene?.onKeyDown(event);
-  }
-  @HostListener('window:mousemove', ['$event'])
-  public mousemove(event: MouseEvent): void {
-    this.threedOrbitScene?.onMouseMove(event);
-  }
-  @HostListener('window:click', ['$event'])
-  public mouseclick(event: MouseEvent): void {
-    this.threedOrbitScene?.onMouseClick(event);
+    this.orbitScene.resize(width, height);
   }
 }

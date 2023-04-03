@@ -27,6 +27,7 @@ import { ThreedTransformControllerComponent } from "../threed-components/threed-
 import { ThreedTransformRaycasterComponent } from "../threed-components/threed-transform-raycaster-component";
 import { ThreedCameraPreviewComponent } from "../threed-components/threed-camera-preview-component";
 import { CAMERA_ID, OBJECT_ID_TAG } from "../../threed-constants";
+import * as THREE from 'three';
 
 export class ThreedScenes {
 
@@ -48,7 +49,7 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedOrbitControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent())
-            .add(new ThreedHightlightRaycasterComponent('click'));
+            .add(new ThreedHightlightRaycasterComponent('click', 'root'));
 
         return builder.build();
     }
@@ -62,13 +63,13 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
-            .add(new ThreedHightlightRaycasterComponent('hover'));
+            .add(new ThreedHightlightRaycasterComponent('hover', 'single', new THREE.Vector2()));
 
         return builder.build();
     }
 
-    //* INFO: Editor scene 
-    public static createEditorScene(): ThreedGenericSceneManager {
+    //* INFO: Editor scene for FPS
+    public static createEditorSceneWithCameraDebug(): ThreedGenericSceneManager {
         const transformControllercomponent = new ThreedTransformControllerComponent(true);
         const cameraPreviewComponent = new ThreedCameraPreviewComponent();
         const builder = new ThreedSceneBuilder({ shadow: false })
@@ -78,12 +79,26 @@ export class ThreedScenes {
             .add(transformControllercomponent)
             .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
             .add(cameraPreviewComponent)
-            .add(new ThreedUpdateSceneSettingsComponent(cameraPreviewComponent))
-            .add(new ThreedHightlightRaycasterComponent('hover'));
+            .add(new ThreedUpdateSceneSettingsComponent(cameraPreviewComponent));
 
         transformControllercomponent.onChangeAttachTransformController.subscribe(model => {
             cameraPreviewComponent.enabled = model ? model.userData[OBJECT_ID_TAG] == CAMERA_ID : false;
         })
+
+        return builder.build();
+    }
+
+
+    //* INFO: Editor scene for Complex Orbit
+    public static createEditorSceneWithoutCameraDebug(): ThreedGenericSceneManager {
+        const transformControllercomponent = new ThreedTransformControllerComponent(true);
+        const builder = new ThreedSceneBuilder({ shadow: false })
+            .add(new ThreedPerspectiveCameraComponent())
+            .add(new ThreedDefaultAmbientComponent(true))
+            .add(new ThreedOrbitControllerComponent())
+            .add(transformControllercomponent)
+            .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
+            .add(new ThreedUpdateSceneSettingsComponent());
 
         return builder.build();
     }

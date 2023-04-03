@@ -165,5 +165,6 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
 
     public lockControls(): void {
         this.controls?.lock();
+        this.sceneManager.mouse.set(0, 0);
     }
 }

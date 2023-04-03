@@ -26,9 +26,12 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
         alpha: number;
     };
     private hoveringMaterial: THREE.MeshStandardMaterial;
+    private raycastOrigin?: THREE.Vector2;
 
-    constructor(raycastUpdate: 'click' | 'hover' = 'click') {
-        super(raycastUpdate);
+    constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'single', raycastOrigin?: THREE.Vector2) {
+        super(raycastUpdate, resolveRaycastObject);
+
+        this.raycastOrigin = raycastOrigin;
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -53,11 +56,18 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
 
     }
 
+    protected getRaycasterOriginCoords(): { x: number; y: number; } {
+        return this.raycastOrigin || super.getRaycasterOriginCoords();
+    }
+
     protected onSelectObject(object: any): void {
+        console.log("on select");
         this.toggleHightlightGLTF(object, true);
     }
 
     protected onDeselectObject(object: any): void {
+        console.log("on deselect");
+
         this.toggleHightlightGLTF(object, false);
     }
 
