@@ -19,29 +19,24 @@
     <fieldset class="fields-group">
         <legend class="group-title">Devices settings</legend>
 
-        <div fxLayout="column">
-            <fieldset class="fields-group"
-                *ngFor="let deviceGroupControl of deviceGroupsFormArray().controls; trackBy: trackByDeviceGroupControl; let $index = index; last as isLast;">
-                <legend class="group-title">Devices Group</legend>
+        <div fxLayout="column" 
+            [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}"
+            *ngFor="let deviceGroupControl of deviceGroupsFormArray().controls; trackBy: trackByDeviceGroupControl; let $index = index; last as isLast;">
 
-                <div fxLayout="column" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
+            <tb-threed-device-group-settings 
+                [sceneEditor]="sceneEditor" 
+                [aliasController]="aliasController"
+                [formControl]="deviceGroupControl" 
+                (removeDeviceGroup)="removeDeviceGroup($index)"
+                label="Devices group {{$index+1}}">
+            </tb-threed-device-group-settings>
 
-                    <tb-threed-device-group-settings
-                        [sceneEditor]="sceneEditor"
-                        [aliasController]="aliasController"
-                        [formControl]="deviceGroupControl"
-                        (removeDeviceGroup)="removeDeviceGroup($index)">
-                    </tb-threed-device-group-settings>
+        </div>
 
-                </div>
-            </fieldset>
-
-
-            <div style="padding-top: 16px;">
-                <button mat-raised-button color="primary" type="button" (click)="addDeviceGroup()">
-                    <span>Add Devices Group</span>
-                </button>
-            </div>
+        <div style="padding-top: 16px;">
+            <button mat-raised-button color="primary" type="button" (click)="addDeviceGroup()">
+                <span>Add Devices Group</span>
+            </button>
         </div>
     </fieldset>
 </section>

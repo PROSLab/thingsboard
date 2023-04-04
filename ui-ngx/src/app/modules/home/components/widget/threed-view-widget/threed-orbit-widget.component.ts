@@ -24,7 +24,7 @@ import {
   mergeFormattedData,
   processDataPattern
 } from '@core/utils';
-import { ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
+import { ACTIONS, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedComplexOrbitWidgetSettings,
   ThreedDeviceGroupSettings,
@@ -101,7 +101,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       console.error("Orbit Settings not valid...", this.settings);
     }
 
-    this.tooltipAction = this.getDescriptors('tooltipAction');
+    this.tooltipAction = this.getDescriptors(ACTIONS.tooltip);
     this.orbitScene.setValues(this.settings);
   }
 

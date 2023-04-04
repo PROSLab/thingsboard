@@ -25,12 +25,8 @@
         <div class="image-container" *ngIf="showPreview" [ngClass]="{'image-center': disabled}">
           <div class="image-content-container" [ngClass]="{'no-padding': disabled}">
             <div class="tb-image-preview-container" style="border:0px!important;">
-              <div *ngIf="!safeImageUrl; else elseBlock">{{ (disabled ? 'dashboard.empty-image' : 'dashboard.no-image') | translate }}</div>
+              <div *ngIf="!safeImageUrl; else elseBlock">{{ (disabled ? 'No model' : 'No model selected') }}</div>
               <ng-template #elseBlock>
-                <!--
-                  [attr.src]="safeImageUrl"
-                  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                -->
                 <model-viewer class="tb-image-preview" style="width:100%;height:100%" alt="3D Model" 
                 [attr.src]="safeImageUrl" shadow-intensity="1" camera-controls touch-action="pan-y"></model-viewer>
               </ng-template>
@@ -52,7 +48,7 @@
              [flow]="flow.flowJs">
           <div class="upload-label">
             <mat-icon>cloud_upload</mat-icon>
-            <span translate>image-input.drop-image-or</span>
+            <span>Drag and drop a model or</span>
             <button type="button" mat-button color="primary" class="browse-file">
               <label for="{{inputId}}">{{'file-input.browse-file' | translate}}</label>
             </button>

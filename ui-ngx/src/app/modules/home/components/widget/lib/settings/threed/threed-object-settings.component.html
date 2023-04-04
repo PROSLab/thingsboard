@@ -15,19 +15,30 @@
     limitations under the License.
 
 -->
-
-<section class="tb-widget-settings" [formGroup]="threedObjectSettingsFormGroup">
-    <button *ngIf="!disabled && deletable" mat-icon-button style="min-width: 40px;" type="button" (click)="removeObject.emit()"
-        matTooltip="{{ 'action.remove' | translate }}" matTooltipPosition="above">
-        <mat-icon>delete</mat-icon>
-    </button>
-
-    <tb-threed-model-input #modelInput label="3D model" formControlName="modelUrl">
-    </tb-threed-model-input>
-
-    <tb-threed-vector-settings label="Position"
-        formControlName="threedPositionVectorSettings"></tb-threed-vector-settings>
-    <tb-threed-vector-settings label="Rotation"
-        formControlName="threedRotationVectorSettings"></tb-threed-vector-settings>
-    <tb-threed-vector-settings label="Scale" formControlName="threedScaleVectorSettings"></tb-threed-vector-settings>
-</section>
+<mat-expansion-panel class="gauge-highlight" fxFlex [formGroup]="threedObjectSettingsFormGroup" [(expanded)]="expanded" (opened)="onOpen()">
+    <mat-expansion-panel-header>
+        <div fxFlex fxLayout="row" fxLayoutAlign="start center">
+            <mat-panel-title>
+                <div fxLayout="row" fxFlex fxLayoutAlign="start center">
+                    <div>{{label}}</div>
+                </div>
+            </mat-panel-title>
+            <span fxFlex></span>
+            <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;" type="button"
+                (click)="removeObject.emit()" matTooltip="{{ 'action.remove' | translate }}"
+                matTooltipPosition="above">
+                <mat-icon>delete</mat-icon>
+            </button>
+        </div>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+        <tb-threed-model-input #modelInput label="3D model" formControlName="modelUrl">
+        </tb-threed-model-input>
+    
+        <tb-threed-vector-settings label="Position"
+            formControlName="threedPositionVectorSettings"></tb-threed-vector-settings>
+        <tb-threed-vector-settings label="Rotation"
+            formControlName="threedRotationVectorSettings"></tb-threed-vector-settings>
+        <tb-threed-vector-settings label="Scale" formControlName="threedScaleVectorSettings"></tb-threed-vector-settings>
+    </ng-template>
+</mat-expansion-panel>

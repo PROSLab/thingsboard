@@ -42,7 +42,7 @@ import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './ali
 @Component({
   selector: 'tb-threed-device-group-settings',
   templateUrl: './threed-device-group-settings.component.html',
-  styleUrls: ['./../widget-settings.scss'],
+  styleUrls: ['./threed-device-group-settings.component.scss', './../widget-settings.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -67,11 +67,15 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   @Input()
   sceneEditor: ThreedGenericSceneManager;
 
+  @Input()
+  label: string = "Devices Group";
+
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;
 
   @Output()
   removeDeviceGroup = new EventEmitter();
+
 
   private modelValue: ThreedDeviceGroupSettings;
 
@@ -79,9 +83,11 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
   public threedDeviceGroupFormGroup: FormGroup;
 
+  public expanded = false;
   public entityAttribute?: string;
   public entityAlias?: string;
   private lastEntityKeySettings?: ThreedEntityKeySettings;
+  public deletedDevices: EntityInfo[] = [];
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -136,7 +142,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     return objectControl;
   }
 
-  private addObjectIfNotExists(entity: EntityInfo) {
+  public addObjectIfNotExists(entity: EntityInfo) {
     const objectsArray = this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray;
 
     const objectValues: ThreedObjectSettings[] = objectsArray.value;
@@ -154,10 +160,21 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
     (objectControl as any).new = true;
     objectsArray.push(objectControl);
     this.threedDeviceGroupFormGroup.updateValueAndValidity();
+
+    for (let i = 0; i < this.deletedDevices.length; i++) {
+      const element = this.deletedDevices[i];
+      if(element.id == entity.id){
+        this.deletedDevices.splice(i, 1);
+        break;
+      }
+    }
   }
 
   public removeObject(index: number) {
-    (this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray).removeAt(index);
+    const devicesFormArray = this.threedDeviceGroupFormGroup.get('threedObjectSettings') as FormArray;
+    const objectControl = devicesFormArray.get([index]);
+    this.deletedDevices.push(objectControl.value.entity);
+    devicesFormArray.removeAt(index);
   }
 
   registerOnChange(fn: any): void {

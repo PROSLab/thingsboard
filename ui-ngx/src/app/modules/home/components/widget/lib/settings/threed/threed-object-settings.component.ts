@@ -38,6 +38,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
 import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
+import { ContactsOutlined } from '@material-ui/icons';
 
 @Component({
   selector: 'tb-threed-object-settings',
@@ -65,6 +66,9 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   disabled: boolean;
 
   @Input()
+  label: string = "Device"
+
+  @Input()
   deletable: boolean = true;
 
   @Input()
@@ -90,10 +94,10 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   private propagateChange = null;
 
   public threedObjectSettingsFormGroup: FormGroup;
-
+  public expanded = false;
   showTooltipActions = Object.values(ShowTooltipAction);
-
   showTooltipActionTranslations = showTooltipActionTranslationMap;
+
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -167,6 +171,10 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
     this.threedObjectSettingsFormGroup.patchValue(
       value, { emitEvent: false }
     );
+  }
+
+  onOpen() {
+    this.entityAttributeChanged(false);
   }
 
   public validate(c: FormControl) {

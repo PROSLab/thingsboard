@@ -215,6 +215,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
     // must be called ONLY when the model effectively changed (not when properties like pos, rot, scale, attr...changes)
     if ("threedDeviceGroupSettings" in newSettings) {
+      let deletedObjects = Array.from(this.lastEntityLoaders.keys()).filter(id => id != ENVIRONMENT_ID);
+
       newSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
         const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
         loaders?.forEach(entityLoader => {
@@ -229,8 +231,13 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
             this.lastEntityLoaders.set(id, entityLoader);
             this.loadModel(config);
           }
+
+          const index = deletedObjects.indexOf(id);
+          if (index >= 0) deletedObjects.splice(index, 1);
         })
       });
+
+      deletedObjects.forEach(id => this.sceneEditor.modelManager.removeModel(id));
     } else {
       const entityLoader = this.threedModelLoader.toEntityLoader(newSettings);
       const config: ThreedUniversalModelLoaderConfig = {

@@ -22,10 +22,10 @@
 
         <div class="tb-container"  style="color:white">
             <div class="rendererContainer" #rendererContainer>
-                <div class="position-absolute w-100">
+                <div class="position-absolute w-100 ontop">
                     <div fxLayout="row">
 
-                        <div fxFlex fxLayoutAlign="end center">
+                        <div fxFlex fxLayoutAlign="end center" (click)="$event.stopPropagation()">
                             <button mat-icon-button (click)="enterFullscreen()" *ngIf="!fullscreen">
                                 <mat-icon>fullscreen</mat-icon>
                             </button>
@@ -36,9 +36,9 @@
                     </div>
                 </div>
 
-                <div class="position-absolute w-100" style="bottom:0!important">
+                <div class="position-absolute w-100 ontop" style="bottom:0!important">
                     <div fxLayout="row" *ngIf="fullscreen">
-                        <div fxFlex="66" fxLayoutAlign="center center" fxFlexOffset="17">
+                        <div fxFlex="66" fxLayoutAlign="center center" fxFlexOffset="17" (click)="$event.stopPropagation()">
                             <button mat-icon-button (click)="changeControlMode('translate')">
                                 <mat-icon>open_with</mat-icon>
                             </button>

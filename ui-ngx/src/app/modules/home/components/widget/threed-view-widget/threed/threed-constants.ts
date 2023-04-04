@@ -20,6 +20,10 @@ export const ROOT_TAG = "rootObject";
 export const CAMERA_ID = "CameraRig"
 export const ENVIRONMENT_ID = "Environment"
 
+export const ACTIONS = {
+    tooltip: 'tooltipAction'
+}
+
 export enum ThreedSceneControllerType {
     FIRST_PERSON_CONTROLLER,
     ORBIT_CONTROLLER,

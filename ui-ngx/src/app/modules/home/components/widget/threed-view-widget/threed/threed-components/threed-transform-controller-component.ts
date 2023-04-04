@@ -27,6 +27,7 @@ import { IThreedObjectSelector } from "./ithreed-object-selector";
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
 import { IThreedTester } from "./ithreed-tester";
 import { ThreedBaseComponent } from "./threed-base-component";
+import { ThreedCssRenderer } from '../threed-managers/threed-css-renderer';
 
 export class ThreedTransformControllerComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 
@@ -63,7 +64,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
         }
         this.initializeController();
         this.initializeBoxHelper();
-        this.sceneManager.modelManager.onBeforeRemoveModel.subscribe(_ => this.transformControl.detach())
+        this.sceneManager.modelManager.onBeforeRemoveModel.subscribe(_ => this.attachTransformController());
     }
 
     tick(): void {
@@ -74,9 +75,9 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
         switch (event.code) {
             case "ShiftLeft":
             case "ShiftRight": // Shift
-                this.transformControl?.setTranslationSnap(100);
-                this.transformControl?.setRotationSnap(THREE.MathUtils.degToRad(15));
-                this.transformControl?.setScaleSnap(0.25);
+                this.transformControl?.setTranslationSnap(5);
+                this.transformControl?.setRotationSnap(THREE.MathUtils.degToRad(10));
+                this.transformControl?.setScaleSnap(0.2);
                 break;
 
             case "KeyT":
@@ -111,7 +112,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     onMouseClick(event: MouseEvent): void { }
 
     private initializeController() {
-        this.transformControl = new TransformControls(this.sceneManager.camera, this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().domElement);
+        this.transformControl = new TransformControls(this.sceneManager.camera, this.sceneManager.getTRenderer(ThreedCssRenderer).getRenderer().domElement);
         this.transformControl.addEventListener('dragging-changed', (event) => {
             this.onDraggingChanged.emit(event);
             const draggingChanged = event.value;

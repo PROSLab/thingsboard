@@ -148,6 +148,13 @@ export class ThreedModelInputComponent extends PageComponent implements AfterVie
     }
   }
 
+  public refreshModelVisualization() {
+    this.safeImageUrl = null;
+    this.cd.detectChanges();
+    this.safeImageUrl = this.imageUrl;
+    this.cd.detectChanges();
+  }
+
   private updateModel() {
     this.cd.markForCheck();
     this.propagateChange(this.imageUrl);
