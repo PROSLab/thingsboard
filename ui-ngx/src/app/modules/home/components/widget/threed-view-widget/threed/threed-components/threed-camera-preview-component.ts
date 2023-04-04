@@ -14,13 +14,13 @@
 /// limitations under the License.
 ///
 
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
-import { ThreedBaseComponent } from "./threed-base-component";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from "../../threed-constants";
-import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
+import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from "../threed-constants";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
+import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
+import { ThreedBaseComponent } from "./threed-base-component";
 
 
 export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements IThreedPerspectiveCamera {

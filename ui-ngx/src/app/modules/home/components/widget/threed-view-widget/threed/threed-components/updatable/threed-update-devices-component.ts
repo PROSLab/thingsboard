@@ -14,9 +14,9 @@
 /// limitations under the License.
 ///
 
-import { ThreedBaseComponent } from "../threed-base-component";
+import { ThreedDevicesSettings } from "../../threed-models";
 import { IThreedUpdatable } from "../ithreed-updatable";
-import { ThreedDevicesSettings } from "../../../threed-models";
+import { ThreedBaseComponent } from "../threed-base-component";
 
 export class ThreedUpdateDevicesComponent extends ThreedBaseComponent implements IThreedUpdatable {
 

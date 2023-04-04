@@ -14,13 +14,13 @@
 /// limitations under the License.
 ///
 
-import { ThreedBaseComponent } from "../threed-base-component";
-import { IThreedUpdatable } from "../ithreed-updatable";
-import { ThreedComplexOrbitWidgetSettings } from "../../../threed-models";
+import { ThreedComplexOrbitWidgetSettings } from "../../threed-models";
 import { IThreedSceneManager } from "../../threed-managers/ithreed-scene-manager";
-import { ThreedUpdateSceneSettingsComponent } from "./threed-update-scene-settings-component";
-import { ThreedHightlightRaycasterComponent } from "../threed-hightlight-raycaster-component";
 import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
+import { IThreedUpdatable } from "../ithreed-updatable";
+import { ThreedBaseComponent } from "../threed-base-component";
+import { ThreedHightlightRaycasterComponent } from "../threed-hightlight-raycaster-component";
+import { ThreedUpdateSceneSettingsComponent } from "./threed-update-scene-settings-component";
 
 export class ThreedUpdateViewSettingsComponent extends ThreedBaseComponent implements IThreedUpdatable {
 

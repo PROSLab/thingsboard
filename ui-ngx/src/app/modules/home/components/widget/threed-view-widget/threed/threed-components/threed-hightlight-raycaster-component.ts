@@ -14,10 +14,10 @@
 /// limitations under the License.
 ///
 
-import { ThreedUtils } from "../../threed-utils";
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { ThreedAbstractRaycasterComponent } from "./threed-abstract-raycaster-component";
 import * as THREE from 'three';
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
+import { ThreedUtils } from "../threed-utils";
+import { ThreedAbstractRaycasterComponent } from "./threed-abstract-raycaster-component";
 
 export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterComponent {
 

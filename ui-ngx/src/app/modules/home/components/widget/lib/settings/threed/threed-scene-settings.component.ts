@@ -28,13 +28,13 @@ import {
 import { IAliasController } from '@app/core/public-api';
 import { AppState } from '@core/core.state';
 import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
-import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedDeviceGroupSettings,
   ThreedDevicesSettings,
   ThreedEnvironmentSettings,
   ThreedSceneSettings,
-} from '@home/components/widget/threed-view-widget/threed-models';
+} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';

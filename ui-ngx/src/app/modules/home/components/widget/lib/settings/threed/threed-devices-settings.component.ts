@@ -29,7 +29,7 @@ import {
 } from '@angular/forms';
 import { IAliasController } from '@app/core/public-api';
 import { AppState } from '@core/core.state';
-import { ThreedDeviceGroupSettings, ThreedDevicesSettings, defaultThreedDeviceGroupSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedDeviceGroupSettings, ThreedDevicesSettings, defaultThreedDeviceGroupSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';

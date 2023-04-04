@@ -34,7 +34,7 @@ import { catchError, map, mergeMap, publishReplay, refCount, tap } from 'rxjs/op
 import { DataKey } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EntityService } from '@core/http/entity.service';
-import { ThreedModelSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedModelSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 
 @Component({
   selector: 'tb-threed-model-settings',

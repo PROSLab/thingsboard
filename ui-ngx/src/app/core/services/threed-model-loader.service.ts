@@ -20,7 +20,7 @@ import {
   ThreedDeviceGroupSettings,
   ThreedEnvironmentSettings,
   ThreedSimpleOrbitWidgetSettings
-} from '@home/components/widget/threed-view-widget/threed-models';
+} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { AttributeService } from '@core/http/attribute.service';
 import { EntityId } from '@shared/models/id/entity-id';

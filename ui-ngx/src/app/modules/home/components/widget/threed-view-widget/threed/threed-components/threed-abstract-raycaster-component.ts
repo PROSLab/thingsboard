@@ -14,14 +14,14 @@
 /// limitations under the License.
 ///
 
-import { ROOT_TAG } from "../../threed-constants";
-import { ThreedUtils } from "../../threed-utils";
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { IThreedListener } from "./ithreed-listener";
-import { ThreedBaseComponent } from "./threed-base-component";
 import { EventEmitter } from '@angular/core';
 import * as THREE from 'three';
+import { ROOT_TAG } from "../threed-constants";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
+import { ThreedUtils } from "../threed-utils";
+import { IThreedListener } from "./ithreed-listener";
 import { IThreedObjectSelector } from "./ithreed-object-selector";
+import { ThreedBaseComponent } from "./threed-base-component";
 
 export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 

@@ -15,12 +15,11 @@
 ///
 
 import { Camera, Scene } from 'three';
-import { ThreedSceneConfig } from '../threed-scenes/threed-scene-builder';
-import { ThreedModelManager } from './threed-model-manager';
 import { IThreedComponent } from '../threed-components/ithreed-component';
-import { ThreedCssManager } from './threed-css-manager';
-import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { ThreedSceneConfig } from '../threed-scenes/threed-scene-builder';
 import { IThreedRenderer } from './ithreed-renderer';
+import { ThreedCssManager } from './threed-css-manager';
+import { ThreedModelManager } from './threed-model-manager';
 
 export interface IThreedSceneManager {
     scene: Scene;

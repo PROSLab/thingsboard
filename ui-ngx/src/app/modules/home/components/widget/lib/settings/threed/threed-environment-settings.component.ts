@@ -27,10 +27,10 @@ import {
 } from '@angular/forms';
 import { IAliasController } from '@app/core/public-api';
 import { AppState } from '@core/core.state';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedEnvironmentSettings,
-} from '@home/components/widget/threed-view-widget/threed-models';
+} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';

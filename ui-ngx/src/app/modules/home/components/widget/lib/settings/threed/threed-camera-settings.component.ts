@@ -27,10 +27,10 @@ import {
   Validators
 } from '@angular/forms';
 import { AppState } from '@core/core.state';
-import { CAMERA_ID } from '@home/components/widget/threed-view-widget/threed-constants';
+import { CAMERA_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedCameraSettings,
-} from '@home/components/widget/threed-view-widget/threed-models';
+} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';

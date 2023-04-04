@@ -32,7 +32,7 @@ import {
   ShowTooltipAction,
   showTooltipActionTranslationMap
 } from '@home/components/widget/lib/maps/map-models';
-import { ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';

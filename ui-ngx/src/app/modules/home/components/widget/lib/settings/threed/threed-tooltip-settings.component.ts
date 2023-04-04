@@ -34,7 +34,7 @@ import {
   ShowTooltipAction, 
   showTooltipActionTranslationMap
 } from '@home/components/widget/lib/maps/map-models';
-import { ThreedTooltipSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedTooltipSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 
 
 @Component({

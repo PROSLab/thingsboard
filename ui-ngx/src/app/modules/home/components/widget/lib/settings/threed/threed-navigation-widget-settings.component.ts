@@ -19,8 +19,8 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
-import { ThreedSceneControllerType } from '@home/components/widget/threed-view-widget/threed-constants';
+import { defaultThreedSceneSettings, ThreedViewWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
+import { ThreedSceneControllerType } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 
 @Component({
   selector: 'tb-threed-navigation-widget-settings',

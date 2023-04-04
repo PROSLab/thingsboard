@@ -14,13 +14,13 @@
 /// limitations under the License.
 ///
 
-import { OBJECT_ID_TAG, ROOT_TAG } from "../../threed-constants";
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { IThreedSceneManager } from "./ithreed-scene-manager";
-import * as THREE from 'three';
-import { ThreedUtils } from "../../threed-utils";
-import { ThreedVectorSettings } from "../../threed-models";
 import { EventEmitter } from "@angular/core";
+import * as THREE from 'three';
+import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
+import { OBJECT_ID_TAG, ROOT_TAG } from "../threed-constants";
+import { ThreedVectorSettings } from "../threed-models";
+import { ThreedUtils } from "../threed-utils";
+import { IThreedSceneManager } from "./ithreed-scene-manager";
 
 export interface ModelData {
     id: string;

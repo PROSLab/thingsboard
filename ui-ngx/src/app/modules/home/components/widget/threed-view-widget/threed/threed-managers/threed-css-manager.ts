@@ -15,7 +15,7 @@
 ///
 
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
-import { OBJECT_ID_TAG } from "../../threed-constants";
+import { OBJECT_ID_TAG } from "../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
 

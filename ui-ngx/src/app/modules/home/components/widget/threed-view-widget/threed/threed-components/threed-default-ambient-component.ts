@@ -14,10 +14,10 @@
 /// limitations under the License.
 ///
 
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
-import { ThreedBaseComponent } from "./threed-base-component";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
+import { ThreedBaseComponent } from "./threed-base-component";
 
 export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 

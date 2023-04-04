@@ -23,8 +23,8 @@ import {
   mergeFormattedData,
   processDataPattern
 } from '@core/utils';
-import { ENVIRONMENT_ID } from '@home/components/widget/threed-view-widget/threed-constants';
-import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
+import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';

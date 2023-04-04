@@ -14,20 +14,20 @@
 /// limitations under the License.
 ///
 
-import { IThreedRenderer } from "./ithreed-renderer";
 import { ElementRef } from "@angular/core";
-import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { IThreedSceneManager } from "./ithreed-scene-manager";
-import { ThreedWebRenderer as ThreedWebRenderer } from "./threed-web-renderer";
-import { Scene, Camera, WebGLRenderer } from "three";
-import { IThreedComponent } from "../threed-components/ithreed-component";
-import { ThreedModelManager } from "./threed-model-manager";
-import { ThreedSceneConfig } from "../threed-scenes/threed-scene-builder";
 import * as THREE from 'three';
-import { ThreedCssRenderer } from "./threed-css-renderer";
-import { ThreedCssManager } from "./threed-css-manager";
-import { IThreedTester } from "../threed-components/ithreed-tester";
+import { Camera, Scene } from "three";
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+import { IThreedComponent } from "../threed-components/ithreed-component";
+import { IThreedTester } from "../threed-components/ithreed-tester";
+import { ThreedSceneConfig } from "../threed-scenes/threed-scene-builder";
+import { IThreedRenderer } from "./ithreed-renderer";
+import { IThreedSceneManager } from "./ithreed-scene-manager";
+import { ThreedCssManager } from "./threed-css-manager";
+import { ThreedCssRenderer } from "./threed-css-renderer";
+import { ThreedModelManager } from "./threed-model-manager";
+import { ThreedWebRenderer } from "./threed-web-renderer";
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 

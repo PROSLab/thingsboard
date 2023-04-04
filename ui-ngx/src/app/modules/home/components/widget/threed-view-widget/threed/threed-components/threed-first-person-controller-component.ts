@@ -14,11 +14,11 @@
 /// limitations under the License.
 ///
 import { EventEmitter } from '@angular/core';
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { ThreedBaseComponent } from "./threed-base-component";
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import * as THREE from 'three';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { IThreedListener } from './ithreed-listener';
+import { ThreedBaseComponent } from "./threed-base-component";
 
 export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent implements IThreedListener {
 

@@ -14,10 +14,10 @@
 /// limitations under the License.
 ///
 
-import { ThreedBaseComponent } from "../threed-base-component";
+import { ENVIRONMENT_ID } from "../../threed-constants";
+import { ThreedEnvironmentSettings } from "../../threed-models";
 import { IThreedUpdatable } from "../ithreed-updatable";
-import { ThreedEnvironmentSettings } from "../../../threed-models";
-import { ENVIRONMENT_ID } from "../../../threed-constants";
+import { ThreedBaseComponent } from "../threed-base-component";
 
 
 export class ThreedUpdateEnvironmentComponent extends ThreedBaseComponent implements IThreedUpdatable {

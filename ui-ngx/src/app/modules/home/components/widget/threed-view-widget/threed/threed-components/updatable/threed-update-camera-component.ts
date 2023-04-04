@@ -14,12 +14,12 @@
 /// limitations under the License.
 ///
 
-import { ThreedBaseComponent } from "../threed-base-component";
-import { IThreedUpdatable } from "../ithreed-updatable";
-import { ThreedCameraSettings } from "../../../threed-models";
-import { CAMERA_ID } from "../../../threed-constants";
 import * as THREE from 'three';
+import { CAMERA_ID } from "../../threed-constants";
+import { ThreedCameraSettings } from "../../threed-models";
 import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
+import { IThreedUpdatable } from "../ithreed-updatable";
+import { ThreedBaseComponent } from "../threed-base-component";
 
 
 export class ThreedUpdateCameraComponent extends ThreedBaseComponent implements IThreedUpdatable {

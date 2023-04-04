@@ -24,7 +24,7 @@ import {
   mergeFormattedData,
   processDataPattern
 } from '@core/utils';
-import { ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
+import { ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedComplexOrbitWidgetSettings,
   ThreedDeviceGroupSettings,
@@ -32,12 +32,12 @@ import {
   ThreedTooltipSettings,
   isThreedComplexOrbitWidgetSettings,
   isThreedSimpleOrbitWidgetSettings
-} from '@home/components/widget/threed-view-widget/threed-models';
+} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { ThreedUtils } from './threed-utils';
+import { ThreedUtils } from './threed/threed-utils';
 import { IThreedTester } from './threed/threed-components/ithreed-tester';
 import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';

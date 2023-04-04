@@ -20,7 +20,7 @@ import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { EntityInfo } from '@app/shared/public-api';
 import { AppState } from '@core/core.state';
-import { ThreedSimpleOrbitWidgetSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedSimpleOrbitWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
 import { ThreedEntityKeySettings } from './aliases/threed-entity-key-settings.component';

@@ -14,21 +14,20 @@
 /// limitations under the License.
 ///
 
-import { ThreedSceneBuilder } from "./threed-scene-builder";
+import * as THREE from 'three';
+import { ThreedCameraPreviewComponent } from "../threed-components/threed-camera-preview-component";
 import { ThreedDefaultAmbientComponent } from "../threed-components/threed-default-ambient-component";
+import { ThreedFirstPersonControllerComponent } from "../threed-components/threed-first-person-controller-component";
+import { ThreedHightlightTooltipRaycasterComponent } from "../threed-components/threed-hightlight-tooltip-raycaster-component";
 import { ThreedOrbitControllerComponent } from "../threed-components/threed-orbit-controller-component";
 import { ThreedPerspectiveCameraComponent } from "../threed-components/threed-perspective-camera-component";
-import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
-import { ThreedUpdateViewSettingsComponent } from "../threed-components/updatable/threed-update-view-settings-component";
-import { ThreedHightlightRaycasterComponent } from "../threed-components/threed-hightlight-raycaster-component";
-import { ThreedFirstPersonControllerComponent } from "../threed-components/threed-first-person-controller-component";
-import { ThreedUpdateSceneSettingsComponent } from "../threed-components/updatable/threed-update-scene-settings-component";
 import { ThreedTransformControllerComponent } from "../threed-components/threed-transform-controller-component";
 import { ThreedTransformRaycasterComponent } from "../threed-components/threed-transform-raycaster-component";
-import { ThreedCameraPreviewComponent } from "../threed-components/threed-camera-preview-component";
-import { CAMERA_ID, OBJECT_ID_TAG } from "../../threed-constants";
-import * as THREE from 'three';
-import { ThreedHightlightTooltipRaycasterComponent } from "../threed-components/threed-hightlight-tooltip-raycaster-component";
+import { ThreedUpdateSceneSettingsComponent } from "../threed-components/updatable/threed-update-scene-settings-component";
+import { ThreedUpdateViewSettingsComponent } from "../threed-components/updatable/threed-update-view-settings-component";
+import { CAMERA_ID, OBJECT_ID_TAG } from '../threed-constants';
+import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
+import { ThreedSceneBuilder } from "./threed-scene-builder";
 
 export class ThreedScenes {
 

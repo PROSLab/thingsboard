@@ -30,7 +30,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
-import { ThreedVectorSettings } from '@home/components/widget/threed-view-widget/threed-models';
+import { ThreedVectorSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 
 @Component({
   selector: 'tb-threed-vector-settings',

@@ -14,14 +14,14 @@
 /// limitations under the License.
 ///
 
-import { ThreedBaseComponent } from "../threed-base-component";
-import { IThreedUpdatable } from "../ithreed-updatable";
-import { ThreedSceneSettings } from "../../../threed-models";
+import { ThreedSceneSettings } from "../../threed-models";
 import { IThreedSceneManager } from "../../threed-managers/ithreed-scene-manager";
-import { ThreedUpdateEnvironmentComponent } from "./threed-update-environment-component";
+import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
+import { IThreedUpdatable } from "../ithreed-updatable";
+import { ThreedBaseComponent } from "../threed-base-component";
 import { ThreedUpdateCameraComponent } from "./threed-update-camera-component";
 import { ThreedUpdateDevicesComponent } from "./threed-update-devices-component";
-import { IThreedPerspectiveCamera } from "../ithreed-perspective-camera";
+import { ThreedUpdateEnvironmentComponent } from "./threed-update-environment-component";
 
 
 export class ThreedUpdateSceneSettingsComponent extends ThreedBaseComponent implements IThreedUpdatable {
@@ -51,7 +51,7 @@ export class ThreedUpdateSceneSettingsComponent extends ThreedBaseComponent impl
 
     onUpdateValues(values: any): void {
 
-        console.log("Update values ThreedUpdateSceneSettingsComponent", values);
+        //console.log("Update values ThreedUpdateSceneSettingsComponent", values);
 
         if(!values) return;
         const settings: ThreedSceneSettings = values;

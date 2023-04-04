@@ -14,19 +14,19 @@
 /// limitations under the License.
 ///
 
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { ThreedBaseComponent } from "./threed-base-component";
-import { TransformControls } from "three/examples/jsm/controls/TransformControls";
 import { EventEmitter } from '@angular/core';
+import { ThreedUtils } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-utils';
+import { OBJECT_ID_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import * as THREE from 'three';
 import { BoxHelper, Vector3 } from 'three';
-import { OBJECT_ID_TAG } from '@home/components/widget/threed-view-widget/threed-constants';
-import { ThreedUtils } from '@home/components/widget/threed-view-widget/threed-utils';
-import { IThreedOrbitController } from "./ithreed-orbit-controller";
-import { IThreedTester } from "./ithreed-tester";
+import { TransformControls } from "three/examples/jsm/controls/TransformControls";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
+import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 import { IThreedListener } from "./ithreed-listener";
 import { IThreedObjectSelector } from "./ithreed-object-selector";
-import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
+import { IThreedOrbitController } from "./ithreed-orbit-controller";
+import { IThreedTester } from "./ithreed-tester";
+import { ThreedBaseComponent } from "./threed-base-component";
 
 export class ThreedTransformControllerComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 

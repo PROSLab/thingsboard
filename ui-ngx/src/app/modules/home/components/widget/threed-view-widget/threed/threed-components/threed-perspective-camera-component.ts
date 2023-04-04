@@ -14,10 +14,10 @@
 /// limitations under the License.
 ///
 
-import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import * as THREE from 'three';
-import { ThreedBaseComponent } from "./threed-base-component";
+import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
+import { ThreedBaseComponent } from "./threed-base-component";
 
 export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent implements IThreedPerspectiveCamera {
 
