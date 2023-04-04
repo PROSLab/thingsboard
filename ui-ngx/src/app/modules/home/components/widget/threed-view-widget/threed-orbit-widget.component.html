@@ -17,7 +17,12 @@
 -->
 
 <div class="rendererContainer" #rendererContainer>
+    <div class="position-absolute w-100 top">
+        <mat-progress-bar mode="determinate" [value]="loadingProgress" *ngIf="loadingProgress < 100"></mat-progress-bar>
+    </div>
+
     <div class="position-absolute w-100 tools-panel">
+
         <div fxLayout="row">
             <div fxFlex="66" (click)="$event.stopPropagation()" fxLayoutAlign="center end" fxFlexOffset="17">
 

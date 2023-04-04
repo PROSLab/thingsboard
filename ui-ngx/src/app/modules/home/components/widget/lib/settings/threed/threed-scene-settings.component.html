@@ -23,6 +23,8 @@
         <div class="tb-container"  style="color:white">
             <div class="rendererContainer" #rendererContainer>
                 <div class="position-absolute w-100 ontop">
+                    <mat-progress-bar mode="determinate" value="loadingProgress" *ngIf="loadingProgress < 100"></mat-progress-bar>
+
                     <div fxLayout="row">
 
                         <div fxFlex fxLayoutAlign="end center" (click)="$event.stopPropagation()">

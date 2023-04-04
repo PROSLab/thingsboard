@@ -82,6 +82,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   public sceneEditor: ThreedGenericSceneManager;
   private isVisible: boolean = false;
   fullscreen: boolean = false;
+  loadingProgress = 100;
 
   private lastEntityLoaders: Map<string, ModelUrl | EntityAliasAttribute> = new Map();
 
@@ -137,7 +138,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {
     if (!config.entityLoader) return;
 
-    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
+    this.threedModelLoader.loadModelAsGLTF(config, (c, t, p) => this.loadingProgress = p * 100).subscribe(res => {
       this.sceneEditor.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
       //this.threedSceneEditor.replaceModel(res.model, { id: id ? id : res.entityId });
     });

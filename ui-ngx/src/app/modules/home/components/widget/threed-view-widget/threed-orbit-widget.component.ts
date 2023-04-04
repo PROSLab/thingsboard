@@ -17,7 +17,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
 import { AppState } from '@core/core.state';
-import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
+import { ProgressCallback, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import {
   fillDataPattern,
   formattedDataFormDatasourceData,
@@ -70,6 +70,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   private currentExplodedObjectId?: string;
 
   public orbitType: 'simple' | 'complex' = 'simple';
+  public loadingProgress = 100;
 
   private readonly DEFAULT_MODEL_ID = "DefaultModelId"
 
@@ -169,11 +170,18 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     });
   }
 
+  private modelLoadingProgress: ProgressCallback = (c, t, p) => { 
+    this.loadingProgress = p * 100; 
+    console.log(this.loadingProgress);
+    this.cd.detectChanges();
+  }
+
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
-    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
+    this.threedModelLoader.loadModelAsGLTF(config, this.modelLoadingProgress ).subscribe(res => {
       const customId = id ? id : res.entityId;
+      console.log("loaded!")
       this.orbitScene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
       if (hasTooltip) this.orbitScene.cssManager.createLabel(customId);
     });

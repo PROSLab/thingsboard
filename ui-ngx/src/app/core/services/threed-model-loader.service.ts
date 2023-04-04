@@ -15,7 +15,6 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
   ThreedDeviceGroupSettings,
   ThreedEnvironmentSettings,
@@ -23,11 +22,12 @@ import {
 } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { AttributeService } from '@core/http/attribute.service';
+import { EntityInfo } from '@shared/models/entity.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
-import { switchMap, map, mergeMap, catchError } from 'rxjs/operators';
-import { EntityInfo } from '@shared/models/entity.models';
-import { from, Observable, of } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
+import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export interface ThreedUniversalModelLoaderConfig {
   entityLoader: ModelUrl | EntityAliasAttribute;
@@ -45,6 +45,8 @@ export interface EntityAliasAttribute {
   entityAttribute: string;
   entity?: EntityInfo;
 }
+
+export type ProgressCallback = (current: number, total: number, progress: number) => void;
 
 @Injectable({
   providedIn: 'root'
@@ -113,7 +115,7 @@ export class ThreedModelLoaderService {
   public toEntityLoaders(settings: ThreedDeviceGroupSettings): (ModelUrl | EntityAliasAttribute)[] | undefined {
     if (!settings.threedEntityAliasSettings?.entityAlias)
       return undefined;
-      //throw new Error("Entity alias not defined");
+    //throw new Error("Entity alias not defined");
 
     if (settings.useAttribute && settings.threedEntityKeySettings?.entityAttribute) {
       let enitytInfoAttributes: EntityAliasAttribute[] = [];
@@ -192,10 +194,10 @@ export class ThreedModelLoaderService {
       );
   }
 
-  public loadModelAsGLTF(config: ThreedUniversalModelLoaderConfig): Observable<{ entityId: string | undefined, model: GLTF }> {
+  public loadModelAsGLTF(config: ThreedUniversalModelLoaderConfig, progressCallback?: ProgressCallback): Observable<{ entityId: string | undefined, model: GLTF }> {
     return this.loadModelAsUrl(config).pipe(
       mergeMap(({ entityId, base64 }) => {
-        return from(fetch(base64).then(res => res.arrayBuffer()).then(buffer => {
+        return from(this.fetchData(base64, progressCallback).then(buffer => {
           return { buffer, entityId };
         }));
       }),
@@ -220,92 +222,35 @@ export class ThreedModelLoaderService {
     );
   }
 
-  /*
-  public loadModelAsUrl(config: ThreedUrlModelLoaderConfig): Observable<string> {
-    if (!config.entityAttribute || config.entityAttribute.length == 0) return of("");
+  private async fetchData(url: string, progressCallback?: ProgressCallback): Promise<any> {
+    const response = await fetch(url);
+    const totalBytes = Number(response.headers.get('Content-Length')) || 1;
+    let adjustedTotalBytes = totalBytes;
+    let loadedBytes = 0;
 
-    const entityId: EntityId = {
-      entityType: config.entity.entityType,
-      id: config.entity.id
-    };
+    const responseClone = response.clone();
+    const responseData = await response.arrayBuffer();
 
-    console.log(entityId, config);
+    if (progressCallback) {
+      const reader = responseClone.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
 
-    return this.attributeService.getEntityAttributes(entityId, AttributeScope.SERVER_SCOPE, [config.entityAttribute])
-      .pipe(
-        map(attributes => {
-          console.log(attributes);
-
-          if (!attributes || attributes.length == 0)
-            throw new Error("Invalid attribute");
-
-          return attributes[0].value;
-        })
-      )
-  }
-
-  public loadModelAsGLTF(config: ThreedModelLoaderConfig): Observable<GLTF> {
-    this.currentConfig = config;
-
-    const modelUrl = this.currentConfig.settings.modelUrl;
-    const modelEntityAlias = this.currentConfig.settings.modelEntityAlias;
-    const modelUrlAttribute = this.currentConfig.settings.modelUrlAttribute;
-    if (!modelEntityAlias || !modelUrlAttribute) {
-      return this.loadModelFromBase64(modelUrl);
-    }
-    const entityAliasId = this.currentConfig.aliasController.getEntityAliasId(modelEntityAlias);
-    if (!entityAliasId) {
-      return this.loadModelFromBase64(modelUrl);
-    }
-
-    const this_ = this;
-    this.currentConfig.aliasController.resolveSingleEntityInfo(entityAliasId).pipe(
-      switchMap((r: EntityInfo) => {
-        //console.log(r);
-        const entityId: EntityId = {
-          entityType: r.entityType,
-          id: r.id
-        };
-        return this.attributeService.getEntityAttributes(entityId, AttributeScope.SERVER_SCOPE, [modelUrlAttribute]);
-      })
-    ).subscribe(attributes => {
-      if (!attributes || attributes.length == 0) throw new Error("Invalid attribute");
-
-      const modelUrl = attributes[0].value;
-      //console.log("modelUrlAttribute: ",);
-      this_.loadModelFromUrl(modelUrl);
-    });
-  }
-
-  private loadModelFromBase64(modelBase64: string) {
-    console.log("Loading model from base64...");
-    const this_ = this;
-    fetch(modelBase64)
-      .then(res => res.arrayBuffer())
-      .then(buffer => {
-        try {
-          new GLTFLoader().parse(buffer, "/", gltf => this_.currentConfig.onLoadModel(gltf));
-        } catch (error) {
-          // TODO: change with defaultThreedModelSettings.modelUrl
-          this_.loadModelFromUrl('assets/models/gltf/classroom.glb');
+        if (done) {
+          adjustedTotalBytes = loadedBytes;
+          progressCallback(loadedBytes, adjustedTotalBytes, 1);
+          break;
         }
-      })
-      .catch(e => {
-        // TODO: change with defaultThreedModelSettings.modelUrl
-        this_.loadModelFromUrl('assets/models/gltf/classroom.glb');
-      });
-  }
 
-  private loadModelFromUrl(modelUrl: string) {
-    console.log("Loading model from url " + modelUrl + "...");
-    const this_ = this;
-    try {
-      new GLTFLoader()
-        .load(modelUrl, gltf => this_.currentConfig.onLoadModel(gltf));
-    } catch (error) {
-      // TODO: change with defaultThreedModelSettings.modelUrl
-      this_.loadModelFromUrl('assets/models/gltf/classroom.glb');
+        if (value) {
+          loadedBytes += value.length;
+          if(adjustedTotalBytes < loadedBytes) adjustedTotalBytes = loadedBytes + 1;
+          const progress = loadedBytes / adjustedTotalBytes;
+          progressCallback(loadedBytes, adjustedTotalBytes, progress);
+        }
+      }
     }
+
+    return responseData;
   }
-  */
 }
