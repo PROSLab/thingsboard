@@ -28,6 +28,7 @@ import { ThreedUpdateViewSettingsComponent } from "../threed-components/updatabl
 import { CAMERA_ID, OBJECT_ID_TAG } from '../threed-constants';
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 import { ThreedSceneBuilder } from "./threed-scene-builder";
+import { ThreedProgressBarComponent } from '../threed-components/threed-progress-bar-component';
 
 export class ThreedScenes {
 
@@ -37,7 +38,8 @@ export class ThreedScenes {
             .add(new ThreedPerspectiveCameraComponent())
             .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedOrbitControllerComponent())
-            .add(new ThreedUpdateViewSettingsComponent());
+            .add(new ThreedUpdateViewSettingsComponent())
+            .add(new ThreedProgressBarComponent());
 
         return builder.build();
     }
@@ -49,7 +51,8 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedOrbitControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent())
-            .add(new ThreedHightlightTooltipRaycasterComponent('click', 'root'));
+            .add(new ThreedHightlightTooltipRaycasterComponent('click', 'root'))
+            .add(new ThreedProgressBarComponent());
             //.add(new ThreedHightlightRaycasterComponent('click', 'root'));
 
         return builder.build();

@@ -16,35 +16,35 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
+import { ACTIONS, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
+import {
+  ThreedComplexOrbitWidgetSettings,
+  ThreedDeviceGroupSettings,
+  ThreedSimpleOrbitWidgetSettings,
+  isThreedComplexOrbitWidgetSettings,
+  isThreedSimpleOrbitWidgetSettings
+} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
+import { Datasource, WidgetActionDescriptor } from '@app/shared/public-api';
 import { AppState } from '@core/core.state';
-import { ProgressCallback, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
+import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import {
   fillDataPattern,
   formattedDataFormDatasourceData,
   mergeFormattedData,
   processDataPattern
 } from '@core/utils';
-import { ACTIONS, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
-import {
-  ThreedComplexOrbitWidgetSettings,
-  ThreedDeviceGroupSettings,
-  ThreedSimpleOrbitWidgetSettings,
-  ThreedTooltipSettings,
-  isThreedComplexOrbitWidgetSettings,
-  isThreedSimpleOrbitWidgetSettings
-} from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { ThreedUtils } from './threed/threed-utils';
+import { parseWithTranslation } from '../lib/maps/common-maps-utils';
 import { IThreedTester } from './threed/threed-components/ithreed-tester';
 import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
+import { ThreedProgressBarComponent } from './threed/threed-components/threed-progress-bar-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
-import { parseWithTranslation } from '../lib/maps/common-maps-utils';
-import { Datasource, WidgetActionDescriptor } from '@app/shared/public-api';
+import { ThreedUtils } from './threed/threed-utils';
 
 
 @Component({
@@ -104,8 +104,8 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
     this.tooltipAction = this.getDescriptors(ACTIONS.tooltip);
     this.orbitScene.setValues(this.settings);
-  }
 
+  }
 
 
 
@@ -170,18 +170,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     });
   }
 
-  private modelLoadingProgress: ProgressCallback = (c, t, p) => { 
-    this.loadingProgress = p * 100; 
-    console.log(this.loadingProgress);
-    this.cd.detectChanges();
-  }
-
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
     if (!this.threedModelLoader.isConfigValid(config)) return;
 
-    this.threedModelLoader.loadModelAsGLTF(config, this.modelLoadingProgress ).subscribe(res => {
+    const progressBarComponent = this.orbitScene.getComponent(ThreedProgressBarComponent);
+    this.threedModelLoader.loadModelAsGLTF(config, progressBarComponent).subscribe(res => {
       const customId = id ? id : res.entityId;
-      console.log("loaded!")
       this.orbitScene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
       if (hasTooltip) this.orbitScene.cssManager.createLabel(customId);
     });

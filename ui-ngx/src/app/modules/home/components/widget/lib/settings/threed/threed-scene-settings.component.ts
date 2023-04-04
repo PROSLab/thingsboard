@@ -26,8 +26,6 @@ import {
   Validator
 } from '@angular/forms';
 import { IAliasController } from '@app/core/public-api';
-import { AppState } from '@core/core.state';
-import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedDeviceGroupSettings,
@@ -35,6 +33,8 @@ import {
   ThreedEnvironmentSettings,
   ThreedSceneSettings,
 } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
+import { AppState } from '@core/core.state';
+import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
@@ -138,9 +138,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {
     if (!config.entityLoader) return;
 
-    this.threedModelLoader.loadModelAsGLTF(config, (c, t, p) => this.loadingProgress = p * 100).subscribe(res => {
+    this.threedModelLoader.loadModelAsGLTF(config, { updateProgress: p => this.loadingProgress = p * 100 }).subscribe(res => {
       this.sceneEditor.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
-      //this.threedSceneEditor.replaceModel(res.model, { id: id ? id : res.entityId });
     });
   }
 

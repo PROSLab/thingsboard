@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { ElementRef } from "@angular/core";
+import { ElementRef, EventEmitter } from "@angular/core";
 import * as THREE from 'three';
 import { Camera, Scene } from "three";
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
@@ -50,6 +50,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public screenHeight = window.innerHeight;
     public currentValues: any;
     public mouse = new THREE.Vector2();
+
+    public onRendererContainerChange = new EventEmitter<ElementRef>();
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
@@ -88,6 +90,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
         this.threedRenderers.forEach(r => r.attachToElement(rendererContainer));
         this.rendererContainer = rendererContainer;
+        this.onRendererContainerChange.emit(rendererContainer);
 
         if (this.configs.vr) {
             const vrButton = VRButton.createButton(this.getTRenderer(ThreedWebRenderer).getRenderer());

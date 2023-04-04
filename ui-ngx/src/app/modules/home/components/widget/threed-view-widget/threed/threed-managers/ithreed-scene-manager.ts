@@ -20,6 +20,7 @@ import { ThreedSceneConfig } from '../threed-scenes/threed-scene-builder';
 import { IThreedRenderer } from './ithreed-renderer';
 import { ThreedCssManager } from './threed-css-manager';
 import { ThreedModelManager } from './threed-model-manager';
+import { ElementRef, EventEmitter } from '@angular/core';
 
 export interface IThreedSceneManager {
     scene: Scene;
@@ -32,6 +33,8 @@ export interface IThreedSceneManager {
     get screenHeight(): number;
     get currentValues(): any;
     get mouse(): THREE.Vector2;
+
+    onRendererContainerChange: EventEmitter<ElementRef>;
 
     initialize(): void;
     getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined;

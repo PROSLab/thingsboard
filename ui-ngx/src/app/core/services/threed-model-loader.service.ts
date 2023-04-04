@@ -15,6 +15,7 @@
 ///
 
 import { Injectable } from '@angular/core';
+import { IThreedProgress } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-components/ithreed-progress';
 import {
   ThreedDeviceGroupSettings,
   ThreedEnvironmentSettings,
@@ -27,6 +28,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { Observable, from, of } from 'rxjs';
 import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
+import { LoadingManager } from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export interface ThreedUniversalModelLoaderConfig {
@@ -45,8 +47,6 @@ export interface EntityAliasAttribute {
   entityAttribute: string;
   entity?: EntityInfo;
 }
-
-export type ProgressCallback = (current: number, total: number, progress: number) => void;
 
 @Injectable({
   providedIn: 'root'
@@ -194,7 +194,7 @@ export class ThreedModelLoaderService {
       );
   }
 
-  public loadModelAsGLTF(config: ThreedUniversalModelLoaderConfig, progressCallback?: ProgressCallback): Observable<{ entityId: string | undefined, model: GLTF }> {
+  public loadModelAsGLTF(config: ThreedUniversalModelLoaderConfig, progressCallback?: IThreedProgress): Observable<{ entityId: string | undefined, model: GLTF }> {
     return this.loadModelAsUrl(config).pipe(
       mergeMap(({ entityId, base64 }) => {
         return from(this.fetchData(base64, progressCallback).then(buffer => {
@@ -222,7 +222,7 @@ export class ThreedModelLoaderService {
     );
   }
 
-  private async fetchData(url: string, progressCallback?: ProgressCallback): Promise<any> {
+  private async fetchData(url: string, progressCallback?: IThreedProgress): Promise<any> {
     const response = await fetch(url);
     const totalBytes = Number(response.headers.get('Content-Length')) || 1;
     let adjustedTotalBytes = totalBytes;
@@ -237,16 +237,15 @@ export class ThreedModelLoaderService {
         const { done, value } = await reader.read();
 
         if (done) {
-          adjustedTotalBytes = loadedBytes;
-          progressCallback(loadedBytes, adjustedTotalBytes, 1);
+          progressCallback.updateProgress(1);
           break;
         }
 
         if (value) {
           loadedBytes += value.length;
-          if(adjustedTotalBytes < loadedBytes) adjustedTotalBytes = loadedBytes + 1;
+          if (adjustedTotalBytes < loadedBytes) adjustedTotalBytes = loadedBytes + 1;
           const progress = loadedBytes / adjustedTotalBytes;
-          progressCallback(loadedBytes, adjustedTotalBytes, progress);
+          progressCallback.updateProgress(progress);
         }
       }
     }
