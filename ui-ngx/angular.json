@@ -186,7 +186,10 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
             "browserTarget": "thingsboard:build",
-            "proxyConfig": "proxy.conf.js"
+            "proxyConfig": "proxy.conf.js",
+            
+            "sslKey": "src/assets/ssl/server.key",
+            "sslCert": "src/assets/ssl/server.crt"
           },
           "configurations": {
             "production": {

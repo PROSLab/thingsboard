@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "node --max_old_space_size=8048 ./node_modules/@angular/cli/bin/ng serve --configuration development --host 0.0.0.0 --open",
-    "startSSLlp": "node --openssl-legacy-provider --max_old_space_size=8048 ./node_modules/@angular/cli/bin/ng serve --configuration development --host 0.0.0.0 --open",
+    "start2": "node --openssl-legacy-provider --max_old_space_size=8048 ./node_modules/@angular/cli/bin/ng serve --ssl false --configuration development --host 0.0.0.0 --open",
+    "startSSL": "node --openssl-legacy-provider --max_old_space_size=8048 ./node_modules/@angular/cli/bin/ng serve --ssl true --configuration development --host 0.0.0.0 --open",
     "build": "ng build",
     "build:prod": "node --max_old_space_size=3072 ./node_modules/@angular/cli/bin/ng build --configuration production --vendor-chunk",
     "build:types": "node generate-types.js",

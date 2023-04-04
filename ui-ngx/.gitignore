@@ -44,3 +44,7 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+#SSL Keys
+/src/assets/ssl/*.crt
+/src/assets/ssl/*.key
