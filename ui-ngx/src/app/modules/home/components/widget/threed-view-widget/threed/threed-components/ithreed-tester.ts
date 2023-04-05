@@ -17,9 +17,14 @@
 import { IThreedListener } from "./ithreed-listener";
 import { IThreedObjectSelector } from "./ithreed-object-selector";
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
+import { IThreedProgress } from "./ithreed-progress";
 import { IThreedUpdatable } from "./ithreed-updatable";
 
 export class IThreedTester {
+
+    public static isIThreedProgress = function (obj: any): obj is IThreedProgress {
+        return 'updateProgress' in obj && typeof obj['updateProgress'] === 'function';
+    }
 
     public static isIThreedUpdatable = function (obj: any): obj is IThreedUpdatable {
         return 'onUpdateValues' in obj && typeof obj['onUpdateValues'] === 'function';

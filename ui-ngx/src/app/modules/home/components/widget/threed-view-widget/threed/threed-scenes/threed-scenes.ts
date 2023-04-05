@@ -67,7 +67,8 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
-            .add(new ThreedHightlightTooltipRaycasterComponent('hover', 'single', new THREE.Vector2()));
+            .add(new ThreedHightlightTooltipRaycasterComponent('hover', 'single', new THREE.Vector2()))
+            .add(new ThreedProgressBarComponent());
 
         return builder.build();
     }
@@ -83,7 +84,8 @@ export class ThreedScenes {
             .add(transformControllercomponent)
             .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
             .add(cameraPreviewComponent)
-            .add(new ThreedUpdateSceneSettingsComponent(cameraPreviewComponent));
+            .add(new ThreedUpdateSceneSettingsComponent(cameraPreviewComponent))
+            .add(new ThreedProgressBarComponent());
 
         transformControllercomponent.onChangeAttachTransformController.subscribe(model => {
             cameraPreviewComponent.enabled = model ? model.userData[OBJECT_ID_TAG] == CAMERA_ID : false;
@@ -102,7 +104,8 @@ export class ThreedScenes {
             .add(new ThreedOrbitControllerComponent())
             .add(transformControllercomponent)
             .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
-            .add(new ThreedUpdateSceneSettingsComponent());
+            .add(new ThreedUpdateSceneSettingsComponent())
+            .add(new ThreedProgressBarComponent());
 
         return builder.build();
     }

@@ -24,7 +24,7 @@
                 </div>
             </mat-panel-title>
             <span fxFlex></span>
-            <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;" type="button"
+            <button *ngIf="!disabled && deletable" mat-icon-button style="min-width: 40px;" type="button"
                 (click)="removeObject.emit()" matTooltip="{{ 'action.remove' | translate }}"
                 matTooltipPosition="above">
                 <mat-icon>delete</mat-icon>

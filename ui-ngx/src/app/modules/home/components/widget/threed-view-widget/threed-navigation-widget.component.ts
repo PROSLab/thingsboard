@@ -23,7 +23,7 @@ import {
   mergeFormattedData,
   processDataPattern
 } from '@core/utils';
-import { ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
+import { ACTIONS, ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import { ThreedDeviceGroupSettings, ThreedViewWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
@@ -31,6 +31,9 @@ import { PageComponent } from '@shared/components/page.component';
 import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
+import { ThreedGenericLoaderService } from '@app/core/services/threed-generic-loader.service';
+import { ThreedWidgetActionManager } from './threed-widget-action-manager';
+import { ThreedWidgetDataUpdateManager } from './threed-widget-data-update-manager';
 
 /*
 Widget Type: Ultimi Valori
@@ -63,11 +66,14 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   public pointerLocked: boolean = false;
 
   private navigationScene: ThreedGenericSceneManager;
+  private actionManager: ThreedWidgetActionManager;
+  private dataUpdateManager: ThreedWidgetDataUpdateManager;
 
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef,
-    private threedModelLoader: ThreedModelLoaderService
+
+    private threedLoader: ThreedGenericLoaderService
   ) {
     super(store);
 
@@ -77,6 +83,8 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   ngOnInit(): void {
     this.ctx.$scope.threedNavigationWidget = this;
     this.settings = this.ctx.settings;
+
+    this.initializeManagers();
 
     console.log(this.settings);
     if (!this.settings.hoverColor || !this.settings.threedSceneSettings) {
@@ -92,6 +100,12 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
 
     this.loadModels();
   }
+  
+  private initializeManagers() {
+    this.actionManager = new ThreedWidgetActionManager(this.ctx);
+    this.actionManager.createActions(ACTIONS.tooltip);
+    this.dataUpdateManager = new ThreedWidgetDataUpdateManager(this.ctx, this.actionManager);
+  }
 
   private loadModels() {
     this.loadEnvironment();
@@ -99,36 +113,11 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }
 
   private loadEnvironment() {
-    const config: ThreedUniversalModelLoaderConfig = {
-      entityLoader: this.threedModelLoader.toEntityLoader(this.settings.threedSceneSettings.threedEnvironmentSettings),
-      aliasController: this.ctx.aliasController
-    }
-
-    this.loadModel(config, ENVIRONMENT_ID, false);
+    this.threedLoader.loadEnvironment(this.settings.threedSceneSettings.threedEnvironmentSettings, this.ctx.aliasController, this.navigationScene, ENVIRONMENT_ID, false);
   }
 
   private loadDevices() {
-    this.settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
-      const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
-      loaders.forEach(entityLoader => {
-        const config: ThreedUniversalModelLoaderConfig = {
-          entityLoader,
-          aliasController: this.ctx.aliasController
-        }
-
-        this.loadModel(config);
-      })
-    });
-  }
-
-  private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
-    if (!this.threedModelLoader.isConfigValid(config)) return;
-
-    this.threedModelLoader.loadModelAsGLTF(config).subscribe(res => {
-      const customId = id ? id : res.entityId;
-      this.navigationScene.modelManager.replaceModel(res.model, { id: customId });
-      if(hasTooltip) this.navigationScene.cssManager.createLabel(customId);
-    });
+    this.threedLoader.loadDevices(this.settings.threedSceneSettings.threedDevicesSettings, this.ctx.aliasController, this.navigationScene);
   }
 
   ngAfterViewInit() {
@@ -140,35 +129,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }
 
   public onDataUpdated() {
-    //console.log("\n\n\nonDataUpdated - datasources", this.ctx.datasources);
-    //console.log("\n\n\nonDataUpdated - data", this.ctx.data);
-
-    if (this.ctx.datasources.length > 0) {
-      var tbDatasource = this.ctx.datasources[0];
-      // TODO...
-    }
-
-    const data = this.ctx.data;
-    let formattedData = formattedDataFormDatasourceData(data);
-    if (this.ctx.latestData && this.ctx.latestData.length) {
-      const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
-      formattedData = mergeFormattedData(formattedData, formattedLatestData);
-    }
-
-    // We associate the new data with the tooltip settings, according to the entity alias
-    formattedData.forEach(fd => {
-      this.settings.threedSceneSettings?.threedDevicesSettings?.threedDeviceGroupSettings?.forEach(deviceGroup => {
-        if (deviceGroup.threedTooltipSettings.showTooltip) {
-          if (deviceGroup.threedEntityAliasSettings.entityAlias == fd.aliasName) {
-            const pattern = deviceGroup.threedTooltipSettings.tooltipPattern;
-            const replaceInfoTooltipMarker = processDataPattern(pattern, fd);
-            const content = fillDataPattern(pattern, replaceInfoTooltipMarker, fd);
-
-            this.navigationScene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
-          }
-        }
-      });
-    });
+    this.dataUpdateManager.onDataUpdate(this.settings.threedSceneSettings?.threedDevicesSettings, this.navigationScene);
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
   }

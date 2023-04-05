@@ -15,22 +15,24 @@
     limitations under the License.
 
 -->
+<div #rendererContainer>
 
-<div id="blocker" [ngStyle]="{'display': pointerLocked ? 'none' : 'block'}">
-    <div id="instructions" [ngStyle]="{'display': pointerLocked ? 'none' : ''}" (click)="lockCursor()">
-        <p style="font-size:36px">
-            Click to move
-        </p>
-        <p>
-            Move: WASD<br />
-            Jump: SPACE<br />
-            Look: MOUSE<br />
-            Unlock: ESC
-        </p>
+    <div id="blocker" [ngStyle]="{'display': pointerLocked ? 'none' : 'block'}">
+        <div id="instructions" [ngStyle]="{'display': pointerLocked ? 'none' : ''}" (click)="lockCursor()">
+            <p style="font-size:36px">
+                Click to move
+            </p>
+            <p>
+                Move: WASD<br />
+                Jump: SPACE<br />
+                Look: MOUSE<br />
+                Unlock: ESC
+            </p>
+        </div>
     </div>
+    <div class="crosshair" [ngStyle]="{'display': pointerLocked ? '' : 'none'}">
+        <div class="horizontal"></div>
+        <div class="vertical"></div>
+    </div>
+
 </div>
-<div class="crosshair" [ngStyle]="{'display': pointerLocked ? '' : 'none'}">
-    <div class="horizontal"></div>
-    <div class="vertical"></div>
-</div>
-<div #rendererContainer></div>

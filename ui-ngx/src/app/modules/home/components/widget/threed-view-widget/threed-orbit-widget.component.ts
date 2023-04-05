@@ -16,17 +16,15 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
+import { ThreedGenericLoaderService } from '@app/core/services/threed-generic-loader.service';
 import { ACTIONS, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedComplexOrbitWidgetSettings,
-  ThreedDeviceGroupSettings,
   ThreedSimpleOrbitWidgetSettings,
   isThreedComplexOrbitWidgetSettings,
   isThreedSimpleOrbitWidgetSettings
 } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
-import { Datasource, WidgetActionDescriptor } from '@app/shared/public-api';
 import { AppState } from '@core/core.state';
-import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@core/services/threed-model-loader.service';
 import {
   fillDataPattern,
   formattedDataFormDatasourceData,
@@ -38,13 +36,14 @@ import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { parseWithTranslation } from '../lib/maps/common-maps-utils';
+import { ThreedWidgetActionManager } from './threed-widget-action-manager';
 import { IThreedTester } from './threed/threed-components/ithreed-tester';
 import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
-import { ThreedProgressBarComponent } from './threed/threed-components/threed-progress-bar-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
 import { ThreedUtils } from './threed/threed-utils';
+import { ThreedWidgetDataUpdateManager } from './threed-widget-data-update-manager';
 
 
 @Component({
@@ -62,7 +61,9 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
   private orbitScene: ThreedGenericSceneManager;
-
+  private actionManager: ThreedWidgetActionManager;
+  private dataUpdateManager: ThreedWidgetDataUpdateManager;
+  
   public activeMode = 'selection';
   public explodedView = false;
   public animating = false;
@@ -70,24 +71,24 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   private currentExplodedObjectId?: string;
 
   public orbitType: 'simple' | 'complex' = 'simple';
-  public loadingProgress = 100;
 
   private readonly DEFAULT_MODEL_ID = "DefaultModelId"
 
-  private tooltipAction: any;
 
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef,
-    private threedModelLoader: ThreedModelLoaderService
+
+    private threedLoader: ThreedGenericLoaderService
   ) {
     super(store);
-
   }
 
   ngOnInit(): void {
     this.ctx.$scope.threedOrbitWidget = this;
     this.settings = this.ctx.settings;
+
+    this.initializeManagers();
 
     if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
       this.orbitType = 'simple';
@@ -102,83 +103,28 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       console.error("Orbit Settings not valid...", this.settings);
     }
 
-    this.tooltipAction = this.getDescriptors(ACTIONS.tooltip);
     this.orbitScene.setValues(this.settings);
-
   }
 
-
-
-
-  getDescriptors(name: string): { [name: string]: ($event: Event, datasource: Datasource) => void } {
-    const descriptors = this.ctx.actionsApi.getActionDescriptors(name);
-    const actions = {};
-    descriptors.forEach(descriptor => {
-      actions[descriptor.name] = ($event: Event, datasource: Datasource) => this.onCustomAction(descriptor, $event, datasource);
-    }, actions);
-    return actions;
+  private initializeManagers() {
+    this.actionManager = new ThreedWidgetActionManager(this.ctx);
+    this.actionManager.createActions(ACTIONS.tooltip);
+    this.dataUpdateManager = new ThreedWidgetDataUpdateManager(this.ctx, this.actionManager);
   }
-  private onCustomAction(descriptor: WidgetActionDescriptor, $event: Event, entityInfo: Datasource) {
-    if ($event) {
-      $event.preventDefault();
-      $event.stopPropagation();
-    }
-    const { entityId, entityName, entityLabel, entityType } = entityInfo;
-    this.ctx.actionsApi.handleWidgetAction($event, descriptor, {
-      entityType,
-      id: entityId
-    }, entityName, null, entityLabel);
-  }
-
-
-
 
   private loadSingleModel(settings: ThreedSimpleOrbitWidgetSettings) {
     if (this.ctx.datasources && this.ctx.datasources[0]) {
       const datasource = this.ctx.datasources[0];
-
-      const config: ThreedUniversalModelLoaderConfig = {
-        entityLoader: this.threedModelLoader.toEntityLoader2(settings, datasource.aliasName),
-        aliasController: this.ctx.aliasController
-      }
-      this.loadModel(config, this.DEFAULT_MODEL_ID);
+      this.threedLoader.loadSingleModel(settings, datasource.aliasName, this.ctx.aliasController, this.orbitScene, this.DEFAULT_MODEL_ID);
     }
   }
 
   private loadEnvironment(settings: ThreedComplexOrbitWidgetSettings) {
-    const config: ThreedUniversalModelLoaderConfig = {
-      entityLoader: this.threedModelLoader.toEntityLoader(settings.threedSceneSettings.threedEnvironmentSettings),
-      aliasController: this.ctx.aliasController
-    }
-
-    console.log(config);
-
-    this.loadModel(config, ENVIRONMENT_ID, false);
+    this.threedLoader.loadEnvironment(settings.threedSceneSettings.threedEnvironmentSettings, this.ctx.aliasController, this.orbitScene, ENVIRONMENT_ID, false);
   }
 
   private loadDevices(settings: ThreedComplexOrbitWidgetSettings) {
-    settings.threedSceneSettings.threedDevicesSettings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
-      const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
-      loaders.forEach(entityLoader => {
-        const config: ThreedUniversalModelLoaderConfig = {
-          entityLoader,
-          aliasController: this.ctx.aliasController
-        }
-
-        this.loadModel(config);
-      })
-    });
-  }
-
-  private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
-    if (!this.threedModelLoader.isConfigValid(config)) return;
-
-    const progressBarComponent = this.orbitScene.getComponent(ThreedProgressBarComponent);
-    this.threedModelLoader.loadModelAsGLTF(config, progressBarComponent).subscribe(res => {
-      const customId = id ? id : res.entityId;
-      this.orbitScene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
-      if (hasTooltip) this.orbitScene.cssManager.createLabel(customId);
-    });
+    this.threedLoader.loadDevices(settings.threedSceneSettings.threedDevicesSettings, this.ctx.aliasController, this.orbitScene);
   }
 
   ngAfterViewInit() {
@@ -189,49 +135,9 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   public onDataUpdated() {
     if (this.orbitType == 'simple') return;
 
-    if (this.ctx.datasources.length > 0) {
-      var tbDatasource = this.ctx.datasources[0];
-      // TODO...
-    }
-
-    const data = this.ctx.data;
-    let formattedData = formattedDataFormDatasourceData(data);
-    if (this.ctx.latestData && this.ctx.latestData.length) {
-      const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
-      formattedData = mergeFormattedData(formattedData, formattedLatestData);
-    }
-
-    // We associate the new data with the tooltip settings, according to the entity alias
-    formattedData.forEach(fd => {
-      (this.settings as ThreedComplexOrbitWidgetSettings).threedSceneSettings?.threedDevicesSettings?.threedDeviceGroupSettings?.forEach(deviceGroup => {
-        if (deviceGroup.threedTooltipSettings.showTooltip) {
-          if (deviceGroup.threedEntityAliasSettings.entityAlias == fd.aliasName) {
-            const pattern = deviceGroup.threedTooltipSettings.tooltipPattern;
-            const tooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
-            const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
-            const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
-
-            const tooltip = this.orbitScene.cssManager.updateLabelContent([fd.entityId, ENVIRONMENT_ID], content);
-            if (tooltip) this.bindPopupActions(tooltip.divElement, fd.$datasource);
-          }
-        }
-      });
-    });
+    this.dataUpdateManager.onDataUpdate((this.settings as ThreedComplexOrbitWidgetSettings).threedSceneSettings?.threedDevicesSettings, this.orbitScene);
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
-  }
-
-  private bindPopupActions(tooltip: HTMLDivElement, datasource: Datasource) {
-    const actions = tooltip.getElementsByClassName('tb-custom-action');
-    Array.from(actions).forEach(
-      (element: HTMLElement) => {
-        const actionName = element.getAttribute('data-action-name');
-        if (element && this.tooltipAction[actionName]) {
-          element.addEventListener('pointerdown', $event => {
-            this.tooltipAction[actionName]($event, datasource);
-          });
-        }
-      });
   }
 
   public toggleExplodedView() {

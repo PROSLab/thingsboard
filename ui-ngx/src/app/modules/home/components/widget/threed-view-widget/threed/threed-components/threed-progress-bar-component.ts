@@ -18,6 +18,7 @@ import { ElementRef } from '@angular/core';
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedBaseComponent } from "./threed-base-component";
 import { IThreedProgress } from './ithreed-progress';
+import { comparisonResultTypeTranslationMap } from '@app/shared/public-api';
 
 
 export class ThreedProgressBarComponent extends ThreedBaseComponent implements IThreedProgress {
@@ -29,6 +30,7 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
     private progressBarId: string;
     private progressBarContainer?: HTMLElement;
     private progressBarElement?: HTMLElement;
+    private visible: boolean;
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
@@ -40,13 +42,14 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
     }
 
     private generateHtmlAndId(): void {
-        this.containerId = `Container_ThreedProgressBarComponentId_${ThreedProgressBarComponent.lastId}`;
-        this.progressBarId = `Element_ThreedProgressBarComponentId_${ThreedProgressBarComponent.lastId++}`;
+        const id = ThreedProgressBarComponent.lastId++;
+        this.containerId = `Container_ThreedProgressBarComponentId_${id}`;
+        this.progressBarId = `Element_ThreedProgressBarComponentId_${id}`;
         this.html = `
         <div id="${this.containerId}" 
             style="position: absolute; top:0px!important; width: 100%; height: 4px; background-color: #f5f5f5; border-radius: 2px;">
             <div id="${this.progressBarId}"
-                style="position: absolute; top: 0; left: 0; height: 100%; background-color: #007bff; border-radius: 2px; transition: width 0.3s ease-in-out;" 
+                style="position: absolute; top: 0; left: 0; height: 100%; background-color: #007bff; border-radius: 2px; transition: width 0.1s ease-in-out;" 
                 role="progressbar" 
                 aria-valuenow="0" 
                 aria-valuemin="0" 
@@ -59,9 +62,10 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
     private attachHtmlToContainer(container: ElementRef) {
         if (this.progressBarContainer) this.progressBarContainer.remove();
         container.nativeElement.insertAdjacentHTML('afterbegin', this.html);
-        this.progressBarContainer = document.getElementById(this.containerId);
-        this.progressBarElement = document.getElementById(this.progressBarId);
-        this.hide();
+        this.visible = true;
+        setTimeout(() => {
+            this.tryGetElements(container);
+        }, 0);
     }
 
     public updateProgress(progress: number) {
@@ -69,23 +73,31 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
         if (progress >= 100) this.hide();
         else this.show();
 
-        console.log("updateProgress " +progress, this.progressBarElement == undefined);
+        //console.log("updateProgress " + progress, this.progressBarElement == undefined);
 
         if (this.progressBarElement) {
             this.progressBarElement.style.width = `${progress}%`;
             this.progressBarElement.setAttribute('aria-valuenow', progress.toString());
-        }
+        } else this.tryGetElements();
     }
 
     private hide() {
-        if (this.progressBarContainer) {
+        if (this.progressBarContainer && this.visible) {
             this.progressBarContainer.style.display = 'none';
+            this.visible = false;
         }
     }
 
     private show() {
-        if (this.progressBarContainer) {
+        if (this.progressBarContainer && !this.visible) {
             this.progressBarContainer.style.display = 'block';
+            this.visible = true;
         }
+    }
+
+    private tryGetElements(container?: ElementRef) {
+        this.progressBarContainer = container?.nativeElement.querySelector(`#${this.containerId}`) || document.getElementById(this.containerId);
+        this.progressBarElement = container?.nativeElement.querySelector(`#${this.progressBarId}`) || document.getElementById(this.progressBarId);
+        this.hide();
     }
 }
