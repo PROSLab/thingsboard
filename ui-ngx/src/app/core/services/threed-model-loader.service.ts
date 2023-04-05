@@ -222,34 +222,34 @@ export class ThreedModelLoaderService {
     );
   }
 
-  private async fetchData(url: string, progressCallback?: IThreedProgress): Promise<any> {
+  private async fetchData(url: string, progressCallback?: IThreedProgress): Promise<ArrayBuffer> {
     const response = await fetch(url);
     const totalBytes = Number(response.headers.get('Content-Length')) || 1;
     let adjustedTotalBytes = totalBytes;
     let loadedBytes = 0;
 
-    const responseClone = response.clone();
-    const responseData = await response.arrayBuffer();
+    const res = new Response(new ReadableStream({
+      async start(controller) {
+        const reader = response.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            progressCallback?.updateProgress(1);
+            break;
+          }
 
-    if (progressCallback) {
-      const reader = responseClone.body.getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          progressCallback.updateProgress(1);
-          break;
+          if (value) {
+            loadedBytes += value.byteLength;
+            if (adjustedTotalBytes < loadedBytes) adjustedTotalBytes = loadedBytes + 1;
+            const progress = loadedBytes / adjustedTotalBytes;
+            progressCallback?.updateProgress(progress);
+            controller.enqueue(value);
+          }
         }
+        controller.close();
+      },
+    }));
 
-        if (value) {
-          loadedBytes += value.length;
-          if (adjustedTotalBytes < loadedBytes) adjustedTotalBytes = loadedBytes + 1;
-          const progress = loadedBytes / adjustedTotalBytes;
-          progressCallback.updateProgress(progress);
-        }
-      }
-    }
-
-    return responseData;
+    return res.arrayBuffer();
   }
 }
