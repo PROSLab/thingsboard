@@ -25,6 +25,7 @@ import { ElementRef, EventEmitter } from '@angular/core';
 export interface IThreedSceneManager {
     scene: Scene;
     camera: Camera;
+    active: boolean;
 
     get configs(): ThreedSceneConfig;
     get modelManager(): ThreedModelManager;

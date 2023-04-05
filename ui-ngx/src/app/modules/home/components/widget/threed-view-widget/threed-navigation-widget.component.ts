@@ -92,6 +92,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     });
 
     this.loadModels();
+    this.onEditModeChanged();
   }
 
   ngOnDestroy(): void {
@@ -129,6 +130,10 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     this.dataUpdateManager.onDataUpdate(this.settings.threedSceneSettings?.threedDevicesSettings, this.navigationScene);
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
+  }
+
+  public onEditModeChanged() {
+    this.navigationScene.active = !this.ctx.isEdit;
   }
 
   /*

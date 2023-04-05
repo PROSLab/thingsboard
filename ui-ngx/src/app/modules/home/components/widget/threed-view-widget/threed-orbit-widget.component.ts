@@ -97,6 +97,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     }
 
     this.orbitScene.setValues(this.settings);
+    this.onEditModeChanged();
   }
 
   ngOnDestroy(): void {
@@ -135,6 +136,10 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     this.dataUpdateManager.onDataUpdate((this.settings as ThreedComplexOrbitWidgetSettings).threedSceneSettings?.threedDevicesSettings, this.orbitScene);
 
     //this.updateMarkers(formattedData, false, markerClickCallback);
+  }
+
+  public onEditModeChanged() {
+    this.orbitScene.active = !this.ctx.isEdit;
   }
 
   public toggleExplodedView() {

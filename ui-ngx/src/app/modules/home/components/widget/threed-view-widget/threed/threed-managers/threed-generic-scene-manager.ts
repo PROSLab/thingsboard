@@ -29,6 +29,7 @@ import { ThreedCssRenderer } from "./threed-css-renderer";
 import { ThreedModelManager } from "./threed-model-manager";
 import { ThreedWebRenderer } from "./threed-web-renderer";
 import { Subscription } from "rxjs";
+import { ThreedEventManager } from "./threed-event-manager";
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 
@@ -36,6 +37,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private static lastSceneId = 1;
 
     private sceneId: number;
+    private rendererId: string;
     private rendererContainer: ElementRef;
     private threedRenderers: IThreedRenderer[] = [];
     private components: IThreedComponent[] = [];
@@ -44,6 +46,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     public scene: Scene;
     public camera: Camera;
+    public active: boolean;
 
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
@@ -57,6 +60,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
+        this.active = true;
 
         this.sceneId = ThreedGenericSceneManager.lastSceneId++;
         ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, false);
@@ -96,6 +100,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
         this.threedRenderers.forEach(r => r.attachToElement(rendererContainer));
         this.rendererContainer = rendererContainer;
+        this.rendererId = `RendererContainerID_${this.sceneId}`;
+        this.rendererContainer.nativeElement.setAttribute('id', this.rendererId);
         this.onRendererContainerChange.emit(rendererContainer);
 
         if (this.configs.vr) {
@@ -117,7 +123,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     public isActive(): boolean {
-        return ThreedGenericSceneManager.activeSceneManagers.get(this.sceneId) == true;
+        return this.active && ThreedGenericSceneManager.activeSceneManagers.get(this.sceneId) == true;
     }
 
     public getComponent<T extends IThreedComponent>(type: new () => T): T | undefined {
@@ -200,10 +206,12 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
      *                           EVENTS
      *========================================================================**/
     private initializeEventListeners() {
-        window.addEventListener('mousemove', (event: MouseEvent) => this.mouseMove(event));
-        window.addEventListener('click', (event: MouseEvent) => this.mouseClick(event));
-        window.addEventListener('keydown', (event: KeyboardEvent) => this.keyDown(event));
-        window.addEventListener('keyup', (event: KeyboardEvent) => this.keyUp(event));
+        this.subscriptions.push(
+            ThreedEventManager.instance.onMouseMove.subscribe(event => this.mouseMove(event)),
+            ThreedEventManager.instance.onMouseClick.subscribe(event => this.mouseClick(event)),
+            ThreedEventManager.instance.onKeyDown.subscribe(event => this.keyDown(event)),
+            ThreedEventManager.instance.onKeyUp.subscribe(event => this.keyUp(event))
+        );
     }
 
     private mouseMove(event: MouseEvent) {
@@ -236,7 +244,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     private calculateMousePosition(event: MouseEvent) {
-        if (!this.rendererContainer) return;
+        if (!this.rendererContainer || !this.active) return;
 
         const rect = this.rendererContainer.nativeElement.getBoundingClientRect();
 
@@ -244,6 +252,25 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         if (this.mouse.x < 1 && this.mouse.x > -1 && this.mouse.y < 1 && this.mouse.y > -1) {
+
+            /*
+            const elementsAbove = Array.from(document.querySelectorAll(`:not(#${this.rendererId}) *`))
+                .filter(el => {
+                    const { zIndex, display } = getComputedStyle(el);
+                    if (display !== 'none' && zIndex !== 'auto' && parseInt(zIndex) > 50) {
+                        const rect2 = el.getBoundingClientRect();
+                        return !(rect2.right < rect.left ||
+                            rect2.left > rect.right ||
+                            rect2.bottom < rect.top ||
+                            rect2.top > rect.bottom);
+                    }
+                    return false;
+                });
+
+            const active = elementsAbove.length == 0;
+            ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, active);
+            if (active) event.preventDefault();*/
+
             ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, true);
             event.preventDefault();
         } else ThreedGenericSceneManager.activeSceneManagers.set(this.sceneId, false);
@@ -264,9 +291,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
 
     public destory(): void {
-        this.components.forEach(c => c.onDestory());   
+        this.components.forEach(c => c.onDestory());
         this.subscriptions.forEach(s => s.unsubscribe());
         this.cssManager.onDestory();
         this.modelManager.onDestory();
+        ThreedGenericSceneManager.activeSceneManagers.delete(this.sceneId);
     }
 }
