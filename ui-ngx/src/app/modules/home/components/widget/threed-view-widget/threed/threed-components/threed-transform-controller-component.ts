@@ -64,7 +64,8 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
         }
         this.initializeController();
         this.initializeBoxHelper();
-        this.sceneManager.modelManager.onBeforeRemoveModel.subscribe(_ => this.attachTransformController());
+        const s = this.sceneManager.modelManager.onBeforeRemoveModel.subscribe(_ => this.attachTransformController());
+        this.subscriptions.push(s);
     }
 
     tick(): void {

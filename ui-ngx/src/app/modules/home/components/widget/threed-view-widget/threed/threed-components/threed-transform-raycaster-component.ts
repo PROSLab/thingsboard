@@ -32,10 +32,11 @@ export class ThreedTransformRaycasterComponent extends ThreedAbstractRaycasterCo
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
-        this.transformController.onDraggingChanged.subscribe(event => {
+        const s = this.transformController.onDraggingChanged.subscribe(event => {
             this.updateRaycast = !event.value;
             if (event.value) this.updateRaycastLastFrame = false;
         });
+        this.subscriptions.push(s);
     }
 
     protected canUpdateRaycaster(): boolean {

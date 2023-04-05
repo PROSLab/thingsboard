@@ -14,6 +14,7 @@
 /// limitations under the License.
 ///
 
+import { Subscription } from "rxjs";
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { IThreedComponent } from "./ithreed-component";
 
@@ -21,6 +22,7 @@ export abstract class ThreedBaseComponent implements IThreedComponent {
 
     protected sceneManager: IThreedSceneManager;
     protected initialized: boolean = false;
+    protected subscriptions: Subscription[] = [];
 
     initialize(sceneManager: IThreedSceneManager): void {
         this.sceneManager = sceneManager;
@@ -30,4 +32,7 @@ export abstract class ThreedBaseComponent implements IThreedComponent {
     tick(): void { }
     render(): void { }
     resize(): void { }
+    onDestory(): void { 
+        this.subscriptions.forEach(s => s.unsubscribe());
+    }
 }

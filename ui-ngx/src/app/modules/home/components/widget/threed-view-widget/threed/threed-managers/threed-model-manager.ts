@@ -171,4 +171,6 @@ export class ThreedModelManager {
         if (rotation) model.root.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
         if (scale) model.root.scale.set(scale.x, scale.y, scale.z);
     }
+
+    public onDestory() { }
 }

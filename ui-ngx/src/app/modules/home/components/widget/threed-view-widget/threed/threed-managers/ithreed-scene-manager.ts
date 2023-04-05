@@ -41,5 +41,6 @@ export interface IThreedSceneManager {
     isActive(): boolean;
     forceUpdateValues(): void;
     getComponent<T extends IThreedComponent>(type: new () => T): T | undefined;
-    findComponentsByTester<T>(tester: (obj: any) => obj is T): T[]
+    findComponentsByTester<T>(tester: (obj: any) => obj is T): T[];
+    destory(): void;
 }

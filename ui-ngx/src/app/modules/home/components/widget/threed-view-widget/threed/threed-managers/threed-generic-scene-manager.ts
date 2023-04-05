@@ -28,6 +28,7 @@ import { ThreedCssManager } from "./threed-css-manager";
 import { ThreedCssRenderer } from "./threed-css-renderer";
 import { ThreedModelManager } from "./threed-model-manager";
 import { ThreedWebRenderer } from "./threed-web-renderer";
+import { Subscription } from "rxjs";
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 
@@ -39,6 +40,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private threedRenderers: IThreedRenderer[] = [];
     private components: IThreedComponent[] = [];
     private vrActive = false;
+    private subscriptions: Subscription[] = [];
 
     public scene: Scene;
     public camera: Camera;
@@ -68,16 +70,20 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.scene = new THREE.Scene();
 
         this.modelManager = new ThreedModelManager(this);
-        this.modelManager.onAfterAddModel.subscribe(_ => this.updateValues());
+        const s = this.modelManager.onAfterAddModel.subscribe(_ => this.updateValues());
+        this.subscriptions.push(s);
 
         this.cssManager = new ThreedCssManager(this);
 
         this.components.forEach(c => c.initialize(this));
     }
 
-    public add(component: IThreedComponent) {
+    public add(component: IThreedComponent): void {
         this.components.push(component);
-        return this;
+    }
+
+    public addSubscription(subscription: Subscription): void {
+        this.subscriptions.push(subscription);
     }
 
     public getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined {
@@ -257,4 +263,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     /*============================ END OF VR ============================*/
 
 
+    public destory(): void {
+        this.components.forEach(c => c.onDestory());   
+        this.subscriptions.forEach(s => s.unsubscribe());
+        this.cssManager.onDestory();
+        this.modelManager.onDestory();
+    }
 }

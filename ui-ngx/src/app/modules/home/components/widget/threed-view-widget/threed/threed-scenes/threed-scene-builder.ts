@@ -14,6 +14,7 @@
 /// limitations under the License.
 ///
 
+import { Subscription } from "rxjs";
 import { IThreedComponent } from "../threed-components/ithreed-component";
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 
@@ -36,6 +37,11 @@ export class ThreedSceneBuilder {
 
     public add(component: IThreedComponent): ThreedSceneBuilder {
         this.sceneManager.add(component);
+        return this;
+    }
+
+    public addSubscription(subscription: Subscription): ThreedSceneBuilder {
+        this.sceneManager.addSubscription(subscription);
         return this;
     }
 

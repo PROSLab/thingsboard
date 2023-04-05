@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
 import { ThreedGenericLoaderService } from '@app/core/services/threed-generic-loader.service';
 import { ACTIONS, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
@@ -25,25 +25,18 @@ import {
   isThreedSimpleOrbitWidgetSettings
 } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { AppState } from '@core/core.state';
-import {
-  fillDataPattern,
-  formattedDataFormDatasourceData,
-  mergeFormattedData,
-  processDataPattern
-} from '@core/utils';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { parseWithTranslation } from '../lib/maps/common-maps-utils';
 import { ThreedWidgetActionManager } from './threed-widget-action-manager';
+import { ThreedWidgetDataUpdateManager } from './threed-widget-data-update-manager';
 import { IThreedTester } from './threed/threed-components/ithreed-tester';
 import { ThreedHightlightRaycasterComponent } from './threed/threed-components/threed-hightlight-raycaster-component';
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
 import { ThreedUtils } from './threed/threed-utils';
-import { ThreedWidgetDataUpdateManager } from './threed-widget-data-update-manager';
 
 
 @Component({
@@ -51,7 +44,7 @@ import { ThreedWidgetDataUpdateManager } from './threed-widget-data-update-manag
   templateUrl: './threed-orbit-widget.component.html',
   styleUrls: ['./threed-orbit-widget.component.scss']
 })
-export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
+export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   settings: ThreedSimpleOrbitWidgetSettings | ThreedComplexOrbitWidgetSettings;
 
@@ -63,7 +56,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   private orbitScene: ThreedGenericSceneManager;
   private actionManager: ThreedWidgetActionManager;
   private dataUpdateManager: ThreedWidgetDataUpdateManager;
-  
+
   public activeMode = 'selection';
   public explodedView = false;
   public animating = false;
@@ -104,6 +97,10 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     }
 
     this.orbitScene.setValues(this.settings);
+  }
+
+  ngOnDestroy(): void {
+    this.orbitScene?.destory();
   }
 
   private initializeManagers() {

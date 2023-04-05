@@ -96,4 +96,6 @@ export class ThreedCssManager {
         divLabel.innerHTML = content;
         return cssData;
     }
+
+    public onDestory() { }
 }

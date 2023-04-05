@@ -16,9 +16,8 @@
 
 import { ElementRef } from '@angular/core';
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
-import { ThreedBaseComponent } from "./threed-base-component";
 import { IThreedProgress } from './ithreed-progress';
-import { comparisonResultTypeTranslationMap } from '@app/shared/public-api';
+import { ThreedBaseComponent } from "./threed-base-component";
 
 
 export class ThreedProgressBarComponent extends ThreedBaseComponent implements IThreedProgress {
@@ -36,9 +35,10 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
         super.initialize(sceneManager);
 
         this.generateHtmlAndId();
-        this.sceneManager.onRendererContainerChange.subscribe(container => {
+        const s = this.sceneManager.onRendererContainerChange.subscribe(container => {
             this.attachHtmlToContainer(container);
         });
+        this.subscriptions.push(s);
     }
 
     private generateHtmlAndId(): void {
@@ -62,7 +62,6 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
     private attachHtmlToContainer(container: ElementRef) {
         if (this.progressBarContainer) this.progressBarContainer.remove();
         container.nativeElement.insertAdjacentHTML('afterbegin', this.html);
-        this.visible = true;
         setTimeout(() => {
             this.tryGetElements(container);
         }, 0);
@@ -98,6 +97,7 @@ export class ThreedProgressBarComponent extends ThreedBaseComponent implements I
     private tryGetElements(container?: ElementRef) {
         this.progressBarContainer = container?.nativeElement.querySelector(`#${this.containerId}`) || document.getElementById(this.containerId);
         this.progressBarElement = container?.nativeElement.querySelector(`#${this.progressBarId}`) || document.getElementById(this.progressBarId);
+        this.visible = true;
         this.hide();
     }
 }
