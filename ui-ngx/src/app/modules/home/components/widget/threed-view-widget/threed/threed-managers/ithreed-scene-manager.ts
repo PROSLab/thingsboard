@@ -34,6 +34,7 @@ export interface IThreedSceneManager {
     get screenHeight(): number;
     get currentValues(): any;
     get mouse(): THREE.Vector2;
+    get center(): THREE.Vector2;
 
     onRendererContainerChange: EventEmitter<ElementRef>;
     onMainCameraChange: EventEmitter<Camera>;

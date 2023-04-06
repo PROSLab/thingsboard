@@ -27,7 +27,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
 
     private raycastUpdate: 'click' | 'hover';
     private resolveRaycastObject: 'single' | 'root';
-    private raycaster?: THREE.Raycaster;
+    protected raycaster?: THREE.Raycaster;
 
     protected selectedObject: any;
 
@@ -54,9 +54,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     onKeyUp(event: KeyboardEvent): void { }
     onMouseMove(event: MouseEvent): void {
         // Used to increase the performaces!
-        if (this.hoverIndex++ % 4 == 0) return;
-
-        if (this.raycastUpdate == 'hover')
+        if (this.raycastUpdate == 'hover' && this.hoverIndex++ % 2 == 0)
             this.updateRaycaster();
     }
     onMouseClick(event: MouseEvent): void {
@@ -64,8 +62,8 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
             this.updateRaycaster();
     }
 
-    private updateRaycaster() {
-        if (!this.initialized || !this.canUpdateRaycaster() || !this.raycastEnabled) return;
+    protected updateRaycaster(): boolean {
+        if (!this.initialized || !this.canUpdateRaycaster() || !this.raycastEnabled) return false;
 
         this.raycaster.setFromCamera(this.getRaycasterOriginCoords(), this.sceneManager.camera);
         const intersection = this.raycaster.intersectObjects(this.getIntersectionObjects()).filter(o => this.getIntersectedObjectFilter(o));
@@ -80,6 +78,8 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
             // else deselectObject
             this.selectObject(undefined);
         }
+
+        return true;
     }
 
     private selectObject(object?: THREE.Object3D) {

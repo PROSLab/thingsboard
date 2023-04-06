@@ -43,10 +43,11 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private components: IThreedComponent[] = [];
     private vrActive = false;
     private subscriptions: Subscription[] = [];
+    private _center = new THREE.Vector2();
 
     public scene: Scene;
     public active: boolean;
-    
+
     public camera: Camera;
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
@@ -55,6 +56,16 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public screenHeight = window.innerHeight;
     public currentValues: any;
     public mouse = new THREE.Vector2();
+
+    public get center(): THREE.Vector2 {
+        const rect: DOMRect | undefined = this.rendererContainer?.nativeElement.getBoundingClientRect();
+        if (rect) {
+            this._center.x = rect.x + (rect.right - rect.left) / 2;
+            this._center.y = rect.y + (rect.bottom - rect.top) / 2;
+        }
+        return this._center;
+    }
+
 
     public onRendererContainerChange = new EventEmitter<ElementRef>();
     public onMainCameraChange = new EventEmitter<Camera>();
@@ -119,7 +130,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     public resize(width?: number, height?: number): void {
-        const rect = this.rendererContainer?.nativeElement.getBoundingClientRect();
+        const rect: DOMRect | undefined = this.rendererContainer?.nativeElement.getBoundingClientRect();
         this.screenWidth = width || rect.width;
         this.screenHeight = height || rect.height;
 

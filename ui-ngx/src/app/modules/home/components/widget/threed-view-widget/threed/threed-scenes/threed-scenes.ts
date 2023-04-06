@@ -67,7 +67,7 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
-            .add(new ThreedHightlightTooltipRaycasterComponent('hover', 'single', new THREE.Vector2()))
+            .add(new ThreedHightlightTooltipRaycasterComponent('click', 'root', new THREE.Vector2()))
             .add(new ThreedProgressBarComponent());
 
         return builder.build();
