@@ -229,12 +229,15 @@ export class ThreedModelLoaderService {
 
     const progressBarComponent = scene.findComponentsByTester(IThreedTester.isIThreedProgress)?.[0];
     this.loadModelAsGLTF(config, progressBarComponent).subscribe(res => {
-        const customId = id ? id : res.entityId;
+      const customId = id ? id : res.entityId;
 
-        scene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
-        if (hasTooltip) scene.cssManager.createLabel(customId);
+      scene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
+      if (hasTooltip) {
+        scene.cssManager.createObject(customId, 'label');
+        scene.cssManager.createObject(customId, 'image');
+      }
     });
-}
+  }
 
   private async fetchData(url: string, progressCallback?: IThreedProgress): Promise<ArrayBuffer> {
     const response = await fetch(url);

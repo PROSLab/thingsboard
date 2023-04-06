@@ -58,7 +58,7 @@ export class ThreedWidgetActionManager {
         }, entityName, null, entityLabel);
     }
 
-    public bindPopupActions(tooltip: HTMLDivElement, datasource: Datasource, name: string = ACTIONS.tooltip): void {
+    public bindPopupActions(tooltip: HTMLElement, datasource: Datasource, name: string = ACTIONS.tooltip): void {
         const actions = tooltip.getElementsByClassName('tb-custom-action');
         const currentAction = this.getActions(name);
         if (!currentAction) return;

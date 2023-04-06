@@ -19,33 +19,51 @@ import { OBJECT_ID_TAG } from "../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
 
+export type CssObjectType = 'label' | 'image';
+
 export interface CssData {
-    divElement: HTMLDivElement;
+    htmlElement: HTMLElement;
     cssObject: CSS2DObject;
     layer: number;
+    type: CssObjectType;
+    id: number;
 }
 
 export class ThreedCssManager {
 
-    public cssObjects: Map<string, CssData> = new Map();
+    private static lastCssObjectId = 1;
+
+    // TODO: change in Map<string, {layer: number, data:CssData}>
+    public cssObjects: Map<string, CssData[]> = new Map();
     private sceneManager: IThreedSceneManager;
 
     public readonly initialLabelLayerIndex = 5;
     private lastLayerIndex = this.initialLabelLayerIndex;
 
 
-
     constructor(sceneManager: IThreedSceneManager) {
         this.sceneManager = sceneManager;
     }
 
-    public createLabel(id: string, className?: string): CssData {
-        const layer = this.lastLayerIndex++;
-        const divElement = document.createElement('div');
-        divElement.className = className || 'label';
-        divElement.textContent = 'initial content';
-        divElement.style.marginTop = '-1em';
-        const cssObject = new CSS2DObject(divElement);
+    public createObject(id: string, type: CssObjectType, className?: string): CssData {
+
+        let htmlElement: HTMLElement;
+        switch (type) {
+            case "label":
+                htmlElement = this.createLabel(className);
+                break;
+            case "image":
+                htmlElement = this.createImage(className);
+                break;
+        }
+
+        let layer: number;
+        if (!this.cssObjects.has(id) || this.cssObjects.get(id).length == 0) {
+            this.cssObjects.set(id, []);
+            layer = this.lastLayerIndex++;
+        } else layer = this.cssObjects.get(id)[0].layer;
+
+        const cssObject = new CSS2DObject(htmlElement);
         cssObject.layers.set(layer);
         cssObject.userData[OBJECT_ID_TAG] = id;
 
@@ -55,16 +73,34 @@ export class ThreedCssManager {
             new THREE.Box3().setFromObject(model.root).getCenter(cssObject.position);
         }
 
-        const label = { divElement, cssObject, layer };
-        this.cssObjects.set(id, label)
+        const objectId = ThreedCssManager.lastCssObjectId++;
+        const cssData = { htmlElement, cssObject, layer, type, id: objectId };
 
-        this.sceneManager.scene.add(label.cssObject);
-        return label;
+        this.cssObjects.get(id).push(cssData);
+
+        this.sceneManager.scene.add(cssData.cssObject);
+        return cssData;
     }
 
+    private createLabel(className?: string): HTMLDivElement {
+        const divElement = document.createElement('div');
+        divElement.className = className || 'label';
+        divElement.textContent = 'initial content';
+        divElement.style.marginTop = '-1em';
+        return divElement;
+    }
+
+    private createImage(className?: string): HTMLImageElement {
+        const imgElement = document.createElement('img');
+        imgElement.className = className || '';
+        imgElement.style.marginTop = '-1em';
+        return imgElement;
+    }
+
+    /*
     public removeLabel(id: string): void {
         this.cssObjects.delete(id);
-    }
+    }*/
 
     /**
      * It updates the first label finded with the specific id.
@@ -77,24 +113,65 @@ export class ThreedCssManager {
      * @param content the new content
      * @returns 
      */
-    public updateLabelContent(ids: string[], content: string): CssData | undefined {
-        let index = -1;
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            if (!this.cssObjects.has(id)) continue;
-            else {
-                index = i;
-                break;
-            }
-        }
+    public updateLabel(ids: string[], content: string): CssData | undefined {
+        const id = this.findFirst(ids, 'label');
+        if (!id) return;
 
-        if (index == -1) return;
-
-        const id = ids[index];
-        const cssData = this.cssObjects.get(id);
-        const divLabel = cssData!.divElement;
+        const cssData = this.cssObjects.get(id.mapId)[id.arrayId];
+        const divLabel = cssData!.htmlElement;
         divLabel.innerHTML = content;
         return cssData;
+    }
+
+    public updateImage(ids: string[], content: { url: string, size: number }): CssData | undefined {
+        const id = this.findFirst(ids, 'image');
+        if (!id) return;
+
+        const cssData = this.cssObjects.get(id.mapId)[id.arrayId];
+        const image = cssData!.htmlElement as HTMLImageElement;
+        image.src = content.url;
+        image.width = content.size || 34;
+        image.height = content.size || 34;
+        /*
+        image.style.backgroundImage = `url(${content.url})`;
+        image.style.width = `width: ${content.size || 34}px;`;
+        image.style.height = `height: ${content.size || 34}px;`;
+        */
+        return cssData;
+    }
+
+    private findFirst(ids: string[], type: CssObjectType): { mapId: string, arrayId: number } | undefined {
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const cssDatas = this.cssObjects.get(id);
+            if (!cssDatas) continue;
+            else {
+                for (let j = 0; j < cssDatas.length; j++) {
+                    const element = cssDatas[j];
+                    if (element.type == type) {
+                        return { mapId: ids[i], arrayId: j };
+                    }
+                }
+            }
+        }
+        return undefined;
+    }
+
+    public findFirstElement(ids: string[], type: CssObjectType): CssData | undefined {
+        const id = this.findFirst(ids, type);
+        if (!id) return;
+
+        return this.cssObjects.get(id.mapId)[id.arrayId];
+    }
+
+    public findElements(...ids: string[]): CssData[] {
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const cssDatas = this.cssObjects.get(id);
+            if (cssDatas)
+                return cssDatas;
+        }
+        return [];
     }
 
     public onDestory() { }

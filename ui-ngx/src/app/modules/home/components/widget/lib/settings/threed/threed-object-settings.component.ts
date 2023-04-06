@@ -25,20 +25,15 @@ import {
   Validator
 } from '@angular/forms';
 import { ThreedModelLoaderService, ThreedUniversalModelLoaderConfig } from '@app/core/services/threed-model-loader.service';
+import { ThreedTransformControllerComponent } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-components/threed-transform-controller-component';
+import { ThreedGenericSceneManager } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
+import { ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { IAliasController } from '@core/api/widget-api.models';
 import { AppState } from '@core/core.state';
-import {
-  ShowTooltipAction,
-  showTooltipActionTranslationMap
-} from '@home/components/widget/lib/maps/map-models';
-import { ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
-import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
-import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
-import { ContactsOutlined } from '@material-ui/icons';
 
 @Component({
   selector: 'tb-threed-object-settings',
@@ -95,9 +90,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
 
   public threedObjectSettingsFormGroup: FormGroup;
   public expanded = false;
-  showTooltipActions = Object.values(ShowTooltipAction);
-  showTooltipActionTranslations = showTooltipActionTranslationMap;
-
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
@@ -111,12 +103,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
       entity: [null, []],
       modelUrl: [null, []],
 
-      showTooltip: [null, []],
-      showTooltipAction: [null, []],
-      tooltipPattern: [null, []],
-      tooltipOffsetX: [null, []],
-      tooltipOffsetY: [null, []],
-
       threedPositionVectorSettings: [defaultThreedVectorZeroSettings, []],
       threedRotationVectorSettings: [defaultThreedVectorZeroSettings, []],
       threedScaleVectorSettings: [defaultThreedVectorOneSettings, []],
@@ -124,9 +110,6 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
 
     this.threedObjectSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
-    });
-    this.threedObjectSettingsFormGroup.get('showTooltip').valueChanges.subscribe(() => {
-      this.updateValidators(true);
     });
 
     const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
@@ -199,23 +182,7 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   }
 
   private updateValidators(emitEvent?: boolean): void {
-    const showTooltip: boolean = this.threedObjectSettingsFormGroup.get('showTooltip').value;
-    if (showTooltip) {
-      this.threedObjectSettingsFormGroup.get('showTooltipAction').enable({emitEvent});
-      this.threedObjectSettingsFormGroup.get('tooltipOffsetX').enable({emitEvent});
-      this.threedObjectSettingsFormGroup.get('tooltipOffsetY').enable({emitEvent});
-      this.threedObjectSettingsFormGroup.get('tooltipPattern').enable({emitEvent});
-    } else {
-      this.threedObjectSettingsFormGroup.get('showTooltipAction').disable({emitEvent});
-      this.threedObjectSettingsFormGroup.get('tooltipPattern').disable({emitEvent});
-      this.threedObjectSettingsFormGroup.get('tooltipOffsetX').disable({emitEvent});
-      this.threedObjectSettingsFormGroup.get('tooltipOffsetY').disable({emitEvent});
-    }
 
-    this.threedObjectSettingsFormGroup.get('showTooltipAction').updateValueAndValidity({emitEvent: false});
-    this.threedObjectSettingsFormGroup.get('tooltipPattern').updateValueAndValidity({emitEvent: false});
-    this.threedObjectSettingsFormGroup.get('tooltipOffsetX').updateValueAndValidity({emitEvent: false});
-    this.threedObjectSettingsFormGroup.get('tooltipOffsetY').updateValueAndValidity({emitEvent: false});  
   }
 
   private entityAttributeChanged(emitEvent: boolean = true) {

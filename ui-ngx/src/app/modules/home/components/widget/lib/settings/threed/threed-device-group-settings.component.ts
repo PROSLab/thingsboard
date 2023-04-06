@@ -30,7 +30,7 @@ import {
 import { IAliasController } from '@app/core/public-api';
 import { EntityInfo } from '@app/shared/public-api';
 import { AppState } from '@core/core.state';
-import { ThreedDeviceGroupSettings, ThreedObjectSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
+import { ThreedDeviceGroupSettings, ThreedObjectSettings, defaultThreedMarkerSettings, defaultThreedVectorOneSettings, defaultThreedVectorZeroSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
@@ -102,6 +102,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
       threedEntityKeySettings: [null, []],
       threedTooltipSettings: [null, []],
       threedObjectSettings: this.prepareObjectsFormArray([]),
+      threedMarkerSettings: [null, []],
     });
 
     this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').valueChanges.subscribe(() => this.loadEntities());
@@ -154,7 +155,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
       modelUrl: "",
       threedPositionVectorSettings: defaultThreedVectorZeroSettings,
       threedRotationVectorSettings: defaultThreedVectorZeroSettings,
-      threedScaleVectorSettings: defaultThreedVectorOneSettings,
+      threedScaleVectorSettings: defaultThreedVectorOneSettings
     };
     const objectControl = this.fb.control(object, [Validators.required]);
     (objectControl as any).new = true;
@@ -163,7 +164,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
     for (let i = 0; i < this.deletedDevices.length; i++) {
       const element = this.deletedDevices[i];
-      if(element.id == entity.id){
+      if (element.id == entity.id) {
         this.deletedDevices.splice(i, 1);
         break;
       }

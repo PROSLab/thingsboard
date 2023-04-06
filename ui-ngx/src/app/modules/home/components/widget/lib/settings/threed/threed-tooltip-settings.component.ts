@@ -24,17 +24,13 @@ import {
   NG_VALUE_ACCESSOR,
   Validator
 } from '@angular/forms';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
-import { IAliasController } from '@core/api/widget-api.models';
 import { ThreedModelLoaderService } from '@app/core/services/threed-model-loader.service';
-import {
-  ShowTooltipAction, 
-  showTooltipActionTranslationMap
-} from '@home/components/widget/lib/maps/map-models';
 import { ThreedTooltipSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
+import { IAliasController } from '@core/api/widget-api.models';
+import { AppState } from '@core/core.state';
+import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { PageComponent } from '@shared/components/page.component';
 
 
 @Component({
@@ -68,10 +64,6 @@ export class ThreedTooltipSettingsComponent extends PageComponent implements OnI
 
   public threedTooltipSettingsFromGroup: FormGroup;
 
-  showTooltipActions = Object.values(ShowTooltipAction);
-
-  showTooltipActionTranslations = showTooltipActionTranslationMap;
-
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
     private loader: ThreedModelLoaderService,
@@ -82,7 +74,6 @@ export class ThreedTooltipSettingsComponent extends PageComponent implements OnI
   ngOnInit(): void {
     this.threedTooltipSettingsFromGroup = this.fb.group({
       showTooltip: [null, []],
-      showTooltipAction: [null, []],
       tooltipPattern: [null, []],
       tooltipOffsetX: [null, []],
       tooltipOffsetY: [null, []]
@@ -140,18 +131,15 @@ export class ThreedTooltipSettingsComponent extends PageComponent implements OnI
   private updateValidators(emitEvent?: boolean): void {
     const showTooltip: boolean = this.threedTooltipSettingsFromGroup.get('showTooltip').value;
     if (showTooltip) {
-      this.threedTooltipSettingsFromGroup.get('showTooltipAction').enable({emitEvent});
       this.threedTooltipSettingsFromGroup.get('tooltipOffsetX').enable({emitEvent});
       this.threedTooltipSettingsFromGroup.get('tooltipOffsetY').enable({emitEvent});
       this.threedTooltipSettingsFromGroup.get('tooltipPattern').enable({emitEvent});
     } else {
-      this.threedTooltipSettingsFromGroup.get('showTooltipAction').disable({emitEvent});
       this.threedTooltipSettingsFromGroup.get('tooltipPattern').disable({emitEvent});
       this.threedTooltipSettingsFromGroup.get('tooltipOffsetX').disable({emitEvent});
       this.threedTooltipSettingsFromGroup.get('tooltipOffsetY').disable({emitEvent});
     }
 
-    this.threedTooltipSettingsFromGroup.get('showTooltipAction').updateValueAndValidity({emitEvent: false});
     this.threedTooltipSettingsFromGroup.get('tooltipPattern').updateValueAndValidity({emitEvent: false});
     this.threedTooltipSettingsFromGroup.get('tooltipOffsetX').updateValueAndValidity({emitEvent: false});
     this.threedTooltipSettingsFromGroup.get('tooltipOffsetY').updateValueAndValidity({emitEvent: false});  

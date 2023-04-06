@@ -275,6 +275,7 @@ import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/setti
 import { ThreedEnvironmentSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-environment-settings.component';
 import { ThreedTooltipSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-tooltip-settings.component';
 import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-camera-settings.component';
+import { ThreedMarkerSettingsComponent } from './threed/threed-marker-settings.component';
 
 
 @NgModule({
@@ -391,6 +392,7 @@ import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/setti
     ThreedEnvironmentSettingsComponent,
     ThreedTooltipSettingsComponent,
     ThreedCameraSettingsComponent,
+    ThreedMarkerSettingsComponent,
   ],
   imports: [
     CommonModule,

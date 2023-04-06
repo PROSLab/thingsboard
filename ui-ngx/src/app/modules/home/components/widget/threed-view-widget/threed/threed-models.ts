@@ -56,6 +56,25 @@ export const defaultThreedVectorOneSettings: ThreedVectorSettings = {
 
 
 
+export interface ThreedMarkerSettings {
+    showMarker: boolean;
+    useMarkerImageFunction: boolean;
+    markerImage?: string;
+    markerImageSize?: number;
+    markerImageFunction?: string;
+    markerImages?: string[];
+}
+export const defaultThreedMarkerSettings: ThreedMarkerSettings = {
+    showMarker: false,
+    useMarkerImageFunction: false,
+    markerImage: null,
+    markerImageSize: 34,
+    markerImageFunction: null,
+    markerImages: []
+}
+
+
+
 export interface ThreedObjectSettings {
     entity: EntityInfo;
     modelUrl: string;
@@ -68,14 +87,12 @@ export interface ThreedObjectSettings {
 
 export interface ThreedTooltipSettings {
     showTooltip: boolean;
-    showTooltipAction: string;
     tooltipPattern: string;
     tooltipOffsetX: number;
     tooltipOffsetY: number;
 }
 export const defaultThreedTooltipSettings: ThreedTooltipSettings = {
     showTooltip: true,
-    showTooltipAction: 'hover',
     tooltipPattern: '<b>${entityName}</b>',
     tooltipOffsetX: 0,
     tooltipOffsetY: 0,
@@ -121,13 +138,15 @@ export interface ThreedDeviceGroupSettings {
     threedEntityKeySettings: ThreedEntityKeySettings;
     threedObjectSettings: ThreedObjectSettings[];
     threedTooltipSettings: ThreedTooltipSettings;
+    threedMarkerSettings: ThreedMarkerSettings;
 }
 export const defaultThreedDeviceGroupSettings: ThreedDeviceGroupSettings = {
     threedEntityAliasSettings: { entityAlias: "" },
     useAttribute: false,
     threedEntityKeySettings: { entityAttribute: "" },
     threedObjectSettings: [],
-    threedTooltipSettings: defaultThreedTooltipSettings
+    threedTooltipSettings: defaultThreedTooltipSettings,
+    threedMarkerSettings: defaultThreedMarkerSettings
 };
 
 

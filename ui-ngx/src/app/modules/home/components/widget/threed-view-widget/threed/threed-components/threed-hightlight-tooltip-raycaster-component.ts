@@ -42,10 +42,11 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
         const customId = root.userData[OBJECT_ID_TAG];
 
         if(customId){
-            const label = this.sceneManager.cssManager.cssObjects.get(customId);
-            if(!label) return;
-            this.sceneManager.camera!.layers.enable(label.layer);
-            object.userData.layer = label.layer;
+            const objects = this.sceneManager.cssManager.findElements(customId);
+            if(objects.length == 0) return;
+            const layer = objects[0].layer;
+            this.sceneManager.camera!.layers.enable(layer);
+            object.userData.layer = layer;
         }
     }
 
