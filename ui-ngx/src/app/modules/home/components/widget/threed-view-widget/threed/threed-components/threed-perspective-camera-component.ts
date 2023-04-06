@@ -28,7 +28,7 @@ export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent implem
 
         this.camera = new THREE.PerspectiveCamera(60, this.sceneManager.screenWidth / this.sceneManager.screenHeight, 0.01, 10000);
         this.camera.position.set(0, 40, -70);
-        sceneManager.camera = this.camera;
+        sceneManager.setCamera(this.camera);
 
         // TODO: used for vr, check if it works!
         sceneManager.scene.add(this.camera);

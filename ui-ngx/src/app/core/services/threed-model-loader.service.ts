@@ -233,8 +233,8 @@ export class ThreedModelLoaderService {
 
       scene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
       if (hasTooltip) {
-        scene.cssManager.createObject(customId, 'label');
-        scene.cssManager.createObject(customId, 'image');
+        scene.cssManager.createObject(customId, { type: 'label', offsetY: 0.5 });
+        scene.cssManager.createObject(customId, { type: 'image', offsetY: 1, alwaysVisible: true });
       }
     });
   }

@@ -98,6 +98,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
     this.orbitScene.setValues(this.settings);
     this.onEditModeChanged();
+    this.onDataUpdated();
   }
 
   ngOnDestroy(): void {

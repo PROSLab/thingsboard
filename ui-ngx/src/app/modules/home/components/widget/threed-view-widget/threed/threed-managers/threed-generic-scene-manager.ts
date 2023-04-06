@@ -45,9 +45,9 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private subscriptions: Subscription[] = [];
 
     public scene: Scene;
-    public camera: Camera;
     public active: boolean;
-
+    
+    public camera: Camera;
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
     public cssManager: ThreedCssManager;
@@ -57,6 +57,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public mouse = new THREE.Vector2();
 
     public onRendererContainerChange = new EventEmitter<ElementRef>();
+    public onMainCameraChange = new EventEmitter<Camera>();
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
@@ -78,7 +79,6 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.subscriptions.push(s);
 
         this.cssManager = new ThreedCssManager(this);
-
         this.components.forEach(c => c.initialize(this));
     }
 
@@ -92,6 +92,11 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     public getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined {
         return this.threedRenderers.find(c => c instanceof type) as T | undefined;
+    }
+
+    public setCamera(camera: Camera) {
+        this.camera = camera;
+        this.onMainCameraChange.emit(camera);
     }
 
     public attachToElement(rendererContainer: ElementRef) {

@@ -24,9 +24,9 @@ import { ElementRef, EventEmitter } from '@angular/core';
 
 export interface IThreedSceneManager {
     scene: Scene;
-    camera: Camera;
     active: boolean;
-
+    
+    get camera(): Camera;
     get configs(): ThreedSceneConfig;
     get modelManager(): ThreedModelManager;
     get cssManager(): ThreedCssManager;
@@ -36,6 +36,7 @@ export interface IThreedSceneManager {
     get mouse(): THREE.Vector2;
 
     onRendererContainerChange: EventEmitter<ElementRef>;
+    onMainCameraChange: EventEmitter<Camera>;
 
     initialize(): void;
     getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined;
@@ -44,4 +45,5 @@ export interface IThreedSceneManager {
     getComponent<T extends IThreedComponent>(type: new () => T): T | undefined;
     findComponentsByTester<T>(tester: (obj: any) => obj is T): T[];
     destory(): void;
+    setCamera(camera: Camera): void;
 }

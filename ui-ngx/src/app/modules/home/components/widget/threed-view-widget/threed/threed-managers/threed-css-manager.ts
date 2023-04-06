@@ -18,65 +18,104 @@ import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { OBJECT_ID_TAG } from "../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
+import { Subscription } from "rxjs";
 
 export type CssObjectType = 'label' | 'image';
 
 export interface CssData {
-    htmlElement: HTMLElement;
-    cssObject: CSS2DObject;
+    id: number,
+    htmlElement: HTMLElement,
+    cssObject: CSS2DObject,
+    type: CssObjectType,
+    offsetY: number, //ranges between 0...1;
+}
+
+export interface CssObject {
     layer: number;
-    type: CssObjectType;
-    id: number;
+    data: CssData[];
+}
+
+export interface CssObjectProperties {
+    type: CssObjectType,
+    className?: string,
+    offsetY: number, //ranges between 0...1;
+    alwaysVisible?: boolean,
 }
 
 export class ThreedCssManager {
 
     private static lastCssObjectId = 1;
 
-    // TODO: change in Map<string, {layer: number, data:CssData}>
-    public cssObjects: Map<string, CssData[]> = new Map();
+    public cssObjects: Map<string, CssObject> = new Map();
     private sceneManager: IThreedSceneManager;
 
+    public readonly markersLayerIndex = 4;
     public readonly initialLabelLayerIndex = 5;
     private lastLayerIndex = this.initialLabelLayerIndex;
+    private subscriptions: Subscription[] = [];
 
+    private markersLayerEnabled = true;
 
     constructor(sceneManager: IThreedSceneManager) {
         this.sceneManager = sceneManager;
+
+        const s = this.sceneManager.onMainCameraChange.subscribe(c => this.updateMarkersLayer());
+        this.subscriptions.push(s);
     }
 
-    public createObject(id: string, type: CssObjectType, className?: string): CssData {
+    public toggleMarkersLayer(enabled?: boolean): void {
+        this.markersLayerEnabled = enabled || !this.markersLayerEnabled;
+        this.updateMarkersLayer();
+    }
+
+    private updateMarkersLayer(): void {
+        if(!this.sceneManager.camera) return;
+
+        if (this.markersLayerEnabled) this.sceneManager.camera.layers.enable(this.markersLayerIndex);
+        else this.sceneManager.camera.layers.disable(this.markersLayerIndex);
+    }
+
+    public createObject(id: string, properties: CssObjectProperties): CssData {
 
         let htmlElement: HTMLElement;
-        switch (type) {
+        switch (properties.type) {
             case "label":
-                htmlElement = this.createLabel(className);
+                htmlElement = this.createLabel(properties.className);
                 break;
             case "image":
-                htmlElement = this.createImage(className);
+                htmlElement = this.createImage(properties.className);
                 break;
         }
 
-        let layer: number;
-        if (!this.cssObjects.has(id) || this.cssObjects.get(id).length == 0) {
-            this.cssObjects.set(id, []);
-            layer = this.lastLayerIndex++;
-        } else layer = this.cssObjects.get(id)[0].layer;
+        if (!this.cssObjects.has(id))
+            this.cssObjects.set(id, { layer: this.lastLayerIndex++, data: [] });
 
-        const cssObject = new CSS2DObject(htmlElement);
-        cssObject.layers.set(layer);
-        cssObject.userData[OBJECT_ID_TAG] = id;
+        const cssObject = this.cssObjects.get(id);
 
+        const css2dObject = new CSS2DObject(htmlElement);
+        css2dObject.layers.set(properties.alwaysVisible ? this.markersLayerIndex : cssObject.layer);
+        css2dObject.userData[OBJECT_ID_TAG] = id;
+
+        const offsetY = THREE.MathUtils.clamp(properties.offsetY, 0, 1);
         const model = this.sceneManager.modelManager.models.get(id);
         if (model) {
             // it places the label to the center of the model if it exists
-            new THREE.Box3().setFromObject(model.root).getCenter(cssObject.position);
+            const position = new THREE.Vector3();
+            const box = new THREE.Box3().setFromObject(model.root);
+            box.getCenter(position);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+
+            position.y += (offsetY - 0.5) * size.y;
+
+            css2dObject.position.copy(position);
         }
 
         const objectId = ThreedCssManager.lastCssObjectId++;
-        const cssData = { htmlElement, cssObject, layer, type, id: objectId };
+        const cssData: CssData = { htmlElement, cssObject: css2dObject, type: properties.type, id: objectId, offsetY };
 
-        this.cssObjects.get(id).push(cssData);
+        cssObject.data.push(cssData);
+        //this.cssObjects.get(id).push(cssData);
 
         this.sceneManager.scene.add(cssData.cssObject);
         return cssData;
@@ -114,20 +153,18 @@ export class ThreedCssManager {
      * @returns 
      */
     public updateLabel(ids: string[], content: string): CssData | undefined {
-        const id = this.findFirst(ids, 'label');
-        if (!id) return;
+        const cssData = this.findFirstElement(ids, 'label');
+        if (!cssData) return;
 
-        const cssData = this.cssObjects.get(id.mapId)[id.arrayId];
         const divLabel = cssData!.htmlElement;
         divLabel.innerHTML = content;
         return cssData;
     }
 
     public updateImage(ids: string[], content: { url: string, size: number }): CssData | undefined {
-        const id = this.findFirst(ids, 'image');
-        if (!id) return;
+        const cssData = this.findFirstElement(ids, 'image');
+        if (!cssData) return;
 
-        const cssData = this.cssObjects.get(id.mapId)[id.arrayId];
         const image = cssData!.htmlElement as HTMLImageElement;
         image.src = content.url;
         image.width = content.size || 34;
@@ -143,11 +180,11 @@ export class ThreedCssManager {
     private findFirst(ids: string[], type: CssObjectType): { mapId: string, arrayId: number } | undefined {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const cssDatas = this.cssObjects.get(id);
-            if (!cssDatas) continue;
+            const cssObject = this.cssObjects.get(id);
+            if (!cssObject) continue;
             else {
-                for (let j = 0; j < cssDatas.length; j++) {
-                    const element = cssDatas[j];
+                for (let j = 0; j < cssObject.data.length; j++) {
+                    const element = cssObject.data[j];
                     if (element.type == type) {
                         return { mapId: ids[i], arrayId: j };
                     }
@@ -161,18 +198,20 @@ export class ThreedCssManager {
         const id = this.findFirst(ids, type);
         if (!id) return;
 
-        return this.cssObjects.get(id.mapId)[id.arrayId];
+        return this.cssObjects.get(id.mapId).data[id.arrayId];
     }
 
-    public findElements(...ids: string[]): CssData[] {
+    public findCssObject(...ids: string[]): CssObject | undefined {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const cssDatas = this.cssObjects.get(id);
-            if (cssDatas)
-                return cssDatas;
+            const cssObject = this.cssObjects.get(id);
+            if (cssObject)
+                return cssObject;
         }
-        return [];
+        return undefined;
     }
 
-    public onDestory() { }
+    public onDestory() {
+        this.subscriptions.forEach(s => s.unsubscribe());
+    }
 }

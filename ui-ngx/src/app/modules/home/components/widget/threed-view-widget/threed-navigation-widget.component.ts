@@ -27,6 +27,7 @@ import { ThreedWidgetDataUpdateManager } from './threed-widget-data-update-manag
 import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
+import { Subscription } from 'rxjs';
 
 /*
 Widget Type: Ultimi Valori
@@ -61,6 +62,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   private navigationScene: ThreedGenericSceneManager;
   private actionManager: ThreedWidgetActionManager;
   private dataUpdateManager: ThreedWidgetDataUpdateManager;
+  private pointerLockedSub: Subscription;
 
   constructor(
     protected store: Store<AppState>,
@@ -86,16 +88,18 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     }
 
     this.navigationScene.setValues(this.settings);
-    this.navigationScene.getComponent(ThreedFirstPersonControllerComponent).onPointerLockedChanged.subscribe(v => {
+    this.pointerLockedSub =this.navigationScene.getComponent(ThreedFirstPersonControllerComponent).onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
     });
 
     this.loadModels();
     this.onEditModeChanged();
+    this.onDataUpdated();
   }
 
   ngOnDestroy(): void {
+    this.pointerLockedSub.unsubscribe();
     this.navigationScene?.destory();
   }
   
@@ -128,23 +132,11 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
 
   public onDataUpdated() {
     this.dataUpdateManager.onDataUpdate(this.settings.threedSceneSettings?.threedDevicesSettings, this.navigationScene);
-
-    //this.updateMarkers(formattedData, false, markerClickCallback);
   }
 
   public onEditModeChanged() {
     this.navigationScene.active = !this.ctx.isEdit;
   }
-
-  /*
-  updateMarkers(markersData: FormattedData[], updateBounds = true, callback?) {
-    const rawMarkers = markersData.filter(mdata => !!this.extractPosition(mdata));
-
-    rawMarkers.forEach(data => {
-      const currentImage: MarkerImageInfo = safeExecute(this.settings.parsedMarkerImageFunction,
-        [data, this.settings.markerImages, markersData, data.dsIndex]);
-    });
-  }*/
 
   public onResize(width: number, height: number): void {
     this.navigationScene.resize(width, height);
