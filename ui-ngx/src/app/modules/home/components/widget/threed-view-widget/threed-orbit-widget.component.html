@@ -37,6 +37,11 @@
                         matTooltip="Move, rotate and zoom" [ngClass]="activeMode == 'pan' ? 'active-mode' : ''">
                         <mat-icon>pan_tool</mat-icon>
                     </button>
+
+                    <button mat-icon-button *ngIf="!explodedView" (click)="deselectObject()"
+                        matTooltip="Deselect object">
+                        <mat-icon>close</mat-icon>
+                    </button>
                 </div>
 
                 <div fxLayout="column" fxLayoutAlign="space-around center">

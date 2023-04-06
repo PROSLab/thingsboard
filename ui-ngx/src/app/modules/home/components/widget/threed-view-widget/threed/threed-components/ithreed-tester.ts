@@ -42,7 +42,8 @@ export class IThreedTester {
     }
 
     public static isIThreedObjectSelector = function (obj: any): obj is IThreedObjectSelector {
-        return 'getSelectedObject' in obj && typeof obj['getSelectedObject'] === 'function';
+        return 'getSelectedObject' in obj && typeof obj['getSelectedObject'] === 'function'
+            && 'deselectObject' in obj && typeof obj['deselectObject'] === 'function';
     }
 
 }

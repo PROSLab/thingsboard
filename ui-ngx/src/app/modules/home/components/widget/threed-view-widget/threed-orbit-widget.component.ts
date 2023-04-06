@@ -201,6 +201,11 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     if (raycastComponent) raycastComponent.raycastEnabled = mode == 'selection';
   }
 
+  public deselectObject() {
+    const selectors = this.orbitScene.findComponentsByTester(IThreedTester.isIThreedObjectSelector);
+    selectors.forEach(s => s.deselectObject());
+  }
+
   public onResize(width: number, height: number): void {
     this.orbitScene.resize(width, height);
   }

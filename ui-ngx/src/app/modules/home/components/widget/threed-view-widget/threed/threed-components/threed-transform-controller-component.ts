@@ -181,4 +181,8 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     public getSelectedObject(): THREE.Object3D | undefined {
         return this.transformControl?.object;
     }
+
+    public deselectObject(): void {
+        this.attachTransformController();
+    }
 }
