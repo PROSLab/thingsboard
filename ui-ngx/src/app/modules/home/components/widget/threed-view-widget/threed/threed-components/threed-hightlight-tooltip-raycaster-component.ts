@@ -18,7 +18,7 @@ import * as THREE from 'three';
 import { OBJECT_ID_TAG, ROOT_TAG } from "../threed-constants";
 import { ThreedUtils } from "../threed-utils";
 import { ThreedHightlightRaycasterComponent } from "./threed-hightlight-raycaster-component";
-import { CSS2DRaycaster } from '../css2d-raycaster';
+import { CSS2DRaycaster } from '../threed-extensions/css2d-raycaster';
 import { IThreedSceneManager } from '../threed-managers/ithreed-scene-manager';
 
 export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightRaycasterComponent {

@@ -41,7 +41,6 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private rendererContainer: ElementRef;
     private threedRenderers: IThreedRenderer[] = [];
     private components: IThreedComponent[] = [];
-    private vrActive = false;
     private subscriptions: Subscription[] = [];
     private _center = new THREE.Vector2();
 
@@ -56,6 +55,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public screenHeight = window.innerHeight;
     public currentValues: any;
     public mouse = new THREE.Vector2();
+    public vrActive = false;
 
     public get center(): THREE.Vector2 {
         const rect: DOMRect | undefined = this.rendererContainer?.nativeElement.getBoundingClientRect();
@@ -122,7 +122,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
         if (this.configs.vr) {
             const vrButton = VRButton.createButton(this.getTRenderer(ThreedWebRenderer).getRenderer());
-            vrButton.addEventListener('click', () => this.vrActive = !this.vrActive);
+            vrButton.addEventListener('click', event => { event.stopPropagation(); });
             this.rendererContainer.nativeElement.appendChild(vrButton);
         }
 
@@ -300,7 +300,33 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     private initializeVR() {
         if (this.configs.vr) {
-            this.getTRenderer(ThreedWebRenderer).getRenderer().xr.enabled = true;
+            const renderer = this.getTRenderer(ThreedWebRenderer).getRenderer();
+            renderer.xr.enabled = true;
+            renderer.xr.addEventListener('sessionstart', () => this.onVRSessionStart());
+            renderer.xr.addEventListener('sessionend', () => this.onVRSessionEnd());
+        }
+    }
+
+    private cameraGroup: THREE.Group;
+    private onVRSessionStart() {
+        this.vrActive = true;
+        if (this.camera && this.camera.parent?.type != "Group") {
+            this.cameraGroup = new THREE.Group();
+            this.cameraGroup.add(this.camera);
+            this.cameraGroup.position.copy(this.camera.position);
+            //this.cameraGroup.rotation.copy(this.camera.rotation);
+            this.camera.position.set(0, 0, 0);
+            this.camera.rotation.set(0, 0, 0);
+            this.scene.add(this.cameraGroup);
+        }
+    }
+    private onVRSessionEnd() {
+        this.vrActive = false;
+        if (this.camera && this.camera.parent?.type == "Group") {
+            this.camera.position.copy(this.cameraGroup.position);
+            this.camera.rotation.copy(this.cameraGroup.rotation);
+            this.scene.remove(this.cameraGroup);
+            this.camera.parent = null;
         }
     }
     /*============================ END OF VR ============================*/

@@ -18,7 +18,7 @@
 <div #rendererContainer>
 
     <div id="blocker" [ngStyle]="{'display': pointerLocked ? 'none' : 'block'}">
-        <div id="instructions" [ngStyle]="{'display': pointerLocked ? 'none' : ''}" (click)="lockCursor()">
+        <div id="instructions" [ngStyle]="{'display': pointerLocked ? 'none' : ''}" (click)="lockCursor($event)">
             <p style="font-size:36px">
                 Click to move
             </p>

@@ -29,6 +29,7 @@ import { CAMERA_ID, OBJECT_ID_TAG } from '../threed-constants';
 import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-scene-manager";
 import { ThreedSceneBuilder } from "./threed-scene-builder";
 import { ThreedProgressBarComponent } from '../threed-components/threed-progress-bar-component';
+import { ThreedVrControllerComponent } from '../threed-components/threed-vr-controller-component';
 
 export class ThreedScenes {
 
@@ -68,7 +69,8 @@ export class ThreedScenes {
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
             .add(new ThreedHightlightTooltipRaycasterComponent('click', 'root', new THREE.Vector2()))
-            .add(new ThreedProgressBarComponent());
+            .add(new ThreedProgressBarComponent())
+            .add(new ThreedVrControllerComponent());
 
         return builder.build();
     }

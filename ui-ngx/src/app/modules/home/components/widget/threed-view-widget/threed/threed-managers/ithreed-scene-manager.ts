@@ -35,6 +35,7 @@ export interface IThreedSceneManager {
     get currentValues(): any;
     get mouse(): THREE.Vector2;
     get center(): THREE.Vector2;
+    get vrActive(): boolean;
 
     onRendererContainerChange: EventEmitter<ElementRef>;
     onMainCameraChange: EventEmitter<Camera>;

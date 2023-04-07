@@ -61,6 +61,8 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     }
 
     tick(): void {
+        if(this.sceneManager.vrActive) return;
+
         const time = performance.now();
 
         if (this.controls && this.controls.isLocked === true) {
@@ -102,8 +104,9 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
                 this.controls.getObject().position.y = 10;
 
                 this.canJump = true;
-
             }
+
+            console.log(this.controls.getObject());
         }
 
         this.prevTime = time;

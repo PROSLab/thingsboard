@@ -98,13 +98,15 @@ export class ThreedWidgetDataUpdateManager {
 
 
     private updateTooltip(settings: ThreedTooltipSettings, fd: FormattedData, scene: IThreedSceneManager) {
-        const pattern = settings.tooltipPattern;
-        const tooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
-        const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
-        const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
-
-        const tooltip = scene.cssManager.updateLabel([fd.entityId], content);
-        if (tooltip) this.actionManager.bindPopupActions(tooltip.htmlElement, fd.$datasource, ACTIONS.tooltip);
+        try {
+            const pattern = settings.tooltipPattern;
+            const tooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
+            const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
+            const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
+    
+            const tooltip = scene.cssManager.updateLabel([fd.entityId], content);
+            if (tooltip) this.actionManager.bindPopupActions(tooltip.htmlElement, fd.$datasource, ACTIONS.tooltip); 
+        } catch (_) { }
     }
 
     private updateMarker(settings: ThreedMarkerSettings, markersData: FormattedData[], data: FormattedData, scene: IThreedSceneManager) {

@@ -135,8 +135,6 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     if (this.orbitType == 'simple') return;
 
     this.dataUpdateManager.onDataUpdate((this.settings as ThreedComplexOrbitWidgetSettings).threedSceneSettings?.threedDevicesSettings, this.orbitScene);
-
-    //this.updateMarkers(formattedData, false, markerClickCallback);
   }
 
   public onEditModeChanged() {

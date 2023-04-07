@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild, OnDestroy, HostBinding } from '@angular/core';
 import { ThreedGenericLoaderService } from '@app/core/services/threed-generic-loader.service';
 import { ACTIONS, ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import { ThreedViewWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
@@ -49,6 +49,9 @@ Altrimenti, se si aggiunge il widget a mano (tramite librertia widget/amministra
   styleUrls: ['./threed-navigation-widget.component.scss']
 })
 export class ThreedNavigationWidgetComponent extends PageComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  /* To solve the overflow when exit from VR */
+  @HostBinding('style.overflow') overflow = 'hidden';
 
   settings: ThreedViewWidgetSettings;
 
@@ -88,7 +91,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     }
 
     this.navigationScene.setValues(this.settings);
-    this.pointerLockedSub =this.navigationScene.getComponent(ThreedFirstPersonControllerComponent).onPointerLockedChanged.subscribe(v => {
+    this.pointerLockedSub = this.navigationScene.getComponent(ThreedFirstPersonControllerComponent)?.onPointerLockedChanged.subscribe(v => {
       this.pointerLocked = v;
       this.cd.detectChanges();
     });
@@ -99,7 +102,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }
 
   ngOnDestroy(): void {
-    this.pointerLockedSub.unsubscribe();
+    this.pointerLockedSub?.unsubscribe();
     this.navigationScene?.destory();
   }
   
@@ -126,7 +129,8 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     this.navigationScene.attachToElement(this.rendererContainer);
   }
 
-  lockCursor() {
+  lockCursor(event: Event) {
+    event.stopPropagation(); 
     this.navigationScene.getComponent(ThreedFirstPersonControllerComponent)?.lockControls();
   }
 
@@ -139,6 +143,6 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }
 
   public onResize(width: number, height: number): void {
-    this.navigationScene.resize(width, height);
+    this.navigationScene?.resize(width, height);
   }
 }

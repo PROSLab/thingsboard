@@ -41,7 +41,7 @@ export class ThreedWebRenderer implements IThreedRenderer {
     }
 
     public resize(width?: number, height?: number): void {
-        this.renderer?.setSize(width, height);
+        this.renderer?.setSize(width, height, false);
     }
 
     public tick(threedSceneManager: IThreedSceneManager): void { 
