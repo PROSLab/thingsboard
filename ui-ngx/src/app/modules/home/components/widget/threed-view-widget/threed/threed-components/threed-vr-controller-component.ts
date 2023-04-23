@@ -13,6 +13,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 ///
+
 import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
@@ -44,19 +45,19 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
-        const this_ = this;
         const renderer = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer();
         this.controller = renderer.xr.getController(0);
         this.controller.addEventListener('selectstart', event => this.onSelectStart(event));
         this.controller.addEventListener('selectend', event => this.onSelectEnd(event));
-        this.controller.addEventListener('connected', function (event) { this.add(this_.buildController(event.data)); });
+        this.controller.addEventListener('connected', event => this.buildController(event));
         this.controller.addEventListener('disconnected', function () { this.remove(this.children[0]); });
         this.sceneManager.scene.add(this.controller);
 
         const controllerModelFactory = new XRControllerModelFactory();
-
         this.controllerGrip = renderer.xr.getControllerGrip(0);
-        this.controllerGrip.add(controllerModelFactory.createControllerModel(this.controllerGrip));
+        const controllerGripModel = controllerModelFactory.createControllerModel(this.controllerGrip);
+        controllerGripModel.scale.multiplyScalar(5);
+        this.controllerGrip.add(controllerGripModel);
         this.sceneManager.scene.add(this.controllerGrip);
     }
 
@@ -69,28 +70,24 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.moveForward = false;
     }
 
-    private buildController(data) {
+    private buildController(event: any) {
 
-        let geometry, material;
-
-        switch (data.targetRayMode) {
-
+        let geometry: THREE.BufferGeometry;
+        let material: THREE.Material;
+        switch (event.data.targetRayMode) {
             case 'tracked-pointer':
-
                 geometry = new THREE.BufferGeometry();
                 geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, - 1], 3));
                 geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.5, 0.5, 0.5, 0, 0, 0], 3));
-
                 material = new THREE.LineBasicMaterial({ vertexColors: true, blending: THREE.AdditiveBlending });
-
-                return new THREE.Line(geometry, material);
+                this.controller.add(new THREE.Line(geometry, material));
+                break;
 
             case 'gaze':
-
                 geometry = new THREE.RingGeometry(0.02, 0.04, 32).translate(0, 0, - 1);
                 material = new THREE.MeshBasicMaterial({ opacity: 0.5, transparent: true });
-                return new THREE.Mesh(geometry, material);
-
+                this.controller.add(new THREE.Mesh(geometry, material));
+                break;
         }
     }
 
@@ -99,10 +96,10 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
             return;
         }
 
+        console.log(this.controllerGrip.position)
         const time = performance.now();
 
         if (this.controller) {
-            
 
             this.tempMatrix.identity().extractRotation(this.controller.matrixWorld);
 

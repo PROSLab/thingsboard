@@ -314,7 +314,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
             this.cameraGroup = new THREE.Group();
             this.cameraGroup.add(this.camera);
             this.cameraGroup.position.copy(this.camera.position);
-            //this.cameraGroup.rotation.copy(this.camera.rotation);
+            this.cameraGroup.rotation.copy(this.camera.rotation);
             this.camera.position.set(0, 0, 0);
             this.camera.rotation.set(0, 0, 0);
             this.scene.add(this.cameraGroup);

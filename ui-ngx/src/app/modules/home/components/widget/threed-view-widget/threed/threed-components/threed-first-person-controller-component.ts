@@ -105,8 +105,6 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
 
                 this.canJump = true;
             }
-
-            console.log(this.controls.getObject());
         }
 
         this.prevTime = time;
