@@ -224,19 +224,21 @@ export class ThreedModelLoaderService {
     );
   }
 
-  public loadModelInScene(scene: IThreedSceneManager, config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
+  public async loadModelInScene(scene: IThreedSceneManager, config: ThreedUniversalModelLoaderConfig, id?: string, hasTooltip: boolean = true) {
     if (!this.isConfigValid(config)) return;
 
     const progressBarComponent = scene.findComponentsByTester(IThreedTester.isIThreedProgress)?.[0];
-    this.loadModelAsGLTF(config, progressBarComponent).subscribe(res => {
-      const customId = id ? id : res.entityId;
 
-      scene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
-      if (hasTooltip) {
-        scene.cssManager.createObject(customId, { type: 'label', offsetY: 0.5 });
-        scene.cssManager.createObject(customId, { type: 'image', offsetY: 1, alwaysVisible: true });
-      }
-    });
+    const res = await this.loadModelAsGLTF(config, progressBarComponent).toPromise();
+    //this.loadModelAsGLTF(config, progressBarComponent).subscribe(res => {
+    const customId = id ? id : res.entityId;
+
+    scene.modelManager.replaceModel(res.model, { id: customId, autoResize: true });
+    if (hasTooltip) {
+      scene.cssManager.createObject(customId, { type: 'label', offsetY: 0.5 });
+      scene.cssManager.createObject(customId, { type: 'image', offsetY: 1, alwaysVisible: true });
+    }
+    //});
   }
 
   private async fetchData(url: string, progressCallback?: IThreedProgress): Promise<ArrayBuffer> {

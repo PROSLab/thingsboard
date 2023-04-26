@@ -69,13 +69,15 @@ export class ThreedCssManager {
     }
 
     private updateMarkersLayer(): void {
-        if(!this.sceneManager.camera) return;
+        if (!this.sceneManager.camera) return;
 
         if (this.markersLayerEnabled) this.sceneManager.camera.layers.enable(this.markersLayerIndex);
         else this.sceneManager.camera.layers.disable(this.markersLayerIndex);
     }
 
     public createObject(id: string, properties: CssObjectProperties): CssData {
+
+        console.log("CreateObject for " + id + " with properties", properties);
 
         let htmlElement: HTMLElement;
         switch (properties.type) {
@@ -115,10 +117,30 @@ export class ThreedCssManager {
         const cssData: CssData = { htmlElement, cssObject: css2dObject, type: properties.type, id: objectId, offsetY };
 
         cssObject.data.push(cssData);
-        //this.cssObjects.get(id).push(cssData);
 
         this.sceneManager.scene.add(cssData.cssObject);
+
         return cssData;
+    }
+
+    onUpdateValues() {
+        // recalculate the position of the css object according to the positions of the models!
+        this.cssObjects.forEach((v, k) => {
+            const model = this.sceneManager.modelManager.models.get(k);
+            if (model) {
+                // it places the label to the center of the model if it exists
+                const position = new THREE.Vector3();
+                const box = new THREE.Box3().setFromObject(model.root);
+                box.getCenter(position);
+                const size = new THREE.Vector3();
+                box.getSize(size);
+
+                v.data.forEach(d => {
+                    position.y += (d.offsetY - 0.5) * size.y;
+                    d.cssObject.position.copy(position);
+                });
+            }
+        });
     }
 
     private createLabel(className?: string): HTMLDivElement {
@@ -152,7 +174,7 @@ export class ThreedCssManager {
      * @param content the new content
      * @returns 
      */
-    public updateLabel(ids: string[], content: string): CssData | undefined {
+    public  updateLabel(ids: string[], content: string): CssData | undefined {
         const cssData = this.findFirstElement(ids, 'label');
         if (!cssData) return;
 
@@ -162,7 +184,7 @@ export class ThreedCssManager {
     }
 
     public updateImage(ids: string[], content: { url: string, size: number }): CssData | undefined {
-        const cssData = this.findFirstElement(ids, 'image');
+        const cssData = this.findFirstElement(ids, 'image')
         if (!cssData) return;
 
         const image = cssData!.htmlElement as HTMLImageElement;

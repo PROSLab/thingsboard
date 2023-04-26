@@ -77,7 +77,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     super(store);
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.ctx.$scope.threedOrbitWidget = this;
     this.settings = this.ctx.settings;
 
@@ -90,8 +90,8 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
       this.orbitType = 'complex';
       this.orbitScene = ThreedScenes.createComplexOrbitScene();
-      this.loadEnvironment(this.settings);
-      this.loadDevices(this.settings);
+      await this.loadEnvironment(this.settings);
+      await this.loadDevices(this.settings);
     } else {
       console.error("Orbit Settings not valid...", this.settings);
     }
@@ -102,7 +102,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   }
 
   ngOnDestroy(): void {
-    this.orbitScene?.destory();
+    this.orbitScene?.destroy();
   }
 
   private initializeManagers() {
@@ -118,12 +118,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
     }
   }
 
-  private loadEnvironment(settings: ThreedComplexOrbitWidgetSettings) {
-    this.threedLoader.loadEnvironment(settings.threedSceneSettings.threedEnvironmentSettings, this.ctx.aliasController, this.orbitScene, ENVIRONMENT_ID, false);
+  private async loadEnvironment(settings: ThreedComplexOrbitWidgetSettings) {
+    await this.threedLoader.loadEnvironment(settings.threedSceneSettings.threedEnvironmentSettings, this.ctx.aliasController, this.orbitScene, ENVIRONMENT_ID, false);
   }
 
-  private loadDevices(settings: ThreedComplexOrbitWidgetSettings) {
-    this.threedLoader.loadDevices(settings.threedSceneSettings.threedDevicesSettings, this.ctx.aliasController, this.orbitScene);
+  private async loadDevices(settings: ThreedComplexOrbitWidgetSettings) {
+    await this.threedLoader.loadDevices(settings.threedSceneSettings.threedDevicesSettings, this.ctx.aliasController, this.orbitScene);
   }
 
   ngAfterViewInit() {

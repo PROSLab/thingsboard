@@ -36,7 +36,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private static activeSceneManagers: Map<number, boolean> = new Map();
     private static lastSceneId = 1;
 
-    private sceneId: number;
+
     private rendererId: string;
     private rendererContainer: ElementRef;
     private threedRenderers: IThreedRenderer[] = [];
@@ -47,6 +47,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public scene: Scene;
     public active: boolean;
 
+    public sceneId: number;
     public camera: Camera;
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
@@ -176,6 +177,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
         const updatables = this.findComponentsByTester(IThreedTester.isIThreedUpdatable)
         updatables.forEach(c => c.onUpdateValues(this.currentValues));
+        this.cssManager.onUpdateValues();
 
         this.render();
     }
@@ -332,7 +334,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     /*============================ END OF VR ============================*/
 
 
-    public destory(): void {
+    public destroy(): void {
         this.components.forEach(c => c.onDestory());
         this.subscriptions.forEach(s => s.unsubscribe());
         this.cssManager.onDestory();

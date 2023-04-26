@@ -104,7 +104,7 @@ export class ThreedWidgetDataUpdateManager {
             const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
             const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
     
-            const tooltip = scene.cssManager.updateLabel([fd.entityId], content);
+            const tooltip = scene.cssManager.updateLabel([fd.entityId], content);   
             if (tooltip) this.actionManager.bindPopupActions(tooltip.htmlElement, fd.$datasource, ACTIONS.tooltip); 
         } catch (_) { }
     }
@@ -122,7 +122,6 @@ export class ThreedWidgetDataUpdateManager {
                 [data, settings.markerImages, markersData, data.dsIndex]) : image;
         //const imageSize = `height: ${settings.markerImageSize || 34}px; width: ${settings.markerImageSize || 34}px;`;
         //const style = currentImage ? 'background-image: url(' + currentImage.url + '); ' + imageSize : '';
-
 
         scene.cssManager.updateImage([data.entityId], currentImage);
     }

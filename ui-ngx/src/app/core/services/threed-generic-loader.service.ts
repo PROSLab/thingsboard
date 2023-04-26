@@ -45,7 +45,7 @@ export class ThreedGenericLoaderService {
     this.threedModelLoader.loadModelInScene(scene, config, id, hasTooltip);
   }
 
-  public loadEnvironment(
+  public async loadEnvironment(
     settings: ThreedEnvironmentSettings,
     aliasController: IAliasController,
     scene: IThreedSceneManager,
@@ -57,16 +57,32 @@ export class ThreedGenericLoaderService {
       aliasController
     }
 
-    this.threedModelLoader.loadModelInScene(scene, config, id, hasTooltip);
+    await this.threedModelLoader.loadModelInScene(scene, config, id, hasTooltip);
   }
 
-  public loadDevices(
+  public async loadDevices(
     settings: ThreedDevicesSettings,
     aliasController: IAliasController,
     scene: IThreedSceneManager,
-    id?: string, 
+    //id?: string, 
     hasTooltip: boolean = true
   ) {
+
+    for (let i = 0; i < settings.threedDeviceGroupSettings.length; i++) {
+      const deviceGroup = settings.threedDeviceGroupSettings[i];
+      const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
+
+      for (let j = 0; j < loaders.length; j++) {
+        const entityLoader = loaders[j];
+        const config: ThreedUniversalModelLoaderConfig = {
+          entityLoader,
+          aliasController
+        }
+
+        await this.threedModelLoader.loadModelInScene(scene, config, undefined, hasTooltip);
+      }
+    }
+    /*
     settings.threedDeviceGroupSettings.forEach((deviceGroup: ThreedDeviceGroupSettings) => {
       const loaders = this.threedModelLoader.toEntityLoaders(deviceGroup);
       loaders.forEach(entityLoader => {
@@ -75,8 +91,8 @@ export class ThreedGenericLoaderService {
           aliasController
         }
 
-        this.threedModelLoader.loadModelInScene(scene, config, id, hasTooltip);
+        this.threedModelLoader.loadModelInScene(scene, config, undefined, hasTooltip);
       })
-    });
+    });*/
   }
 }

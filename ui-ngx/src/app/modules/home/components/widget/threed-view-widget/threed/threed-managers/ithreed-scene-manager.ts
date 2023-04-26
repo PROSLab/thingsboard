@@ -26,6 +26,7 @@ export interface IThreedSceneManager {
     scene: Scene;
     active: boolean;
     
+    get sceneId(): number;
     get camera(): Camera;
     get configs(): ThreedSceneConfig;
     get modelManager(): ThreedModelManager;
@@ -46,6 +47,6 @@ export interface IThreedSceneManager {
     forceUpdateValues(): void;
     getComponent<T extends IThreedComponent>(type: new () => T): T | undefined;
     findComponentsByTester<T>(tester: (obj: any) => obj is T): T[];
-    destory(): void;
+    destroy(): void;
     setCamera(camera: Camera): void;
 }

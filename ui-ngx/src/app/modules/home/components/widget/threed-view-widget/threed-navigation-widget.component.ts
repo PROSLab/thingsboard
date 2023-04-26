@@ -78,13 +78,12 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     this.navigationScene = ThreedScenes.createNavigationScene();
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.ctx.$scope.threedNavigationWidget = this;
     this.settings = this.ctx.settings;
 
     this.initializeManagers();
 
-    console.log(this.settings);
     if (!this.settings.hoverColor || !this.settings.threedSceneSettings) {
       console.warn("ThreedViewWidgetSettings object empty!")
       return;
@@ -96,14 +95,14 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
       this.cd.detectChanges();
     });
 
-    this.loadModels();
+    await this.loadModels();
     this.onEditModeChanged();
     this.onDataUpdated();
   }
 
   ngOnDestroy(): void {
     this.pointerLockedSub?.unsubscribe();
-    this.navigationScene?.destory();
+    this.navigationScene?.destroy();
   }
   
   private initializeManagers() {
@@ -112,17 +111,17 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
     this.dataUpdateManager = new ThreedWidgetDataUpdateManager(this.ctx, this.actionManager);
   }
 
-  private loadModels() {
-    this.loadEnvironment();
-    this.loadDevices();
+  private async loadModels() {
+    await this.loadEnvironment();
+    await this.loadDevices();
   }
 
-  private loadEnvironment() {
-    this.threedLoader.loadEnvironment(this.settings.threedSceneSettings.threedEnvironmentSettings, this.ctx.aliasController, this.navigationScene, ENVIRONMENT_ID, false);
+  private async loadEnvironment() {
+    await this.threedLoader.loadEnvironment(this.settings.threedSceneSettings.threedEnvironmentSettings, this.ctx.aliasController, this.navigationScene, ENVIRONMENT_ID, false);
   }
 
-  private loadDevices() {
-    this.threedLoader.loadDevices(this.settings.threedSceneSettings.threedDevicesSettings, this.ctx.aliasController, this.navigationScene);
+  private async loadDevices() {
+    await this.threedLoader.loadDevices(this.settings.threedSceneSettings.threedDevicesSettings, this.ctx.aliasController, this.navigationScene);
   }
 
   ngAfterViewInit() {
