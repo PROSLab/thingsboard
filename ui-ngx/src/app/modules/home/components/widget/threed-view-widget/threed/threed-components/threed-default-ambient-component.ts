@@ -18,10 +18,13 @@ import * as THREE from 'three';
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 import { ThreedBaseComponent } from "./threed-base-component";
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 
     private createGridHelper: boolean;
+    private pmremGenerator: THREE.PMREMGenerator;
+    private neutralEnvironment: THREE.Texture;
 
     constructor(createGridHelper: boolean) {
         super();
@@ -32,6 +35,8 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
         super.initialize(sceneManager);
 
         this.initializeScene();
+
+        this.initializeEnvironment();
 
         if (this.createGridHelper)
             this.initializeGrid();
@@ -46,6 +51,19 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
         this.sceneManager.scene.background = new THREE.Color(0xcccccc);
     }
 
+    private initializeEnvironment(){
+        const renderer = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer();
+
+        this.pmremGenerator = new THREE.PMREMGenerator(renderer);
+        this.pmremGenerator.compileEquirectangularShader();
+    
+        this.neutralEnvironment = this.pmremGenerator.fromScene( new RoomEnvironment() ).texture;
+        this.sceneManager.scene.environment = this.neutralEnvironment;
+    
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = Math.pow(2, -0.5);
+    }
+
     private initializeGrid() {
         const size = 500;
         const rectSize = 10;
@@ -53,7 +71,7 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
     }
 
     private initializeLights() {
-        const ambientLight = new THREE.AmbientLight(0xFEFEFE, 1);
+        const ambientLight = new THREE.AmbientLight(0xFEFEFE, 0.3);
         ambientLight.position.set(0, 0, 0);
         this.sceneManager.scene.add(ambientLight);
     }

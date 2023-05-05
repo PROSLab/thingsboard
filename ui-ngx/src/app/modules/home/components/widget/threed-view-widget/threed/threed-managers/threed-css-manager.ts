@@ -174,7 +174,7 @@ export class ThreedCssManager {
      * @param content the new content
      * @returns 
      */
-    public  updateLabel(ids: string[], content: string): CssData | undefined {
+    public updateLabel(ids: string[], content: string): CssData | undefined {
         const cssData = this.findFirstElement(ids, 'label');
         if (!cssData) return;
 
