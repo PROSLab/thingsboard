@@ -65,7 +65,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     protected updateRaycaster(): boolean {
         if (!this.initialized || !this.canUpdateRaycaster() || !this.raycastEnabled) return false;
 
-        this.raycaster.setFromCamera(this.getRaycasterOriginCoords(), this.sceneManager.camera);
+        this.setRaycaster();
         const intersection = this.raycaster.intersectObjects(this.getIntersectionObjects()).filter(o => this.getIntersectedObjectFilter(o));
 
         if (intersection.length > 0) {
@@ -80,6 +80,10 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
         }
 
         return true;
+    }
+
+    protected setRaycaster() {
+        this.raycaster.setFromCamera(this.getRaycasterOriginCoords(), this.sceneManager.camera);
     }
 
     private selectObject(object?: THREE.Object3D) {

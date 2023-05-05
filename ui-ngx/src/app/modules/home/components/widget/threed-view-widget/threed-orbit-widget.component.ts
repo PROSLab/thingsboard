@@ -83,18 +83,25 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
 
     this.initializeManagers();
 
+    let promises: Promise<any>[] = [];
+
     if (isThreedSimpleOrbitWidgetSettings(this.settings)) {
       this.orbitType = 'simple';
       this.orbitScene = ThreedScenes.createSimpleOrbitScene();
-      this.loadSingleModel(this.settings);
+      this.loadSingleModel(this.settings)
     } else if (isThreedComplexOrbitWidgetSettings(this.settings)) {
       this.orbitType = 'complex';
       this.orbitScene = ThreedScenes.createComplexOrbitScene();
-      await this.loadEnvironment(this.settings);
-      await this.loadDevices(this.settings);
+
+      promises.push(this.loadEnvironment(this.settings));
+      promises.push(this.loadDevices(this.settings));
+      //await this.loadEnvironment(this.settings);
+      //await this.loadDevices(this.settings);
     } else {
       console.error("Orbit Settings not valid...", this.settings);
     }
+
+    await Promise.all(promises)
 
     this.orbitScene.setValues(this.settings);
     this.onEditModeChanged();

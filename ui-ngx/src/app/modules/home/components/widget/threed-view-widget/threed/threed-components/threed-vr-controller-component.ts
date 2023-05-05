@@ -26,7 +26,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     private readonly mass = 30;
     private readonly speed = 200;
 
-    private controller: THREE.XRTargetRaySpace;
+    public controller: THREE.XRTargetRaySpace;
     private controllerGrip: THREE.XRGripSpace;
 
     private velocity = new THREE.Vector3();
@@ -41,6 +41,8 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     private canJump = false;
 
     private prevTime = performance.now();
+
+    public line: THREE.Line;
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
@@ -77,18 +79,32 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         switch (event.data.targetRayMode) {
             case 'tracked-pointer':
                 geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, - 1], 3));
-                geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.5, 0.5, 0.5, 0, 0, 0], 3));
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, -10], 3));
+                geometry.setAttribute('color', new THREE.Float32BufferAttribute([1, 0, 0, 0, 0, 0], 3));
                 material = new THREE.LineBasicMaterial({ vertexColors: true, blending: THREE.AdditiveBlending });
-                this.controller.add(new THREE.Line(geometry, material));
+                this.line = new THREE.Line(geometry, material);
+                this.controller.add(this.line);
                 break;
 
             case 'gaze':
-                geometry = new THREE.RingGeometry(0.02, 0.04, 32).translate(0, 0, - 1);
+                geometry = new THREE.RingGeometry(0.02, 0.04, 32).translate(0, 0, -1);
                 material = new THREE.MeshBasicMaterial({ opacity: 0.5, transparent: true });
                 this.controller.add(new THREE.Mesh(geometry, material));
                 break;
         }
+    }
+
+    public onVRSessionStart() {
+        this.controller.visible = true;
+        this.controllerGrip.visible = true;
+        this.controller.parent = this.sceneManager.camera.parent;
+        this.controllerGrip.parent = this.sceneManager.camera.parent;
+    }
+    public onVRSessionEnd() {
+        this.controller.visible = false;
+        this.controllerGrip.visible = false;
+        this.controller.parent = null;
+        this.controllerGrip.parent = null;
     }
 
     tick(): void {
@@ -96,7 +112,6 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
             return;
         }
 
-        console.log(this.controllerGrip.position)
         const time = performance.now();
 
         if (this.controller) {

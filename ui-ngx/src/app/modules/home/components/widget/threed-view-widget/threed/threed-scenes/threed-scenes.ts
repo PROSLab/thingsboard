@@ -30,6 +30,7 @@ import { ThreedGenericSceneManager } from "../threed-managers/threed-generic-sce
 import { ThreedSceneBuilder } from "./threed-scene-builder";
 import { ThreedProgressBarComponent } from '../threed-components/threed-progress-bar-component';
 import { ThreedVrControllerComponent } from '../threed-components/threed-vr-controller-component';
+import { ThreedVrHightlightTooltipRaycasterComponent } from '../threed-components/threed-vr-hightlight-tooltip-raycaster-component';
 
 export class ThreedScenes {
 
@@ -68,9 +69,9 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedUpdateViewSettingsComponent(cameraComponent))
-            .add(new ThreedHightlightTooltipRaycasterComponent('click', 'root', new THREE.Vector2()))
             .add(new ThreedProgressBarComponent())
-            .add(new ThreedVrControllerComponent());
+            .add(new ThreedVrControllerComponent())
+            .add(new ThreedVrHightlightTooltipRaycasterComponent('click', 'root', new THREE.Vector2()));
 
         return builder.build();
     }

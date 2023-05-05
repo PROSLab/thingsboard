@@ -30,6 +30,7 @@ import { ThreedModelManager } from "./threed-model-manager";
 import { ThreedWebRenderer } from "./threed-web-renderer";
 import { Subscription } from "rxjs";
 import { ThreedEventManager } from "./threed-event-manager";
+import { ThreedVrControllerComponent } from "../threed-components/threed-vr-controller-component";
 
 export class ThreedGenericSceneManager implements IThreedSceneManager {
 
@@ -311,25 +312,31 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     private cameraGroup: THREE.Group;
     private onVRSessionStart() {
-        this.vrActive = true;
         if (this.camera && this.camera.parent?.type != "Group") {
             this.cameraGroup = new THREE.Group();
             this.cameraGroup.add(this.camera);
             this.cameraGroup.position.copy(this.camera.position);
-            this.cameraGroup.rotation.copy(this.camera.rotation);
+            //this.cameraGroup.rotation.copy(this.camera.rotation);
             this.camera.position.set(0, 0, 0);
             this.camera.rotation.set(0, 0, 0);
             this.scene.add(this.cameraGroup);
         }
+        this.getComponent(ThreedVrControllerComponent).onVRSessionStart()
+        this.vrActive = true;
     }
     private onVRSessionEnd() {
-        this.vrActive = false;
         if (this.camera && this.camera.parent?.type == "Group") {
-            this.camera.position.copy(this.cameraGroup.position);
-            this.camera.rotation.copy(this.cameraGroup.rotation);
+            const position = new THREE.Vector3();
+            const rotation = new THREE.Euler();
+            position.copy(this.cameraGroup.position);
+            rotation.copy(this.camera.rotation);
             this.scene.remove(this.cameraGroup);
             this.camera.parent = null;
+            this.camera.position.copy(position);
+            this.camera.rotation.copy(rotation);
         }
+        this.getComponent(ThreedVrControllerComponent).onVRSessionEnd()
+        this.vrActive = false;
     }
     /*============================ END OF VR ============================*/
 
