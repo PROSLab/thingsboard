@@ -59,6 +59,7 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
     }
 
     private enableTooltip(object: THREE.Group) {
+        console.log("enable tooltip")
         const root = ThreedUtils.findParentByChild(object, ROOT_TAG, true);
         const customId = root.userData[OBJECT_ID_TAG];
 

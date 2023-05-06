@@ -66,7 +66,8 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
         if (!this.initialized || !this.canUpdateRaycaster() || !this.raycastEnabled) return false;
 
         this.setRaycaster();
-        const intersection = this.raycaster.intersectObjects(this.getIntersectionObjects()).filter(o => this.getIntersectedObjectFilter(o));
+        const objs = this.raycaster.intersectObjects(this.getIntersectionObjects());
+        const intersection = objs.filter(o => this.getIntersectedObjectFilter(o));
 
         if (intersection.length > 0) {
             const intersectedObject = intersection[0].object;
