@@ -127,4 +127,10 @@ export class ThreedUtils {
         else if (child.parent != null) return ThreedUtils.findParentByChild(child.parent, tag, value);
         else return undefined;
     }
+
+    public static isVisible(child: THREE.Object3D): boolean {
+        if (child.visible == false) return false;
+        else if (child.parent != null) return ThreedUtils.isVisible(child.parent);
+        else return true;
+    }
 }

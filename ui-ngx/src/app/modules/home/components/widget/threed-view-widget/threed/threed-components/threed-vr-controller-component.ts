@@ -19,6 +19,7 @@ import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerM
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedBaseComponent } from "./threed-base-component";
+import { EventEmitter } from '@angular/core';
 
 export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
@@ -43,6 +44,9 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     private prevTime = performance.now();
 
     public line: THREE.Line;
+    public canMove = true;
+    public onSelectStartEvent = new EventEmitter();
+    public onSelectEndEvent = new EventEmitter();
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
@@ -61,15 +65,23 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         controllerGripModel.scale.multiplyScalar(5);
         this.controllerGrip.add(controllerGripModel);
         this.sceneManager.scene.add(this.controllerGrip);
+
+        const s = this.sceneManager.onVRChange.subscribe(v => {
+            if(v) this.onVRSessionStart();
+            else this.onVRSessionEnd();
+        });
+        this.subscriptions.push(s);
     }
 
     private onSelectStart(event: THREE.Event & { type: "selectstart"; } & { target: THREE.XRTargetRaySpace; }) {
         this.controller.userData.isSelecting = true;
         this.moveForward = true;
+        this.onSelectStartEvent.emit();
     }
     private onSelectEnd(event: THREE.Event & { type: "selectend"; } & { target: THREE.XRTargetRaySpace; }) {
         this.controller.userData.isSelecting = false;
         this.moveForward = false;
+        this.onSelectEndEvent.emit();
     }
 
     private buildController(event: any) {
@@ -94,13 +106,13 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         }
     }
 
-    public onVRSessionStart() {
+    private onVRSessionStart() {
         this.controller.visible = true;
         this.controllerGrip.visible = true;
         this.controller.parent = this.sceneManager.camera.parent;
         this.controllerGrip.parent = this.sceneManager.camera.parent;
     }
-    public onVRSessionEnd() {
+    private onVRSessionEnd() {
         this.controller.visible = false;
         this.controllerGrip.visible = false;
         this.controller.parent = null;
@@ -140,18 +152,20 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                 this.canJump = true;
             }
 
-            const cameraDolly = this.sceneManager.camera.parent;
-            const quaternion = cameraDolly.quaternion.clone();
-            this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
-            cameraDolly.translateZ(this.velocity.z * delta);
-            cameraDolly.quaternion.copy(quaternion);
+            if (this.canMove) {
+                const cameraDolly = this.sceneManager.camera.parent;
+                const quaternion = cameraDolly.quaternion.clone();
+                this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
+                cameraDolly.translateZ(this.velocity.z * delta);
+                cameraDolly.quaternion.copy(quaternion);
 
-            cameraDolly.position.y += (this.velocity.y * delta); // new behavior
-            if (cameraDolly.position.y < 10) {
-                this.velocity.y = 0;
-                cameraDolly.position.y = 10;
+                cameraDolly.position.y += (this.velocity.y * delta); // new behavior
+                if (cameraDolly.position.y < 10) {
+                    this.velocity.y = 0;
+                    cameraDolly.position.y = 10;
 
-                this.canJump = true;
+                    this.canJump = true;
+                }
             }
         }
 

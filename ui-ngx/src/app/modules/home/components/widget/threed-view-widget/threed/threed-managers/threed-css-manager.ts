@@ -19,6 +19,8 @@ import { OBJECT_ID_TAG } from "../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
 import { Subscription } from "rxjs";
+import { VrUi } from "../threed-extensions/vr-ui";
+import { ThreedWebRenderer } from "./threed-web-renderer";
 
 export type CssObjectType = 'label' | 'image';
 
@@ -28,6 +30,8 @@ export interface CssData {
     cssObject: CSS2DObject,
     type: CssObjectType,
     offsetY: number, //ranges between 0...1;
+
+    vrMesh?: THREE.Group,
 }
 
 export interface CssObject {
@@ -60,7 +64,11 @@ export class ThreedCssManager {
         this.sceneManager = sceneManager;
 
         const s = this.sceneManager.onMainCameraChange.subscribe(c => this.updateMarkersLayer());
+        const s2 = this.sceneManager.onVRChange.subscribe(v => {
+            this.updateObjectVisibility();
+        });
         this.subscriptions.push(s);
+        this.subscriptions.push(s2);
     }
 
     public toggleMarkersLayer(enabled?: boolean): void {
@@ -136,11 +144,36 @@ export class ThreedCssManager {
                 box.getSize(size);
 
                 v.data.forEach(d => {
-                    position.y += (d.offsetY - 0.5) * size.y;
-                    d.cssObject.position.copy(position);
+                    const p = new THREE.Vector3().copy(position);
+
+                    p.y += (d.offsetY - 0.5) * size.y;
+                    d.cssObject.position.copy(p);
+
+                    /*
+                    if (d.vrMesh) {
+                        console.log(size, d.vrMesh);
+
+                        d.vrMesh.children[0].position.set(0, 0, Math.max(size.x, size.z));
+                        d.vrMesh.position.copy(p);
+                    }*/
                 });
             }
         });
+    }
+
+    public tick() {
+        if (this.sceneManager.vrActive) {
+            const xr = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().xr;
+            const cameraPosition = xr.getCamera().position;
+
+            this.cssObjects.forEach((v, k) => {
+                v.data.forEach(e => {
+                    if (e.vrMesh) {
+                        e.vrMesh.lookAt(cameraPosition);
+                    }
+                })
+            });
+        }
     }
 
     private createLabel(className?: string): HTMLDivElement {
@@ -175,8 +208,35 @@ export class ThreedCssManager {
      * @returns 
      */
     public updateLabel(ids: string[], content: string): CssData | undefined {
-        const cssData = this.findFirstElement(ids, 'label');
+        const cssDataAndLayer = this.findFirstElement(ids, 'label');
+        const cssData = cssDataAndLayer?.data;
         if (!cssData) return;
+
+
+        cssData.vrMesh?.remove();
+        const panel = VrUi.createPanelFromHtml(content);
+        console.log(content, panel);
+        panel.position.copy(cssData.cssObject.position);
+        panel.layers.set(cssDataAndLayer.layer);
+        panel.renderOrder = 10;
+        const model = this.sceneManager.modelManager.models.get(cssDataAndLayer.id);
+        if (model) {
+            const box = new THREE.Box3().setFromObject(model.root);
+            const center = new THREE.Vector3();
+            const size = new THREE.Vector3();
+            box.getCenter(center);
+            box.getSize(size);
+
+            const distance = Math.max(size.x, size.z) / 2 + 1;
+            panel.position.set(0, 0, distance);
+        }
+
+        const pivot = new THREE.Group();
+        pivot.add(panel);
+        pivot.position.copy(cssData.cssObject.position);
+        pivot.visible = this.sceneManager.vrActive;
+        cssData.vrMesh = pivot
+        this.sceneManager.scene.add(pivot);
 
         const divLabel = cssData!.htmlElement;
         divLabel.innerHTML = content;
@@ -184,7 +244,7 @@ export class ThreedCssManager {
     }
 
     public updateImage(ids: string[], content: { url: string, size: number }): CssData | undefined {
-        const cssData = this.findFirstElement(ids, 'image')
+        const cssData = this.findFirstElement(ids, 'image')?.data
         if (!cssData) return;
 
         const image = cssData!.htmlElement as HTMLImageElement;
@@ -199,7 +259,20 @@ export class ThreedCssManager {
         return cssData;
     }
 
-    private findFirst(ids: string[], type: CssObjectType): { mapId: string, arrayId: number } | undefined {
+    private updateObjectVisibility() {
+        this.cssObjects.forEach((v: CssObject, k: string) => {
+            v.data.forEach(e => {
+                if (e.vrMesh) {
+                    e.vrMesh.visible = this.sceneManager.vrActive;
+                }
+                e.cssObject.visible = !this.sceneManager.vrActive;
+            })
+        })
+
+        console.log(this.cssObjects);
+    }
+
+    private findFirst(ids: string[], type: CssObjectType): { mapId: string, arrayId: number, layer: number, id: string } | undefined {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const cssObject = this.cssObjects.get(id);
@@ -208,7 +281,7 @@ export class ThreedCssManager {
                 for (let j = 0; j < cssObject.data.length; j++) {
                     const element = cssObject.data[j];
                     if (element.type == type) {
-                        return { mapId: ids[i], arrayId: j };
+                        return { mapId: ids[i], arrayId: j, layer: cssObject.layer, id: id };
                     }
                 }
             }
@@ -216,11 +289,11 @@ export class ThreedCssManager {
         return undefined;
     }
 
-    public findFirstElement(ids: string[], type: CssObjectType): CssData | undefined {
+    public findFirstElement(ids: string[], type: CssObjectType): { data: CssData, layer: number, id: string } | undefined {
         const id = this.findFirst(ids, type);
         if (!id) return;
 
-        return this.cssObjects.get(id.mapId).data[id.arrayId];
+        return { data: this.cssObjects.get(id.mapId).data[id.arrayId], layer: id.layer, id: id.id };
     }
 
     public findCssObject(...ids: string[]): CssObject | undefined {

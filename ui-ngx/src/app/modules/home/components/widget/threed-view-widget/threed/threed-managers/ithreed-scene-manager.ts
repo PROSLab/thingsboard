@@ -21,6 +21,7 @@ import { IThreedRenderer } from './ithreed-renderer';
 import { ThreedCssManager } from './threed-css-manager';
 import { ThreedModelManager } from './threed-model-manager';
 import { ElementRef, EventEmitter } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 export interface IThreedSceneManager {
     scene: Scene;
@@ -40,6 +41,7 @@ export interface IThreedSceneManager {
 
     onRendererContainerChange: EventEmitter<ElementRef>;
     onMainCameraChange: EventEmitter<Camera>;
+    onVRChange: EventEmitter<boolean>;
 
     initialize(): void;
     getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined;
@@ -49,4 +51,5 @@ export interface IThreedSceneManager {
     findComponentsByTester<T>(tester: (obj: any) => obj is T): T[];
     destroy(): void;
     setCamera(camera: Camera): void;
+    addSubscription(subscription: Subscription): void
 }

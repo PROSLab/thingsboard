@@ -27,9 +27,10 @@ import {
 import { parseWithTranslation } from '../lib/maps/common-maps-utils';
 import { MarkerImageInfo } from "../lib/maps/map-models";
 import { ThreedWidgetActionManager } from "./threed-widget-action-manager";
-import { ACTIONS } from "./threed/threed-constants";
+import { ACTIONS, HTML_ELEMENT } from "./threed/threed-constants";
 import { IThreedSceneManager } from "./threed/threed-managers/ithreed-scene-manager";
 import { ThreedDevicesSettings, ThreedMarkerSettings, ThreedTooltipSettings } from "./threed/threed-models";
+import { VrUi } from "./threed/threed-extensions/vr-ui";
 
 
 export class ThreedWidgetDataUpdateManager {
@@ -103,9 +104,14 @@ export class ThreedWidgetDataUpdateManager {
             const tooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
             const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
             const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
-    
-            const tooltip = scene.cssManager.updateLabel([fd.entityId], content);   
-            if (tooltip) this.actionManager.bindPopupActions(tooltip.htmlElement, fd.$datasource, ACTIONS.tooltip); 
+
+            const tooltip = scene.cssManager.updateLabel([fd.entityId], content);
+            if (tooltip) {
+                this.actionManager.bindPopupActions(tooltip.htmlElement, fd.$datasource, ACTIONS.tooltip);
+                if (tooltip.vrMesh) {
+                    this.actionManager.bindMeshActions(tooltip.vrMesh, fd.$datasource, ACTIONS.tooltip);
+                }
+            }
         } catch (_) { }
     }
 

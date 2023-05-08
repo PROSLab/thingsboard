@@ -71,6 +71,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     public onRendererContainerChange = new EventEmitter<ElementRef>();
     public onMainCameraChange = new EventEmitter<Camera>();
+    public onVRChange = new EventEmitter<boolean>();
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
@@ -210,6 +211,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     private tick(): void {
+        this.cssManager.tick();
         this.components.forEach(c => c.tick());
         this.threedRenderers.forEach(r => r.tick(this));
     }
@@ -321,8 +323,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
             this.camera.rotation.set(0, 0, 0);
             this.scene.add(this.cameraGroup);
         }
-        this.getComponent(ThreedVrControllerComponent).onVRSessionStart()
         this.vrActive = true;
+        this.onVRChange.emit(true);
     }
     private onVRSessionEnd() {
         if (this.camera && this.camera.parent?.type == "Group") {
@@ -333,10 +335,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
             this.scene.remove(this.cameraGroup);
             this.camera.parent = null;
             this.camera.position.copy(position);
-            this.camera.rotation.copy(rotation);
+            this.camera.rotation.set(0, rotation.y, 0);
         }
-        this.getComponent(ThreedVrControllerComponent).onVRSessionEnd()
         this.vrActive = false;
+        this.onVRChange.emit(false);
     }
     /*============================ END OF VR ============================*/
 

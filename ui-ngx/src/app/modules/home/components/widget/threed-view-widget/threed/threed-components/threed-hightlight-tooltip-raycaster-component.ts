@@ -58,8 +58,7 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
         this.disableTooltip(object);
     }
 
-    private enableTooltip(object: THREE.Group) {
-        console.log("enable tooltip")
+    protected enableTooltip(object: THREE.Group) {
         const root = ThreedUtils.findParentByChild(object, ROOT_TAG, true);
         const customId = root.userData[OBJECT_ID_TAG];
 
@@ -67,19 +66,23 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
             const cssObject = this.sceneManager.cssManager.findCssObject(customId);
             if (!cssObject) return;
             const layer = cssObject.layer;
-            this.sceneManager.camera!.layers.enable(layer);
+            this.getCamera().layers.enable(layer);
             this.sceneManager.cssManager.toggleMarkersLayer(false);
             object.userData.layer = layer;
         }
     }
 
-    private disableTooltip(object: THREE.Group) {
+    protected disableTooltip(object: THREE.Group) {
         if (object) {
             const layer = object.userData.layer;
             this.sceneManager.cssManager.toggleMarkersLayer(true);
 
             if (layer >= this.sceneManager.cssManager.initialLabelLayerIndex)
-                this.sceneManager.camera!.layers.disable(layer);
+            this.getCamera()!.layers.disable(layer);
         }
+    }
+
+    protected getCamera(): THREE.Camera {
+        return this.sceneManager.camera;
     }
 }

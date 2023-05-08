@@ -126,7 +126,8 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
             o.object.type != "GridHelper" &&
             o.object.type != "Line" &&
             //@ts-ignore
-            o.object.tag != "Helper"
+            o.object.tag != "Helper" &&
+            ThreedUtils.isVisible(o.object)
     }
 
     protected abstract onSelectObject(object: any): void;

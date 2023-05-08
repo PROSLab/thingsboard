@@ -16,7 +16,7 @@
 
 import { WidgetContext } from "@app/modules/home/models/widget-component.models";
 import { Datasource, WidgetActionDescriptor } from "@app/shared/public-api";
-import { ACTIONS } from "./threed/threed-constants";
+import { ACTIONS, A_TAG } from "./threed/threed-constants";
 
 interface IAction {
     [name: string]: ($event: Event, datasource: Datasource) => void
@@ -71,5 +71,22 @@ export class ThreedWidgetActionManager {
                     });
                 }
             });
+    }
+
+    public bindMeshActions(group: THREE.Group, datasource: Datasource, name: string = ACTIONS.tooltip): void {
+        const currentAction = this.getActions(name);
+        if (!currentAction) return;
+
+        group.traverse(o => {
+            const aTag = o.userData[A_TAG]
+            if(aTag){
+                const actionName = aTag.getAttribute('data-action-name');
+                if (currentAction[actionName]) {
+                    aTag.addEventListener('pointerdown', $event => {
+                        currentAction[actionName]($event, datasource);
+                    });
+                }
+            }
+        })
     }
 } 
