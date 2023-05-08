@@ -25,7 +25,7 @@ import { ThreedBaseComponent } from "./threed-base-component";
 
 export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseComponent implements IThreedListener, IThreedObjectSelector {
 
-    private raycastUpdate: 'click' | 'hover';
+    protected raycastUpdate: 'click' | 'hover';
     private resolveRaycastObject: 'single' | 'root';
     protected raycaster?: THREE.Raycaster;
 

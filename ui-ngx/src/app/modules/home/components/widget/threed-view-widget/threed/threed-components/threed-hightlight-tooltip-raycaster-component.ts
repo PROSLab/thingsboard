@@ -20,6 +20,7 @@ import { ThreedUtils } from "../threed-utils";
 import { ThreedHightlightRaycasterComponent } from "./threed-hightlight-raycaster-component";
 import { CSS2DRaycaster } from '../threed-extensions/css2d-raycaster';
 import { IThreedSceneManager } from '../threed-managers/ithreed-scene-manager';
+import { CssObject } from '../threed-managers/threed-css-manager';
 
 export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightRaycasterComponent {
 
@@ -65,21 +66,30 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
         if (customId) {
             const cssObject = this.sceneManager.cssManager.findCssObject(customId);
             if (!cssObject) return;
-            const layer = cssObject.layer;
-            this.getCamera().layers.enable(layer);
-            this.sceneManager.cssManager.toggleMarkersLayer(false);
-            object.userData.layer = layer;
+
+            this.onEnableTooltip(object, cssObject);
         }
+    }
+
+    protected onEnableTooltip(object: THREE.Group, cssObject: CssObject): void {
+        const layer = cssObject.layer;
+        this.getCamera().layers.enable(layer);
+        this.sceneManager.cssManager.toggleMarkersLayer(false);
+        object.userData.layer = layer;
     }
 
     protected disableTooltip(object: THREE.Group) {
         if (object) {
-            const layer = object.userData.layer;
-            this.sceneManager.cssManager.toggleMarkersLayer(true);
-
-            if (layer >= this.sceneManager.cssManager.initialLabelLayerIndex)
-            this.getCamera()!.layers.disable(layer);
+            this.onDisableTooltip(object)
         }
+    }
+
+    protected onDisableTooltip(object: THREE.Group) {
+        const layer = object.userData.layer;
+        this.sceneManager.cssManager.toggleMarkersLayer(true);
+
+        if (layer >= this.sceneManager.cssManager.initialLabelLayerIndex)
+            this.getCamera()!.layers.disable(layer);
     }
 
     protected getCamera(): THREE.Camera {

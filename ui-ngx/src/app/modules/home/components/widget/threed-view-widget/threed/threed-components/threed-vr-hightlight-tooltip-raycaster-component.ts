@@ -15,11 +15,12 @@
 ///
 
 import * as THREE from 'three';
-import { A_TAG } from '../threed-constants';
+import { A_TAG, LAST_VISIBILITY, VR_MESHES } from '../threed-constants';
 import { IThreedSceneManager } from '../threed-managers/ithreed-scene-manager';
 import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedHightlightTooltipRaycasterComponent } from './threed-hightlight-tooltip-raycaster-component';
 import { ThreedVrControllerComponent } from './threed-vr-controller-component';
+import { CssObject } from '../threed-managers/threed-css-manager';
 
 export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightlightTooltipRaycasterComponent {
 
@@ -35,13 +36,21 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
 
         this.vrController = this.sceneManager.getComponent(ThreedVrControllerComponent);
 
-        this.subscriptions.push(this.vrController.onSelectStartEvent.subscribe(_ => this.checkClick(this.selectedObject)));
+        this.subscriptions.push(this.vrController.onSelectStartEvent.subscribe(_ => this.onVrSelectPressed()));
+    }
+
+    private onVrSelectPressed() {
+        if (this.raycastUpdate == "click") {
+            this.updateRaycaster();
+        }
+
+        this.checkClick(this.selectedObject)
     }
 
     public tick() {
         super.tick();
 
-        if (!this.sceneManager.vrActive || this.updateCounterIndex++ % 2 == 0) return;
+        if (!this.sceneManager.vrActive || this.updateCounterIndex++ % 2 == 0 || this.raycastUpdate == 'click') return;
 
         this.updateRaycaster();
     }
@@ -83,9 +92,38 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         this.raycaster.ray.direction.set(direction.x, direction.y, direction.z).applyMatrix4(tempMatrix);
     }
 
-    
+    protected onEnableTooltip(object: THREE.Group, cssObject: CssObject): void {
+        if (this.sceneManager.vrActive) {
+            const vrMeshes = [];
+            cssObject.data.forEach(d => {
+                if (d.vrMesh) {
+                    d.vrMesh.visible = true;
+                    d.vrMesh.userData[LAST_VISIBILITY] = true;
+                    vrMeshes.push(d.vrMesh);
+                }
+            })
+            object.userData[VR_MESHES] = vrMeshes;
+            
+        } else {
+            super.onEnableTooltip(object, cssObject);
+        }
+    }
+
+    protected onDisableTooltip(object: THREE.Group): void {
+        if (this.sceneManager.vrActive) {
+            object.userData[VR_MESHES]?.forEach(m => {
+                m.visible = false
+                m.userData[LAST_VISIBILITY] = false;
+            });
+            object.userData[VR_MESHES] = undefined;
+
+        } else {
+            super.onDisableTooltip(object);
+        }
+    }
+
     protected getCamera(): THREE.Camera {
-        if(this.sceneManager.vrActive)
+        if (this.sceneManager.vrActive)
             return this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().xr.getCamera();
         return super.getCamera();
     }

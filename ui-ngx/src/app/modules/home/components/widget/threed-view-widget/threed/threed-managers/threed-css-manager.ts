@@ -15,7 +15,7 @@
 ///
 
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
-import { OBJECT_ID_TAG } from "../threed-constants";
+import { LAST_VISIBILITY, OBJECT_ID_TAG } from "../threed-constants";
 import { IThreedSceneManager } from "./ithreed-scene-manager";
 import * as THREE from 'three';
 import { Subscription } from "rxjs";
@@ -143,19 +143,15 @@ export class ThreedCssManager {
                 const size = new THREE.Vector3();
                 box.getSize(size);
 
+                const distance = Math.max(size.x, size.z) / 2 + 1;
                 v.data.forEach(d => {
                     const p = new THREE.Vector3().copy(position);
-
                     p.y += (d.offsetY - 0.5) * size.y;
                     d.cssObject.position.copy(p);
 
-                    /*
                     if (d.vrMesh) {
-                        console.log(size, d.vrMesh);
-
-                        d.vrMesh.children[0].position.set(0, 0, Math.max(size.x, size.z));
-                        d.vrMesh.position.copy(p);
-                    }*/
+                        d.vrMesh.children[0].position.set(0, 0, distance);
+                    }
                 });
             }
         });
@@ -182,6 +178,38 @@ export class ThreedCssManager {
         divElement.textContent = 'initial content';
         divElement.style.marginTop = '-1em';
         return divElement;
+    }
+
+    private createVRLabel(cssDataAndLayer: {
+        data: CssData;
+        layer: number;
+        id: string;
+    }, content: string) {
+        const cssData = cssDataAndLayer.data;
+
+        cssData.vrMesh?.remove();
+        const panel = VrUi.createPanelFromHtml(content);
+        console.log(content, panel);
+        panel.position.copy(cssData.cssObject.position);
+        panel.layers.set(cssDataAndLayer.layer);
+        panel.renderOrder = 10;
+        const model = this.sceneManager.modelManager.models.get(cssDataAndLayer.id);
+        if (model) {
+            const box = new THREE.Box3().setFromObject(model.root);
+            const center = new THREE.Vector3();
+            const size = new THREE.Vector3();
+            box.getCenter(center);
+            box.getSize(size);
+
+            const distance = Math.max(size.x, size.z) / 2 + 1;
+            panel.position.set(0, 0, distance);
+        }
+        const pivot = new THREE.Group();
+        pivot.add(panel);
+        pivot.position.copy(cssData.cssObject.position);
+        pivot.visible = false;
+        cssData.vrMesh = pivot
+        this.sceneManager.scene.add(pivot);
     }
 
     private createImage(className?: string): HTMLImageElement {
@@ -212,31 +240,7 @@ export class ThreedCssManager {
         const cssData = cssDataAndLayer?.data;
         if (!cssData) return;
 
-
-        cssData.vrMesh?.remove();
-        const panel = VrUi.createPanelFromHtml(content);
-        console.log(content, panel);
-        panel.position.copy(cssData.cssObject.position);
-        panel.layers.set(cssDataAndLayer.layer);
-        panel.renderOrder = 10;
-        const model = this.sceneManager.modelManager.models.get(cssDataAndLayer.id);
-        if (model) {
-            const box = new THREE.Box3().setFromObject(model.root);
-            const center = new THREE.Vector3();
-            const size = new THREE.Vector3();
-            box.getCenter(center);
-            box.getSize(size);
-
-            const distance = Math.max(size.x, size.z) / 2 + 1;
-            panel.position.set(0, 0, distance);
-        }
-
-        const pivot = new THREE.Group();
-        pivot.add(panel);
-        pivot.position.copy(cssData.cssObject.position);
-        pivot.visible = this.sceneManager.vrActive;
-        cssData.vrMesh = pivot
-        this.sceneManager.scene.add(pivot);
+        this.createVRLabel(cssDataAndLayer, content);
 
         const divLabel = cssData!.htmlElement;
         divLabel.innerHTML = content;
@@ -263,7 +267,7 @@ export class ThreedCssManager {
         this.cssObjects.forEach((v: CssObject, k: string) => {
             v.data.forEach(e => {
                 if (e.vrMesh) {
-                    e.vrMesh.visible = this.sceneManager.vrActive;
+                    e.vrMesh.visible = this.sceneManager.vrActive ? e.vrMesh.userData[LAST_VISIBILITY] || false : false;
                 }
                 e.cssObject.visible = !this.sceneManager.vrActive;
             })
