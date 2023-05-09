@@ -102,7 +102,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     public deselectObject() {
         if (this.selectedObject) {
             this.onDeselectObject(this.selectedObject);
-            this.onObjectDeselected.emit(this.selectObject);
+            this.onObjectDeselected.emit(this.selectedObject);
         }
         this.selectedObject = null;
     }

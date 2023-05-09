@@ -37,6 +37,11 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         this.vrController = this.sceneManager.getComponent(ThreedVrControllerComponent);
 
         this.subscriptions.push(this.vrController.onSelectStartEvent.subscribe(_ => this.onVrSelectPressed()));
+        this.subscriptions.push(this.sceneManager.onVRChange.subscribe(_ => this.onVrChanged()))
+    }
+
+    private onVrChanged() {
+        this.deselectObject();
     }
 
     private onVrSelectPressed() {
@@ -122,9 +127,10 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         }
     }
 
+    /*
     protected getCamera(): THREE.Camera {
         if (this.sceneManager.vrActive)
             return this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().xr.getCamera();
         return super.getCamera();
-    }
+    }*/
 }
