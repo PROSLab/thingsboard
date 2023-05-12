@@ -20,6 +20,7 @@ import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedBaseComponent } from "./threed-base-component";
 import { EventEmitter } from '@angular/core';
+import { VrUi } from '../threed-extensions/vr-ui';
 
 export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
@@ -35,10 +36,12 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     private direction = new THREE.Vector3();
     private raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
     private tempMatrix = new THREE.Matrix4();
+    private textHelper: THREE.Group;
 
     private canJump = false;
 
     private prevTime = performance.now();
+    private lastBPressed = performance.now();
 
     public line: THREE.Line;
     public canMove = true;
@@ -69,7 +72,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         });
         this.subscriptions.push(s);
 
-        this.createVRControllerInputHelper();
+        this.createVRControllerInputTextHelper();
     }
 
     private onSelectStart(event: THREE.Event & { type: "selectstart"; } & { target: THREE.XRTargetRaySpace; }) {
@@ -110,6 +113,8 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.controllerGrip.visible = true;
         this.controller.parent = this.sceneManager.camera.parent;
         this.controllerGrip.parent = this.sceneManager.camera.parent;
+        this.textHelper.parent = this.sceneManager.camera.parent;
+        this.displayVRControllerInputTextHelper(true);
 
         this.xr = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().xr;
     }
@@ -118,16 +123,21 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.controllerGrip.visible = false;
         this.controller.parent = null;
         this.controllerGrip.parent = null;
+        this.textHelper.parent = null;
+        this.displayVRControllerInputTextHelper(false);
 
         this.xr = undefined;
     }
 
-    private createVRControllerInputHelper() {
-        // TODO
+    private createVRControllerInputTextHelper() {
+        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Jump: A<br>Interact: Trigger<br><br>Open/Close Commands: B");
+        this.textHelper.position.set(0, 2, -20);
+        this.sceneManager.scene.add(this.textHelper);
+        this.displayVRControllerInputTextHelper(false);
     }
 
-    private displayVRControllerInputHelper() {
-        // TODO
+    private displayVRControllerInputTextHelper(visible: boolean) {
+        this.textHelper.visible = visible;
     }
 
     tick(): void {
@@ -213,6 +223,14 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                         if (buttonA >= 1) {
                             if (this.canJump === true) this.velocity.y += 3 * this.mass;
                             this.canJump = false;
+                        }
+                    }
+                    if (data.buttons.length >= 6) {
+                        // B button pressed
+                        const buttonB = data.buttons[5];
+                        if (buttonB >= 1 && performance.now() - this.lastBPressed >= 500) {
+                            this.displayVRControllerInputTextHelper(!this.textHelper.visible);
+                            this.lastBPressed = performance.now();
                         }
                     }
 
