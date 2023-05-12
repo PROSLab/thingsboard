@@ -209,7 +209,6 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                     buttons: source.gamepad.buttons.map((b) => b.value),
                     axes: source.gamepad.axes.slice(0)
                 };
-                console.log(data.buttons);
 
                 if (data.handedness == "right") {
                     if (data.axes.length >= 4) {

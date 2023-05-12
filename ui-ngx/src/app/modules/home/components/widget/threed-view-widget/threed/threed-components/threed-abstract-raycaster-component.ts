@@ -30,6 +30,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     protected raycaster?: THREE.Raycaster;
 
     protected selectedObject: any;
+    protected intersectedObjects = [];
 
     public raycastEnabled: boolean = true;
     public onObjectSelected: EventEmitter<any> = new EventEmitter();
@@ -67,7 +68,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
 
         this.setRaycaster();
         const objs = this.raycaster.intersectObjects(this.getIntersectionObjects());
-        const intersection = objs.filter(o => this.getIntersectedObjectFilter(o));
+        const intersection = this.intersectedObjects = objs.filter(o => this.getIntersectedObjectFilter(o));
 
         console.log(intersection);
 
@@ -95,9 +96,12 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
 
         } else if (this.selectedObject != object) {
             this.deselectObject();
-            this.selectedObject = object;
-            this.onSelectObject(this.selectedObject);
-            this.onObjectSelected.emit(this.selectedObject);
+
+            if (this.canSelectObject(object)) {
+                this.selectedObject = object;
+                this.onSelectObject(this.selectedObject);
+                this.onObjectSelected.emit(this.selectedObject);
+            }
         }
     }
 
@@ -133,6 +137,7 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
     }
 
     protected abstract onSelectObject(object: any): void;
+    protected abstract canSelectObject(object: any): boolean;
     protected abstract onDeselectObject(object: any): void;
 
     public getSelectedObject(): THREE.Object3D {

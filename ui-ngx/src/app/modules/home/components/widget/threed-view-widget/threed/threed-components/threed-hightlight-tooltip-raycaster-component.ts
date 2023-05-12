@@ -53,22 +53,31 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
         this.enableTooltip(object);
     }
 
+    protected canSelectObject(object: any): boolean {
+        return !!this.getTooltip(object);
+    }
+
     protected onDeselectObject(object: any): void {
         super.onDeselectObject(object);
 
         this.disableTooltip(object);
     }
 
-    protected enableTooltip(object: THREE.Group) {
+    protected getTooltip(object: THREE.Group): CssObject | undefined {
         const root = ThreedUtils.findParentByChild(object, ROOT_TAG, true);
         const customId = root.userData[OBJECT_ID_TAG];
 
         if (customId) {
-            const cssObject = this.sceneManager.cssManager.findCssObject(customId);
-            if (!cssObject) return;
-
-            this.onEnableTooltip(object, cssObject);
+            return this.sceneManager.cssManager.findCssObject(customId);
         }
+        return undefined;
+    }
+
+    protected enableTooltip(object: THREE.Group) {
+        const cssObject = this.getTooltip(object);
+        if (!cssObject) return;
+
+        this.onEnableTooltip(object, cssObject);
     }
 
     protected onEnableTooltip(object: THREE.Group, cssObject: CssObject): void {

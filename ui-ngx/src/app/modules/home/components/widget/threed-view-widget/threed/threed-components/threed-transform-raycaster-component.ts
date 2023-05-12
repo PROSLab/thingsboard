@@ -52,6 +52,10 @@ export class ThreedTransformRaycasterComponent extends ThreedAbstractRaycasterCo
         this.transformController.attachTransformController(object);
     }
 
+    protected canSelectObject(object: any): boolean {
+        return true;
+    }
+
     protected onDeselectObject(object: any): void {
         this.transformController.attachTransformController(undefined);
     }

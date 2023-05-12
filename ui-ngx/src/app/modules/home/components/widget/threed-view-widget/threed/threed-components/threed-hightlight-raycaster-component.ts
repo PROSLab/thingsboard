@@ -60,6 +60,10 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
         this.toggleHightlightGLTF(object, true);
     }
 
+    protected canSelectObject(object: any): boolean {
+        return true;
+    }
+
     protected onDeselectObject(object: any): void {
         this.toggleHightlightGLTF(object, false);
     }

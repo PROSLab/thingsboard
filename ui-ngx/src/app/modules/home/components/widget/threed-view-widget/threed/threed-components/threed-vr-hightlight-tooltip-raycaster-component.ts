@@ -49,7 +49,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
             this.updateRaycaster();
         }
 
-        this.checkClick(this.selectedObject)
+        this.checkClick(this.intersectedObjects?.[0]?.object)
     }
 
     public tick() {
@@ -97,6 +97,21 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         this.raycaster.ray.direction.set(direction.x, direction.y, direction.z).applyMatrix4(tempMatrix);
     }
 
+    protected canSelectObject(object: any): boolean {
+        if (this.sceneManager.vrActive) {
+            const cssObject = super.getTooltip(object);
+            let hasVrTooltip = false;
+            cssObject?.data.forEach(d => {
+                if (d.vrMesh) {
+                    hasVrTooltip = true;
+                    return;
+                }
+            });
+            return hasVrTooltip;
+        }
+        return super.canSelectObject(object);
+    }
+
     protected onEnableTooltip(object: THREE.Group, cssObject: CssObject): void {
         if (this.sceneManager.vrActive) {
             const vrMeshes = [];
@@ -108,7 +123,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
                 }
             })
             object.userData[VR_MESHES] = vrMeshes;
-            
+
         } else {
             super.onEnableTooltip(object, cssObject);
         }
