@@ -84,9 +84,6 @@ export class ThreedCssManager {
     }
 
     public createObject(id: string, properties: CssObjectProperties): CssData {
-
-        console.log("CreateObject for " + id + " with properties", properties);
-
         let htmlElement: HTMLElement;
         switch (properties.type) {
             case "label":
@@ -189,7 +186,6 @@ export class ThreedCssManager {
 
         cssData.vrMesh?.remove();
         const panel = VrUi.createPanelFromHtml(content);
-        console.log(content, panel);
         panel.position.copy(cssData.cssObject.position);
         panel.layers.set(cssDataAndLayer.layer);
         panel.renderOrder = 10;
@@ -272,8 +268,6 @@ export class ThreedCssManager {
                 e.cssObject.visible = !this.sceneManager.vrActive;
             })
         })
-
-        console.log(this.cssObjects);
     }
 
     private findFirst(ids: string[], type: CssObjectType): { mapId: string, arrayId: number, layer: number, id: string } | undefined {

@@ -69,6 +69,8 @@ export abstract class ThreedAbstractRaycasterComponent extends ThreedBaseCompone
         const objs = this.raycaster.intersectObjects(this.getIntersectionObjects());
         const intersection = objs.filter(o => this.getIntersectedObjectFilter(o));
 
+        console.log(intersection);
+
         if (intersection.length > 0) {
             const intersectedObject = intersection[0].object;
             const obj = this.resolveRaycastObject == 'root' ? ThreedUtils.findParentByChild(intersectedObject, ROOT_TAG, true) : intersectedObject;

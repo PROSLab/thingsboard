@@ -127,6 +127,9 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         }
     }
 
+    protected getIntersectedObjectFilter(o: THREE.Intersection) {
+        return super.getIntersectedObjectFilter(o) && o.object.name != "controller";
+    }
     /*
     protected getCamera(): THREE.Camera {
         if (this.sceneManager.vrActive)

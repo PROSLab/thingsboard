@@ -32,7 +32,6 @@ export class VrUi {
         panelOptions.textSize = panelOptions.textSize || 2;
 
         const lines = htmlString.split(/<br\s*\/?>/i);
-        console.log(htmlString, lines);
         const height = panelOptions.textSize;
         const group = new THREE.Group();
         const regex = /<[^>]*>/g;

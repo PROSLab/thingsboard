@@ -29,16 +29,13 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
     public controller: THREE.XRTargetRaySpace;
     private controllerGrip: THREE.XRGripSpace;
+    private xr: THREE.WebXRManager;
 
     private velocity = new THREE.Vector3();
     private direction = new THREE.Vector3();
     private raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
     private tempMatrix = new THREE.Matrix4();
 
-    private moveForward = false;
-    private moveBackward = false;
-    private moveLeft = false;
-    private moveRight = false;
     private canJump = false;
 
     private prevTime = performance.now();
@@ -67,20 +64,22 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.sceneManager.scene.add(this.controllerGrip);
 
         const s = this.sceneManager.onVRChange.subscribe(v => {
-            if(v) this.onVRSessionStart();
+            if (v) this.onVRSessionStart();
             else this.onVRSessionEnd();
         });
         this.subscriptions.push(s);
+
+        this.createVRControllerInputHelper();
     }
 
     private onSelectStart(event: THREE.Event & { type: "selectstart"; } & { target: THREE.XRTargetRaySpace; }) {
         this.controller.userData.isSelecting = true;
-        this.moveForward = true;
+        // this.moveForward = true;
         this.onSelectStartEvent.emit();
     }
     private onSelectEnd(event: THREE.Event & { type: "selectend"; } & { target: THREE.XRTargetRaySpace; }) {
         this.controller.userData.isSelecting = false;
-        this.moveForward = false;
+        // this.moveForward = false;
         this.onSelectEndEvent.emit();
     }
 
@@ -111,21 +110,33 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.controllerGrip.visible = true;
         this.controller.parent = this.sceneManager.camera.parent;
         this.controllerGrip.parent = this.sceneManager.camera.parent;
+
+        this.xr = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().xr;
     }
     private onVRSessionEnd() {
         this.controller.visible = false;
         this.controllerGrip.visible = false;
         this.controller.parent = null;
         this.controllerGrip.parent = null;
+
+        this.xr = undefined;
+    }
+
+    private createVRControllerInputHelper() {
+        // TODO
+    }
+
+    private displayVRControllerInputHelper() {
+        // TODO
     }
 
     tick(): void {
-        if (!this.sceneManager.vrActive) {
-            return;
-        }
+        if (!this.sceneManager.vrActive || !this.xr)
+            return
+
+        this.move();
 
         const time = performance.now();
-
         if (this.controller) {
 
             this.tempMatrix.identity().extractRotation(this.controller.matrixWorld);
@@ -139,13 +150,10 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
             this.velocity.x -= this.velocity.x * 10.0 * delta;
             this.velocity.z -= this.velocity.z * 10.0 * delta;
-            this.velocity.y -= this.gravity * this.mass * delta; // 100.0 = mass
+            this.velocity.y -= this.gravity * this.mass * delta;
 
-            this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-            this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-            this.direction.normalize(); // this ensures consistent movements in all directions
-
-            if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * this.speed * delta;
+            this.velocity.z -= this.direction.z * this.speed * delta;
+            this.velocity.x -= this.direction.x * this.speed * delta;
 
             if (onObject === true) {
                 this.velocity.y = Math.max(0, this.velocity.y);
@@ -156,7 +164,8 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                 const cameraDolly = this.sceneManager.camera.parent;
                 const quaternion = cameraDolly.quaternion.clone();
                 this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
-                cameraDolly.translateZ(this.velocity.z * delta);
+                cameraDolly.translateZ(-this.velocity.z * delta);
+                cameraDolly.translateX(-this.velocity.x * delta);
                 cameraDolly.quaternion.copy(quaternion);
 
                 cameraDolly.position.y += (this.velocity.y * delta); // new behavior
@@ -170,5 +179,55 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         }
 
         this.prevTime = time;
+    }
+
+
+    private move() {
+        let handedness = "unknown";
+        let i = 0;
+        const session = this.xr.getSession();
+
+        if (this.isIterable(session.inputSources)) {
+            for (const source of session.inputSources) {
+                if (source && source.handedness) {
+                    handedness = source.handedness; //left or right controllers
+                }
+                if (!source.gamepad) continue;
+                const controller = this.xr.getController(i++);
+                const data = {
+                    handedness: handedness,
+                    buttons: source.gamepad.buttons.map((b) => b.value),
+                    axes: source.gamepad.axes.slice(0)
+                };
+                console.log(data.buttons);
+
+                if (data.handedness == "right") {
+                    if (data.axes.length >= 4) {
+                        data.axes.splice(0, 2);
+                        this.direction.x = data.axes[0];
+                        this.direction.z = data.axes[1];
+                    }
+                    if (data.buttons.length >= 5) {
+                        // A button pressed
+                        const buttonA = data.buttons[4];
+                        if (buttonA >= 1) {
+                            if (this.canJump === true) this.velocity.y += 3 * this.mass;
+                            this.canJump = false;
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+
+    private isIterable(obj: any): boolean {  //function to check if object is iterable
+        // checks for null and undefined
+        if (obj == null) {
+            return false;
+        }
+        return typeof obj[Symbol.iterator] === "function";
     }
 }
