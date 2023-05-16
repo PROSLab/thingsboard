@@ -291,4 +291,9 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
       eis.forEach(e => this.addObjectIfNotExists(e))
     });
   }
+
+  public refreshDeviceGroup() {
+    if(this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value)
+      this.loadEntities();
+  }
 }

@@ -61,6 +61,13 @@
 
             <tb-threed-marker-settings formControlName="threedMarkerSettings"></tb-threed-marker-settings>
 
+            <div fxLayout="row" fxLayoutAlign="center">
+                <button fxFlex="33" mat-button (click)="refreshDeviceGroup()">
+                    <mat-icon>update</mat-icon>
+                    Update Device List
+                </button>
+            </div>
+
             <section class="tb-widget-settings"
                 *ngFor="let objectControl of objectsFormArray().controls; trackBy: trackByObjectControl; let $index = index;">
 
