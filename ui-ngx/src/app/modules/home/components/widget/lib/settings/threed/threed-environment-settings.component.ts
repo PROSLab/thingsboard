@@ -135,6 +135,8 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
     this.threedEnvironmentSettingsFormGroup.patchValue(
       this.modelValue, { emitEvent: false }
     );
+    this.lastEntityKeySettings = this.modelValue?.threedEntityKeySettings;
+    
     this.updateValidators(false);
   }
 
@@ -159,6 +161,8 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
 
   private updateValidators(emitEvent: boolean) {
     const useAlias: boolean = this.threedEnvironmentSettingsFormGroup.get('useAlias').value;
+
+    console.log(this.modelValue, this.threedEnvironmentSettingsFormGroup);
 
     if (useAlias) {
       this.threedEnvironmentSettingsFormGroup.get('threedEntityAliasSettings').enable({ emitEvent });
