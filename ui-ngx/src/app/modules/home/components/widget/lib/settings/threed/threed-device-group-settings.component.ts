@@ -70,6 +70,29 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
   @Input()
   label: string = "Devices Group";
 
+  @Input()
+  expanded = false;
+
+  @Input()
+  public set forceExpand(id: string | undefined) {
+    if(id == undefined){
+      this.expanded = false;
+      return;
+    }
+    
+    this.expanded = true;
+    const formArray = this.objectsFormArray();
+    for (let i = 0; i < formArray.controls.length; i++) {
+      const control = formArray.controls[i];
+      const object: ThreedObjectSettings = formArray.value[i];
+      if (object.entity.id == id) {
+        // @ts-ignore
+        control.expanded = true;
+      }
+    }
+  }
+  
+
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;
 
@@ -83,7 +106,6 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
   public threedDeviceGroupFormGroup: FormGroup;
 
-  public expanded = false;
   public entityAttribute?: string;
   public entityAlias?: string;
   private lastEntityKeySettings?: ThreedEntityKeySettings;

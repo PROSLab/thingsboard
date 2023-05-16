@@ -151,6 +151,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     }
     else if (this.isVisible == true && this.rendererContainer?.nativeElement.offsetParent == null) {
       console.log('isVisible switched from true to false (now is not visible)');
+      this.sceneEditor.getComponent(ThreedTransformControllerComponent).deselectObject();
       this.isVisible = false;
     }
   }

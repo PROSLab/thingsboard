@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { Component, Input, OnInit, forwardRef } from '@angular/core';
+import { Component, Input, OnInit, forwardRef, ChangeDetectorRef } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -34,6 +34,7 @@ import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
+import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
 
 @Component({
   selector: 'tb-threed-devices-settings',
@@ -74,7 +75,8 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,
-    private fb: FormBuilder) {
+    private fb: FormBuilder,
+    private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -85,6 +87,9 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     this.threedDevicesSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+
+    const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
+    transformComponent.modelSelected.subscribe(id => this.forceExpand(id));
   }
 
 
@@ -135,7 +140,6 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     this.modelValue = value;
 
     this.threedDevicesSettingsFormGroup.setControl('threedDeviceGroupSettings', this.prepareDeviceGroupsFormArray(value.threedDeviceGroupSettings), { emitEvent: false });
-
     /*
     this.threedDevicesSettingsFormGroup.patchValue(
       value, { emitEvent: false }
@@ -150,7 +154,7 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     if (!this.propagateChange) {
       console.error("propagateChange undefined in ThreeDevicesSettingsComponent");
       return;
-    } 
+    }
 
     if (this.threedDevicesSettingsFormGroup.valid) {
       this.propagateChange(this.modelValue);
@@ -170,5 +174,20 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
 
   public removeDeviceGroup(index: number) {
     (this.threedDevicesSettingsFormGroup.get('threedDeviceGroupSettings') as FormArray).removeAt(index);
+  }
+
+  private forceExpand(id: string) {
+    const devicesGoupFormArray = this.deviceGroupsFormArray();
+
+    for (let i = 0; i < devicesGoupFormArray.controls.length; i++) {
+      const control = devicesGoupFormArray.controls[i];
+      const deviceGroup: ThreedDeviceGroupSettings = devicesGoupFormArray.value[i];
+      if (deviceGroup.threedObjectSettings.find(o => o.entity.id == id)) {
+        // @ts-ignore
+        control.expandedId = id;
+        this.cd.detectChanges();
+        return;
+      }
+    }
   }
 }

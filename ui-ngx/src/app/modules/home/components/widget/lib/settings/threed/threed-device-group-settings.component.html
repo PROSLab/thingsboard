@@ -64,9 +64,11 @@
             <section class="tb-widget-settings"
                 *ngFor="let objectControl of objectsFormArray().controls; trackBy: trackByObjectControl; let $index = index;">
 
-                <tb-threed-object-settings [label]="objectControl.value.entity.name" [sceneEditor]="sceneEditor"
+                <tb-threed-object-settings 
+                    [label]="objectControl.value.entity.name" [sceneEditor]="sceneEditor"
                     [aliasController]="aliasController" [formControl]="objectControl"
                     [entityAttribute]="entityAttribute" [entityAlias]="entityAlias"
+                    [expanded]="objectControl.expanded"
                     (removeObject)="removeObject($index)">
                 </tb-threed-object-settings>
             </section>

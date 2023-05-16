@@ -81,6 +81,9 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   @Input()
   customObjectId?: string;
 
+  @Input()
+  expanded = false;
+
   @Output()
   removeObject = new EventEmitter();
 
@@ -89,7 +92,7 @@ export class ThreedObjectSettingsComponent extends PageComponent implements OnIn
   private propagateChange = null;
 
   public threedObjectSettingsFormGroup: FormGroup;
-  public expanded = false;
+
 
   constructor(protected store: Store<AppState>,
     private translate: TranslateService,

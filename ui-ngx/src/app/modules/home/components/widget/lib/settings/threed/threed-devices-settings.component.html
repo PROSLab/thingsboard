@@ -28,7 +28,8 @@
                 [aliasController]="aliasController"
                 [formControl]="deviceGroupControl" 
                 (removeDeviceGroup)="removeDeviceGroup($index)"
-                label="Devices group {{$index+1}}">
+                label="Devices group {{$index+1}}"
+                [forceExpand]="deviceGroupControl.expandedId">
             </tb-threed-device-group-settings>
 
         </div>

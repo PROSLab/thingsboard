@@ -162,8 +162,6 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
   private updateValidators(emitEvent: boolean) {
     const useAlias: boolean = this.threedEnvironmentSettingsFormGroup.get('useAlias').value;
 
-    console.log(this.modelValue, this.threedEnvironmentSettingsFormGroup);
-
     if (useAlias) {
       this.threedEnvironmentSettingsFormGroup.get('threedEntityAliasSettings').enable({ emitEvent });
       this.threedEnvironmentSettingsFormGroup.get('threedEntityKeySettings').enable({ emitEvent });

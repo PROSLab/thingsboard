@@ -42,6 +42,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     public positionChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public rotationChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
     public scaleChanged = new EventEmitter<{ id: string, vector: Vector3 }>();
+    public modelSelected = new EventEmitter<string>();
     private lastPosition = new THREE.Vector3();
     private lastRotation = new THREE.Vector3();
     private lastScale = new THREE.Vector3();
@@ -162,6 +163,9 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
         if (model) {
             this.transformControl.attach(model);
             if (this.visualizeBoxHelper) this.boxHelper.setFromObject(model);
+
+            const id = model.userData[OBJECT_ID_TAG];
+            this.modelSelected.emit(id);
             
             this.lastPosition.copy(model.position);
             const euler = new THREE.Euler().copy(this.transformControl.object?.rotation);

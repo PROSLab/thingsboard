@@ -67,7 +67,7 @@ export class ThreedModelLoaderService {
     else if (this.isEntityAliasAttribute(entityLoader1) && this.isEntityAliasAttribute(entityLoader2)) {
       return entityLoader1.entityAlias == entityLoader2.entityAlias &&
         entityLoader1.entityAttribute == entityLoader2.entityAttribute &&
-        entityLoader1.entity.id == entityLoader2.entity.id;
+        entityLoader1.entity?.id == entityLoader2.entity?.id;
     }
 
     return false;
