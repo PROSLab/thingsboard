@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, NgZone } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
 import { ThreedGenericLoaderService } from '@app/core/services/threed-generic-loader.service';
 import { ACTIONS, ENVIRONMENT_ID, OBJECT_ID_TAG, ROOT_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
@@ -71,7 +71,7 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef,
-
+    private ngZone: NgZone,
     private threedLoader: ThreedGenericLoaderService
   ) {
     super(store);
@@ -101,11 +101,12 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
       console.error("Orbit Settings not valid...", this.settings);
     }
 
-    await Promise.all(promises)
-
-    this.orbitScene.setValues(this.settings);
-    this.onEditModeChanged();
-    this.onDataUpdated();
+    this.ngZone.runOutsideAngular(async () => {
+      await Promise.all(promises);
+      this.orbitScene.setValues(this.settings);
+      this.onEditModeChanged();
+      this.onDataUpdated();
+    });
   }
 
   ngOnDestroy(): void {
@@ -212,6 +213,6 @@ export class ThreedOrbitWidgetComponent extends PageComponent implements OnInit,
   }
 
   public onResize(width: number, height: number): void {
-    this.orbitScene.resize(width, height);
+    this.orbitScene.resize(width-2, height-2);
   }
 }

@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild, OnDestroy, HostBinding } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild, OnDestroy, HostBinding, NgZone } from '@angular/core';
 import { ThreedGenericLoaderService } from '@app/core/services/threed-generic-loader.service';
 import { ACTIONS, ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import { ThreedViewWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
@@ -70,7 +70,7 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   constructor(
     protected store: Store<AppState>,
     protected cd: ChangeDetectorRef,
-
+    private ngZone: NgZone,
     private threedLoader: ThreedGenericLoaderService
   ) {
     super(store);
@@ -95,9 +95,11 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
       this.cd.detectChanges();
     });
 
-    await this.loadModels();
-    this.onEditModeChanged();
-    this.onDataUpdated();
+    this.ngZone.runOutsideAngular(async () => {
+      await this.loadModels();
+      this.onEditModeChanged();
+      this.onDataUpdated();
+    });
   }
 
   ngOnDestroy(): void {
@@ -142,6 +144,6 @@ export class ThreedNavigationWidgetComponent extends PageComponent implements On
   }
 
   public onResize(width: number, height: number): void {
-    this.navigationScene?.resize(width, height);
+    this.navigationScene?.resize(width-2, height-2);
   }
 }
