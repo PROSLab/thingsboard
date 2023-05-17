@@ -36,6 +36,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
 import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
+import { IThreedExpandable } from './ithreed-expandable';
 
 
 @Component({
@@ -55,7 +56,7 @@ import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/th
     }
   ]
 })
-export class ThreedCameraSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator {
+export class ThreedCameraSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator, IThreedExpandable {
 
   @Input()
   disabled: boolean;
@@ -163,5 +164,12 @@ export class ThreedCameraSettingsComponent extends PageComponent implements OnIn
   private updateObjectVector(objectVector: any, formName: string) {
     if (objectVector.id == CAMERA_ID)
       this.threedCameraSettingsFormGroup.get(formName).setValue(objectVector.vector, { emitValue: false });
+  }
+
+  public forceExpand(id: string): void {
+    if (id == CAMERA_ID) {
+      // may be in future
+      // this.expanded = true;
+    }
   }
 }

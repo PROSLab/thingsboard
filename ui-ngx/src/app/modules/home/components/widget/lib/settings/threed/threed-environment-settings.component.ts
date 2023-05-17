@@ -29,7 +29,7 @@ import { IAliasController } from '@app/core/public-api';
 import { AppState } from '@core/core.state';
 import { ENVIRONMENT_ID } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
-  ThreedEnvironmentSettings,
+  ThreedEnvironmentSettings, ThreedObjectSettings,
 } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -37,6 +37,8 @@ import { PageComponent } from '@shared/components/page.component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { ThreedEntityAliasSettings } from './aliases/threed-entity-alias-settings.component';
 import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './aliases/threed-entity-key-settings.component';
+import { IThreedExpandable } from './ithreed-expandable';
+import { ThreedObjectSettingsComponent } from './threed-object-settings.component';
 
 
 @Component({
@@ -56,7 +58,7 @@ import { ThreedEntityKeySettings, ThreedEntityKeySettingsComponent } from './ali
     }
   ]
 })
-export class ThreedEnvironmentSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator {
+export class ThreedEnvironmentSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator, IThreedExpandable {
 
   @Input()
   disabled: boolean;
@@ -69,6 +71,8 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
 
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;
+
+  @ViewChild("threedObjectSettings") threedObjectSettings?: ThreedObjectSettingsComponent;
 
   private modelValue: ThreedEnvironmentSettings;
 
@@ -201,5 +205,11 @@ export class ThreedEnvironmentSettingsComponent extends PageComponent implements
     this.aliasController.resolveSingleEntityInfo(entityAliasId).subscribe(entity => {
       this.threedEnvironmentSettingsFormGroup.get('objectSettings').patchValue({ entity });
     });
+  }
+
+  public forceExpand(id: string) {
+    if(id == this.modelValue.objectSettings.entity?.id || id == ENVIRONMENT_ID) {
+      this.threedObjectSettings.expanded = true;      
+    }
   }
 }

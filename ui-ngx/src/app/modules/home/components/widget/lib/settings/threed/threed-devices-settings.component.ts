@@ -35,6 +35,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
+import { IThreedExpandable } from './ithreed-expandable';
 
 @Component({
   selector: 'tb-threed-devices-settings',
@@ -53,7 +54,7 @@ import { ThreedTransformControllerComponent } from '../../../threed-view-widget/
     }
   ]
 })
-export class ThreedDevicesSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator {
+export class ThreedDevicesSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator, IThreedExpandable {
 
 
   @Input()
@@ -88,8 +89,8 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
       this.updateModel();
     });
 
-    const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
-    transformComponent.modelSelected.subscribe(id => this.forceExpand(id));
+    //const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
+    //transformComponent.modelSelected.subscribe(id => this.forceExpand(id));
   }
 
 
@@ -176,7 +177,7 @@ export class ThreedDevicesSettingsComponent extends PageComponent implements OnI
     (this.threedDevicesSettingsFormGroup.get('threedDeviceGroupSettings') as FormArray).removeAt(index);
   }
 
-  private forceExpand(id: string) {
+  public forceExpand(id: string): void {
     const devicesGoupFormArray = this.deviceGroupsFormArray();
 
     for (let i = 0; i < devicesGoupFormArray.controls.length; i++) {

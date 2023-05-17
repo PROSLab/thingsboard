@@ -42,6 +42,7 @@ import { ThreedOrbitControllerComponent } from '../../../threed-view-widget/thre
 import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from '../../../threed-view-widget/threed/threed-scenes/threed-scenes';
+import { IThreedExpandable } from './ithreed-expandable';
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -72,6 +73,10 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   sceneControllerType: ThreedSceneControllerType;
 
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
+
+  @ViewChild('threedEnvironmentSettings') threedEnvironmentSettings?: IThreedExpandable;
+  @ViewChild('threedCameraSettings') threedCameraSettings?: IThreedExpandable;
+  @ViewChild('threedDevicesSettings') threedDevicesSettings?: IThreedExpandable;
 
   private modelValue: ThreedSceneSettings;
 
@@ -129,6 +134,9 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.threedSceneSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+
+    const transformComponent = this.sceneEditor.getComponent(ThreedTransformControllerComponent);
+    transformComponent.modelSelected.subscribe(id => this.forceExpand(id));
   }
 
   public hasCamera(): boolean {
@@ -309,5 +317,11 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
       // Leaving fullscreen mode
       this.onExitFullscreen();
     }
+  }
+
+  private forceExpand(id: string): void {
+    this.threedEnvironmentSettings?.forceExpand(id);
+    this.threedCameraSettings?.forceExpand(id);
+    this.threedDevicesSettings?.forceExpand(id);
   }
 }
