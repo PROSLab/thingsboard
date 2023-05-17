@@ -24,6 +24,8 @@ export const LAST_VISIBILITY = "lastVisibility"
 export const CAMERA_ID = "CameraRig"
 export const ENVIRONMENT_ID = "Environment"
 
+export const GIZMOS_LAYER = 1;
+
 export const ACTIONS = {
     tooltip: 'tooltipAction'
 }

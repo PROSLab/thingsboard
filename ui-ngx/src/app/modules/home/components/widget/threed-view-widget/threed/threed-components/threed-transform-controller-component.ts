@@ -16,7 +16,7 @@
 
 import { EventEmitter } from '@angular/core';
 import { ThreedUtils } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-utils';
-import { OBJECT_ID_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
+import { GIZMOS_LAYER, OBJECT_ID_TAG } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import * as THREE from 'three';
 import { BoxHelper, Vector3 } from 'three';
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
@@ -115,6 +115,7 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
 
     private initializeController() {
         this.transformControl = new TransformControls(this.sceneManager.camera, this.sceneManager.getTRenderer(ThreedCssRenderer).getRenderer().domElement);
+        this.setLayer(GIZMOS_LAYER);
         this.transformControl.addEventListener('dragging-changed', (event) => {
             this.onDraggingChanged.emit(event);
             const draggingChanged = event.value;
@@ -148,9 +149,15 @@ export class ThreedTransformControllerComponent extends ThreedBaseComponent impl
     private initializeBoxHelper() {
         if (!this.boxHelper && this.visualizeBoxHelper) {
             this.boxHelper = new THREE.BoxHelper(undefined, 0xffff00);
+            this.boxHelper.layers.set(GIZMOS_LAYER);
             this.sceneManager.scene.add(this.boxHelper);
             this.boxHelper.visible = false
         }
+    }
+
+    private setLayer(channel: number): void {
+        this.transformControl.traverse((object) => object.layers.set(channel));
+        this.transformControl.getRaycaster().layers.set(channel);
     }
 
     public attachTransformController(model?: THREE.Object3D) {

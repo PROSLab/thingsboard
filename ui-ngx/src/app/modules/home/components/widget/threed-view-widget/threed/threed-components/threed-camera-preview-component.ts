@@ -16,7 +16,7 @@
 
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { CAMERA_ID, OBJECT_ID_TAG, ROOT_TAG } from "../threed-constants";
+import { CAMERA_ID, GIZMOS_LAYER, OBJECT_ID_TAG, ROOT_TAG } from "../threed-constants";
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 import { IThreedPerspectiveCamera } from "./ithreed-perspective-camera";
@@ -45,7 +45,15 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
     }
 
     tick(): void {
-        if (this.perspectiveCameraHelper?.visible) this.perspectiveCameraHelper?.update();
+        if (this.perspectiveCameraHelper?.visible) {
+            if(!this.cameraMesh) return;
+            
+            const position = this.cameraMesh?.position;
+            const rotation = this.cameraMesh?.rotation;
+            this.perspectiveCamera.position.copy(position);
+            this.perspectiveCamera.rotation.copy(rotation);
+            this.perspectiveCameraHelper?.update();
+        }
     }
 
     render(): void {
@@ -85,9 +93,11 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
     }
 
     private initializeCameraHelper() {
-        console.log("initializeCameraHelper");
         this.perspectiveCamera = new THREE.PerspectiveCamera(60, this.debugCameraScreenWidth / this.debugCameraScreenHeight, 1, 150);
+        this.perspectiveCamera.layers.disable(GIZMOS_LAYER);
+
         this.perspectiveCameraHelper = new THREE.CameraHelper(this.perspectiveCamera);
+        this.perspectiveCameraHelper.layers.set(GIZMOS_LAYER);
         this.sceneManager.scene.add(this.perspectiveCameraHelper)
 
         new GLTFLoader().load("./assets/models/gltf/camera.glb", (gltf: GLTF) => {
@@ -99,7 +109,8 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
             })
             this.cameraMesh.userData[ROOT_TAG] = true;
             this.cameraMesh.userData[OBJECT_ID_TAG] = CAMERA_ID;
-            this.cameraMesh.add(this.perspectiveCamera);
+            this.cameraMesh.layers.set(GIZMOS_LAYER);
+            //this.cameraMesh.add(this.perspectiveCamera);
             this.sceneManager.scene.add(this.cameraMesh);
 
             this.sceneManager.forceUpdateValues();
