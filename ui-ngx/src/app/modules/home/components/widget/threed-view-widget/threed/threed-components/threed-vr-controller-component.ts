@@ -113,7 +113,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.controllerGrip.visible = true;
         this.controller.parent = this.sceneManager.camera.parent;
         this.controllerGrip.parent = this.sceneManager.camera.parent;
-        this.textHelper.parent = this.sceneManager.camera.parent;
+        this.textHelper.parent = this.sceneManager.camera;
         this.displayVRControllerInputTextHelper(true);
 
         this.xr = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer().xr;
@@ -130,7 +130,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     }
 
     private createVRControllerInputTextHelper() {
-        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Jump: A<br>Interact: Trigger<br><br>Open/Close Commands: B");
+        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br><br>Open/Close Commands: B");
         this.textHelper.position.set(0, 2, -20);
         this.sceneManager.scene.add(this.textHelper);
         this.displayVRControllerInputTextHelper(false);
@@ -174,17 +174,11 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                 const cameraDolly = this.sceneManager.camera.parent;
                 const quaternion = cameraDolly.quaternion.clone();
                 this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
+                const y = cameraDolly.position.y;
                 cameraDolly.translateZ(-this.velocity.z * delta);
                 cameraDolly.translateX(-this.velocity.x * delta);
+                cameraDolly.position.setY(y);
                 cameraDolly.quaternion.copy(quaternion);
-
-                cameraDolly.position.y += (this.velocity.y * delta); // new behavior
-                if (cameraDolly.position.y < 10) {
-                    this.velocity.y = 0;
-                    cameraDolly.position.y = 10;
-
-                    this.canJump = true;
-                }
             }
         }
 
@@ -215,14 +209,6 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                         data.axes.splice(0, 2);
                         this.direction.x = data.axes[0];
                         this.direction.z = data.axes[1];
-                    }
-                    if (data.buttons.length >= 5) {
-                        // A button pressed
-                        const buttonA = data.buttons[4];
-                        if (buttonA >= 1) {
-                            if (this.canJump === true) this.velocity.y += 3 * this.mass;
-                            this.canJump = false;
-                        }
                     }
                     if (data.buttons.length >= 6) {
                         // B button pressed
