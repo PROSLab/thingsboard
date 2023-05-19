@@ -70,8 +70,8 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
     }
 
     private initializeGrid() {
-        const size = 500;
-        const rectSize = 10;
+        const size = 100;
+        const rectSize = 1;
         this.sceneManager.scene.add(new THREE.GridHelper(size, size / rectSize, 0x888888, 0x444444));
     }
 

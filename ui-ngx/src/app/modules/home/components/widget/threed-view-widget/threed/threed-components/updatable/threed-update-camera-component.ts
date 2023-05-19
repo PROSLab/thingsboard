@@ -38,13 +38,21 @@ export class ThreedUpdateCameraComponent extends ThreedBaseComponent implements 
 
         this.sceneManager.modelManager.updateModelTransforms(CAMERA_ID, { threedPositionVectorSettings: settings.initialPosition, threedRotationVectorSettings: settings.initialRotation });
 
+        console.log("Update values", this.threedCamera);
         if (this.threedCamera) {
             const camera = this.threedCamera.getPerspectiveCamera();
 
-            const position = settings.initialPosition;
-            const rotation = settings.initialRotation;
-            if (position) camera.position.set(position.x, position.y, position.z);
-            if (rotation) camera.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+            const threedPosition = settings.initialPosition;
+            const threedRotation = settings.initialRotation;
+            let position: THREE.Vector3 | undefined;
+            let rotation: THREE.Vector3 | undefined;
+            if (threedPosition) {
+                position = new THREE.Vector3(threedPosition.x, threedPosition.y, threedPosition.z);
+            }
+            if (threedRotation) {
+                rotation = new THREE.Vector3(THREE.MathUtils.degToRad(threedRotation.x), THREE.MathUtils.degToRad(threedRotation.y), THREE.MathUtils.degToRad(threedRotation.z));
+            }
+            this.threedCamera.updateTransform(position, rotation);
 
             camera.far = settings.far || camera.far;
             camera.near = settings.near || camera.near;

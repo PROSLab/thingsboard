@@ -33,7 +33,7 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
     private cameraMesh: THREE.Mesh | THREE.Group;
     private debugCameraScreenWidth = 1;
     private debugCameraScreenHeight = 1;
-    
+
     public enabled = false;
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -45,15 +45,22 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
     }
 
     tick(): void {
-        if (this.perspectiveCameraHelper?.visible) {
-            if(!this.cameraMesh) return;
-            
-            const position = this.cameraMesh?.position;
-            const rotation = this.cameraMesh?.rotation;
-            this.perspectiveCamera.position.copy(position);
-            this.perspectiveCamera.rotation.copy(rotation);
-            this.perspectiveCameraHelper?.update();
+        if (this.perspectiveCameraHelper) {
+            this.perspectiveCameraHelper.visible = this.enabled;
+            if (this.enabled) {
+                this.updateCameraPositionAndRotation();
+            }
         }
+    }
+
+    private updateCameraPositionAndRotation() {
+        if (!this.cameraMesh) return;
+
+        const position = this.cameraMesh?.position;
+        const rotation = this.cameraMesh?.rotation;
+        this.perspectiveCamera.position.copy(position);
+        this.perspectiveCamera.rotation.copy(rotation);
+        this.perspectiveCameraHelper?.update();
     }
 
     render(): void {
@@ -110,7 +117,7 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
             this.cameraMesh.userData[ROOT_TAG] = true;
             this.cameraMesh.userData[OBJECT_ID_TAG] = CAMERA_ID;
             this.cameraMesh.layers.set(GIZMOS_LAYER);
-            //this.cameraMesh.add(this.perspectiveCamera);
+            this.cameraMesh.scale.multiplyScalar(0.1);
             this.sceneManager.scene.add(this.cameraMesh);
 
             this.sceneManager.forceUpdateValues();
@@ -120,5 +127,13 @@ export class ThreedCameraPreviewComponent extends ThreedBaseComponent implements
 
     getPerspectiveCamera(): THREE.PerspectiveCamera {
         return this.perspectiveCamera;
+    }
+
+    updateTransform(position?: THREE.Vector3, rotation?: THREE.Vector3): void {
+        if (!this.cameraMesh) return;
+
+        if (position) this.cameraMesh.position.set(position.x, position.y, position.z);
+        if (rotation) this.cameraMesh.rotation.set(rotation.x, rotation.y, rotation.z);
+        this.updateCameraPositionAndRotation();
     }
 }

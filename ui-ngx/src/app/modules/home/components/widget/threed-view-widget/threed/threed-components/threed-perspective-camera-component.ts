@@ -41,4 +41,10 @@ export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent implem
     getPerspectiveCamera(): THREE.PerspectiveCamera {
         return this.camera;
     }
+
+    updateTransform(position?: THREE.Vector3, rotation?: THREE.Vector3): void {
+        if(!this.camera) return;
+        if(position) this.camera.position.set(position.x, position.y, position.z);
+        if(rotation) this.camera.rotation.set(rotation.x, rotation.y, rotation.z);
+    }
 }
