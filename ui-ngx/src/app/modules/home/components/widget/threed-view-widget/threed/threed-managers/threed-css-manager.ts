@@ -185,7 +185,7 @@ export class ThreedCssManager {
         const cssData = cssDataAndLayer.data;
 
         cssData.vrMesh?.remove();
-        const panel = VrUi.createPanelFromHtml(content);
+        const panel = VrUi.createPanelFromHtml(content, {textSize:.08, margin:.5});
         panel.position.copy(cssData.cssObject.position);
         panel.layers.set(cssDataAndLayer.layer);
         panel.renderOrder = 10;

@@ -23,12 +23,14 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 
     private createGridHelper: boolean;
+    private createDefaultCube: boolean;
     private pmremGenerator: THREE.PMREMGenerator;
     private neutralEnvironment: THREE.Texture;
 
-    constructor(createGridHelper: boolean) {
+    constructor(createGridHelper: boolean, createDefaultCube: boolean = false) {
         super();
         this.createGridHelper = createGridHelper;
+        this.createDefaultCube = createDefaultCube;
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -45,21 +47,24 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 
         if (this.sceneManager.configs.shadow)
             this.initializeShadow();
+
+        if(this.createDefaultCube)
+            this.addCube();
     }
 
     private initializeScene() {
         this.sceneManager.scene.background = new THREE.Color(0xcccccc);
     }
 
-    private initializeEnvironment(){
+    private initializeEnvironment() {
         const renderer = this.sceneManager.getTRenderer(ThreedWebRenderer).getRenderer();
 
         this.pmremGenerator = new THREE.PMREMGenerator(renderer);
         this.pmremGenerator.compileEquirectangularShader();
-    
-        this.neutralEnvironment = this.pmremGenerator.fromScene( new RoomEnvironment() ).texture;
+
+        this.neutralEnvironment = this.pmremGenerator.fromScene(new RoomEnvironment()).texture;
         this.sceneManager.scene.environment = this.neutralEnvironment;
-    
+
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = Math.pow(2, -0.5);
     }
@@ -109,5 +114,13 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
         plane.castShadow = false;
         plane.receiveShadow = true;
         this.sceneManager.scene.add(plane);
+    }
+
+    private addCube() {
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(0,0.5,0);
+        this.sceneManager.scene.add(cube);
     }
 }

@@ -25,8 +25,9 @@ import { VrUi } from '../threed-extensions/vr-ui';
 export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
     private readonly gravity = 9.8;
-    private readonly mass = 30;
-    private readonly speed = 200;
+    private readonly mass = 80;
+    private readonly speed = 40;
+    private readonly scaleFactor = 0.1;
 
     public controller: THREE.XRTargetRaySpace;
     private controllerGrip: THREE.XRGripSpace;
@@ -62,7 +63,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         const controllerModelFactory = new XRControllerModelFactory();
         this.controllerGrip = renderer.xr.getControllerGrip(0);
         const controllerGripModel = controllerModelFactory.createControllerModel(this.controllerGrip);
-        controllerGripModel.scale.multiplyScalar(5);
+        //controllerGripModel.scale.multiplyScalar(5);
         this.controllerGrip.add(controllerGripModel);
         this.sceneManager.scene.add(this.controllerGrip);
 
@@ -130,8 +131,8 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     }
 
     private createVRControllerInputTextHelper() {
-        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br><br>Open/Close Commands: B");
-        this.textHelper.position.set(0, 2, -20);
+        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br><br>Open/Close Commands: B", {textSize:.25, margin:.5});
+        this.textHelper.position.set(0, -1, -2);
         this.sceneManager.scene.add(this.textHelper);
         this.displayVRControllerInputTextHelper(false);
     }
@@ -160,7 +161,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
             this.velocity.x -= this.velocity.x * 10.0 * delta;
             this.velocity.z -= this.velocity.z * 10.0 * delta;
-            this.velocity.y -= this.gravity * this.mass * delta;
+            this.velocity.y -= this.gravity * this.mass * delta * this.scaleFactor;
 
             this.velocity.z -= this.direction.z * this.speed * delta;
             this.velocity.x -= this.direction.x * this.speed * delta;
@@ -188,7 +189,6 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
     private move() {
         let handedness = "unknown";
-        let i = 0;
         const session = this.xr.getSession();
 
         if (this.isIterable(session.inputSources)) {
@@ -197,7 +197,6 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                     handedness = source.handedness; //left or right controllers
                 }
                 if (!source.gamepad) continue;
-                const controller = this.xr.getController(i++);
                 const data = {
                     handedness: handedness,
                     buttons: source.gamepad.buttons.map((b) => b.value),

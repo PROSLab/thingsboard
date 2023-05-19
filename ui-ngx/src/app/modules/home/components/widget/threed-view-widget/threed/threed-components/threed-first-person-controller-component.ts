@@ -24,20 +24,24 @@ import { ThreedBaseComponent } from "./threed-base-component";
 export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent implements IThreedListener {
 
     private readonly gravity = 9.8;
-    private readonly mass = 30;
-    private readonly speed = 400;
+    private readonly mass = 80;
+    private readonly speed = 40;
+    private readonly scaleFactor = 0.1;
 
     private controls?: PointerLockControls;
     private velocity = new THREE.Vector3();
     private direction = new THREE.Vector3();
-    private raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
+    private raycaster: THREE.Raycaster;
 
     private moveForward = false;
     private moveBackward = false;
     private moveLeft = false;
     private moveRight = false;
     private canJump = false;
+    private crouch = false;
     private pointerLocked = false;
+
+    private height = 1.7;
 
     private prevTime = performance.now();
     public onPointerLockedChanged: EventEmitter<boolean> = new EventEmitter();
@@ -59,10 +63,12 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
             this_.onPointerLockedChanged.emit(this_.pointerLocked);
         });
         this.sceneManager.scene.add(this.controls.getObject());
+
+        this.raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, this.height);
     }
 
     tick(): void {
-        if(this.sceneManager.vrActive) return;
+        if (this.sceneManager.vrActive) return;
 
         const time = performance.now();
 
@@ -78,7 +84,7 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
             this.velocity.x -= this.velocity.x * 10.0 * delta;
             this.velocity.z -= this.velocity.z * 10.0 * delta;
 
-            this.velocity.y -= this.gravity * this.mass * delta; // 100.0 = mass
+            this.velocity.y -= this.gravity * this.mass * delta * this.scaleFactor;
 
             this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
             this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
@@ -99,11 +105,13 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
 
             this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
 
-            if (this.controls.getObject().position.y < 10) {
-
+            if (this.crouch && this.controls.getObject().position.y <= this.height) {
                 this.velocity.y = 0;
-                this.controls.getObject().position.y = 10;
-
+                this.controls.getObject().position.y = this.height / 2;
+                this.canJump = false;
+            } else if (this.controls.getObject().position.y < this.height) {
+                this.velocity.y = 0;
+                this.controls.getObject().position.y = this.height;
                 this.canJump = true;
             }
         }
@@ -112,6 +120,7 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     }
 
     onKeyDown(event: KeyboardEvent): void {
+        console.log(event.code);
         switch (event.code) {
             case 'ArrowUp':
             case 'KeyW':
@@ -134,8 +143,12 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
                 break;
 
             case 'Space':
-                if (this.canJump === true) this.velocity.y += 3 * this.mass;
+                if (this.canJump === true) this.velocity.y += 2 * this.mass * this.scaleFactor;
                 this.canJump = false;
+                break;
+
+            case 'ShiftLeft':
+                this.crouch = true;
                 break;
         }
     }
@@ -159,6 +172,10 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
             case 'ArrowRight':
             case 'KeyD':
                 this.moveRight = false;
+                break;
+
+            case 'ShiftLeft':
+                this.crouch = false;
                 break;
         }
     }

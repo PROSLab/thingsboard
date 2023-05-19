@@ -316,8 +316,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private onVRSessionStart() {
         if (this.camera && this.camera.parent?.type != "Group") {
             this.cameraGroup = new THREE.Group();
+            this.cameraGroup.name = "VR Camera Group";
             this.cameraGroup.add(this.camera);
             this.cameraGroup.position.copy(this.camera.position);
+            this.cameraGroup.position.setY(0);
             //this.cameraGroup.rotation.copy(this.camera.rotation);
             this.camera.position.set(0, 0, 0);
             this.camera.rotation.set(0, 0, 0);
@@ -335,6 +337,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
             this.scene.remove(this.cameraGroup);
             this.camera.parent = null;
             this.camera.position.copy(position);
+            this.camera.position.setY(1.7);
             this.camera.rotation.set(0, rotation.y, 0);
         }
         this.vrActive = false;
