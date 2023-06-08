@@ -66,53 +66,48 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     person.name = "PersonMesh";
     scene.add(person);
 
-    // Create a cone-shaped mesh to represent the PIR sensor
-    const radius = 1;
-    const height = 1;
-    const coneGeometry = new THREE.ConeGeometry(radius, height, 32);
-    const coneMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true });
-    const coneMesh = new THREE.Mesh(coneGeometry, coneMaterial);
-    coneMesh.name = "Cone Mesh Collider";
-    coneMesh.position.set(-0.0726, height/2 + 0.037, 0.0419);
-    coneMesh.rotation.x = -Math.PI;
-    pirSensor.add(coneMesh);
+    const pirCamera = new DebugablePerspectiveCamera(this.simulationScene, 4);
+    pirCamera.camera.position.set(-0.0726, 0.037, 0.0419);
+    pirCamera.camera.rotation.x = Math.PI/2;
+    pirSensor.add(pirCamera.camera);
+
     pirSensor.position.set(0, 0.643, 0.5);
     pirSensor.rotation.x = -Math.PI;
-    
+        
     desk.add(pirSensor);
     scene.add(desk);
 
-    const coneDirection = this.drawDirection(coneMesh, 0xff0000);
+    //const pirCameraDebug = new THREE.CameraHelper(pirCamera);
+    //scene.add(pirCameraDebug);
 
     this.simulationScene.getComponent(ThreedOrbitControllerComponent).focusOnObject(pirSensor);
     this.simulationScene.getComponent(ThreedOrbitControllerComponent).zoom(1);
     
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
       
-      // Update the position of the person (e.g. move them around the scene)
-      // ...
+      // Create a frustum object from the camera's perspective
+      pirCamera.camera.updateMatrix();
+      pirCamera.camera.updateMatrixWorld();
+      const frustum = new THREE.Frustum();
+      const cameraViewProjectionMatrix = new THREE.Matrix4();
+      cameraViewProjectionMatrix.multiplyMatrices(
+        pirCamera.camera.projectionMatrix,
+        pirCamera.camera.matrixWorldInverse
+      );
+      frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
       
-      const x = coneMesh.position.x+ height/2;//the tip of the cone
-      const dir = coneDirection.normalize();//the normalized axis vector, pointing from the tip to the base
-      const h = height;//height
-      const r = radius;//base radius
+      // Check if the person object is visible in the camera's view
+      const isPersonVisible = frustum.intersectsObject(person);
 
-      const p = person.position; //point to test
-
-      const pminusx = p.clone().sub(new THREE.Vector3(x,0,0));
-      const cone_dist = pminusx.dot(dir);
-
-      if(0 <= cone_dist && cone_dist <= h){
-        console.log("discard point");
-        return;
+      if (isPersonVisible) {
+        console.log("Person sensed!");
       }
-      const cone_radius = (cone_dist / h) * r;
-      const orth_distance = pminusx.clone().sub(dir.clone().multiplyScalar(cone_dist)).length();
-      const is_point_inside_cone = (orth_distance < cone_radius)
 
-      if(is_point_inside_cone){
-        console.log("peson is inside!!!");
-      }
+      //pirCameraDebug.update();
+      
+    }));
+    this.subscriptions.push(this.simulationScene.onRender.subscribe(_ => {
+      pirCamera.preview();      
     }));
   }
 
@@ -126,27 +121,6 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     return direction;
   }
-
-  /*
-  
-  // Create a frustum object from the camera's perspective
-      const frustum = new THREE.Frustum();
-      const cameraViewProjectionMatrix = new THREE.Matrix4();
-      cameraViewProjectionMatrix.multiplyMatrices(
-        PIRcamera.projectionMatrix,
-        PIRcamera.matrixWorldInverse
-      );
-      frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
-
-      // Check if the person object is visible in the camera's view
-      const isPersonVisible = frustum.intersectsObject(person);
-
-      if (isPersonVisible) {
-        console.log("Person sensed!");
-      }
-
-      PIRcamera.preview();
-  */
 
   ngOnInit(): void {
     this.ctx.$scope.threedSimulationWidget = this;

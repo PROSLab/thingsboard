@@ -73,6 +73,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public onMainCameraChange = new EventEmitter<Camera>();
     public onVRChange = new EventEmitter<boolean>();
     public onTick = new EventEmitter();
+    public onRender = new EventEmitter();
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
@@ -221,6 +222,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private render(): void {
         this.threedRenderers.forEach(r => r.render(this));
         this.components.forEach(c => c.render());
+        this.onRender.emit();
     }
     /*============================ END OF UNDATE & RENDERING ============================*/
 

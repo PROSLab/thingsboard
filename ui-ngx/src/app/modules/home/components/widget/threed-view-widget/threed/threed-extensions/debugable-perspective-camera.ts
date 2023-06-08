@@ -16,56 +16,55 @@
 
 import * as THREE from 'three';
 import { PerspectiveCamera } from "three";
-import { GIZMOS_LAYER } from "../threed-constants";
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 
-export class DebugablePerspectiveCamera extends PerspectiveCamera {
+export class DebugablePerspectiveCamera {
 
+    public camera: PerspectiveCamera;
     private sceneManager: IThreedSceneManager;
     private renderer: THREE.WebGLRenderer;
-    private cameraHelper?: THREE.CameraHelper;
+    private cameraHelper: THREE.CameraHelper;
 
     private debugCameraScreenWidth: number = 1;
     private debugCameraScreenHeight: number = 1;
     private cameraPreviewScale: number = 4;
 
-    constructor(sceneManager: IThreedSceneManager, cameraHelper: boolean = true, cameraPreviewScale = 4, fov?: number, aspect?: number, near?: number, far?: number) {
-        super(fov, aspect, near, far);
-
+    constructor(sceneManager: IThreedSceneManager, cameraPreviewScale = 4, camera?: PerspectiveCamera) {
         this.sceneManager = sceneManager;
         this.cameraPreviewScale = cameraPreviewScale;
         this.renderer = sceneManager.getTRenderer(ThreedWebRenderer).getRenderer();
-        if (cameraHelper) {
-            this.cameraHelper = new THREE.CameraHelper(this);
-            this.cameraHelper.layers.set(GIZMOS_LAYER);
-        }
+        this.camera = camera || new THREE.PerspectiveCamera(60, 1, 0.1, 1);
+        this.cameraHelper = new THREE.CameraHelper(this.camera);
+
+        this.sceneManager.scene.add(this.cameraHelper);
+
         this.onResize();
     }
 
-    
     public onResize(): void {
         this.debugCameraScreenWidth = this.sceneManager.screenWidth / this.cameraPreviewScale;
         this.debugCameraScreenHeight = this.sceneManager.screenHeight / this.cameraPreviewScale;
-        this.aspect = this.debugCameraScreenWidth / this.debugCameraScreenHeight;
-        this.updateProjectionMatrix();
+        this.camera.aspect = 1//this.debugCameraScreenWidth / this.debugCameraScreenHeight;
+        this.camera.updateProjectionMatrix();
     }
 
     public preview() {
-        const originalViewport = this.renderer.getViewport(new THREE.Vector4());
-        const perspectiveCameraHelperVisible = this.cameraHelper?.visible || false;
+        this.onResize();
 
-        if (this.cameraHelper) this.cameraHelper.visible = false;
+        const originalViewport = this.renderer.getViewport(new THREE.Vector4());
+        this.cameraHelper.visible = false;
 
         const x = this.sceneManager.screenWidth - this.debugCameraScreenWidth;
         this.renderer.clearDepth();
         this.renderer.setScissorTest(true);
         this.renderer.setScissor(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight)
         this.renderer.setViewport(x, 0, this.debugCameraScreenWidth, this.debugCameraScreenHeight);
-        this.renderer.render(this.sceneManager.scene, this);
+        this.renderer.render(this.sceneManager.scene, this.camera);
         this.renderer.setScissorTest(false);
         this.renderer.setViewport(originalViewport);
 
-        if (this.cameraHelper) this.cameraHelper.visible = perspectiveCameraHelperVisible;
+        this.cameraHelper.visible = true;
+        this.cameraHelper.update();
     }
 }
