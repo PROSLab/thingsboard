@@ -98,8 +98,9 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.components.forEach(c => c.initialize(this));
     }
 
-    public add(component: IThreedComponent): void {
+    public add(component: IThreedComponent, initInstantly: boolean = false): void {
         this.components.push(component);
+        if(initInstantly) component.initialize(this);
     }
 
     public addSubscription(subscription: Subscription): void {

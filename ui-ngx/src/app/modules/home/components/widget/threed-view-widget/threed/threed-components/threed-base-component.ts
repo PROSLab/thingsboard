@@ -25,6 +25,8 @@ export abstract class ThreedBaseComponent implements IThreedComponent {
     protected subscriptions: Subscription[] = [];
 
     initialize(sceneManager: IThreedSceneManager): void {
+        if(this.initialized) return;
+        
         this.sceneManager = sceneManager;
         this.initialized = true;
     }

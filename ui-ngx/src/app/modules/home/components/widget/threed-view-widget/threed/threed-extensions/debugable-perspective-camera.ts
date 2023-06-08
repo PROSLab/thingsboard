@@ -29,6 +29,7 @@ export class DebugablePerspectiveCamera {
     private debugCameraScreenWidth: number = 1;
     private debugCameraScreenHeight: number = 1;
     private cameraPreviewScale: number = 4;
+    quad: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
 
     constructor(sceneManager: IThreedSceneManager, cameraPreviewScale = 4, camera?: PerspectiveCamera) {
         this.sceneManager = sceneManager;
@@ -39,7 +40,36 @@ export class DebugablePerspectiveCamera {
 
         this.sceneManager.scene.add(this.cameraHelper);
 
+        this.addRedFilter();
         this.onResize();
+    }
+
+    private addRedFilter() {
+        // Create a full-screen quad
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const material = new THREE.ShaderMaterial({
+          uniforms: {
+            color: { value: new THREE.Color(1, 0, 0) },
+            opacity: { value: 0.5 }
+          },
+          vertexShader: `
+            void main() {
+              gl_Position = vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform vec3 color;
+            uniform float opacity;
+      
+            void main() {
+              gl_FragColor = vec4(color, opacity);
+            }
+          `,
+          transparent: true
+        });
+        this.quad = new THREE.Mesh(geometry, material);
+        this.quad.position.z = -1;
+        this.sceneManager.scene.add(this.quad);
     }
 
     public onResize(): void {
@@ -49,9 +79,10 @@ export class DebugablePerspectiveCamera {
         this.camera.updateProjectionMatrix();
     }
 
-    public preview() {
+    public preview(sensed = false) {
         this.onResize();
 
+        this.quad.visible = sensed;
         const originalViewport = this.renderer.getViewport(new THREE.Vector4());
         this.cameraHelper.visible = false;
 
@@ -65,6 +96,7 @@ export class DebugablePerspectiveCamera {
         this.renderer.setViewport(originalViewport);
 
         this.cameraHelper.visible = true;
+        this.quad.visible = false;
         this.cameraHelper.update();
     }
 }
