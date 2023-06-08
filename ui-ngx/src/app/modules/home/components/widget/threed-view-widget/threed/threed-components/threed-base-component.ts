@@ -32,7 +32,7 @@ export abstract class ThreedBaseComponent implements IThreedComponent {
     tick(): void { }
     render(): void { }
     resize(): void { }
-    onDestory(): void { 
+    onDestroy(): void { 
         this.subscriptions.forEach(s => s.unsubscribe());
     }
 }

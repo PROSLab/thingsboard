@@ -73,6 +73,17 @@ export class ThreedOrbitControllerComponent extends ThreedBaseComponent implemen
         }
     }
 
+    public zoom(distance: number = 5, millis:number = 1000) {
+        const camera = this.sceneManager.camera;
+        const tween = new TWEEN.Tween(camera.position)
+            .to({ x: distance, y: distance, z: distance }, millis) // Zoom in to z=5 over 1 second
+            .easing(TWEEN.Easing.Quadratic.Out) // Use a quadratic easing function
+            .onUpdate(() => {
+                this.orbit.update();
+            })
+            .start();
+    }
+
     private updateOrbitTarget(position?: THREE.Vector3) {
         position = position || new THREE.Vector3(0, 0, 0);
         this.orbit.target.copy(position);

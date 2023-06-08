@@ -172,5 +172,5 @@ export class ThreedModelManager {
         if (scale) model.root.scale.set(scale.x, scale.y, scale.z);
     }
 
-    public onDestory() { }
+    public onDestroy() { }
 }

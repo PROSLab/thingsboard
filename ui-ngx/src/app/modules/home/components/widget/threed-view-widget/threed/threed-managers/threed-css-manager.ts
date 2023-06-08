@@ -304,7 +304,7 @@ export class ThreedCssManager {
         return undefined;
     }
 
-    public onDestory() {
+    public onDestroy() {
         this.subscriptions.forEach(s => s.unsubscribe());
     }
 }

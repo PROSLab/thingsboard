@@ -72,6 +72,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public onRendererContainerChange = new EventEmitter<ElementRef>();
     public onMainCameraChange = new EventEmitter<Camera>();
     public onVRChange = new EventEmitter<boolean>();
+    public onTick = new EventEmitter();
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
@@ -214,6 +215,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.cssManager.tick();
         this.components.forEach(c => c.tick());
         this.threedRenderers.forEach(r => r.tick(this));
+        this.onTick.emit();
     }
 
     private render(): void {
@@ -347,10 +349,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
 
     public destroy(): void {
-        this.components.forEach(c => c.onDestory());
+        this.components.forEach(c => c.onDestroy());
         this.subscriptions.forEach(s => s.unsubscribe());
-        this.cssManager.onDestory();
-        this.modelManager.onDestory();
+        this.cssManager.onDestroy();
+        this.modelManager.onDestroy();
         ThreedGenericSceneManager.activeSceneManagers.delete(this.sceneId);
     }
 }
