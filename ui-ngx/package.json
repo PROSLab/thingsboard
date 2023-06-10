@@ -49,6 +49,7 @@
     "ace-diff": "^3.0.3",
     "angular-gridster2": "~12.1.1",
     "angular2-hotkeys": "^2.4.0",
+    "cannon-es": "^0.20.0",
     "canvas-gauges": "^2.1.7",
     "core-js": "^3.19.2",
     "date-fns": "^2.26.0",

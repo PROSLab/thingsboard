@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { AppState } from '@core/core.state';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
@@ -23,14 +23,12 @@ import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import * as THREE from 'three';
 import { Subscription } from 'rxjs';
-import { ThreedModelManager } from './threed/threed-managers/threed-model-manager';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { IThreedTester } from './threed/threed-components/ithreed-tester';
 import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
 import { DebugablePerspectiveCamera } from './threed/threed-extensions/debugable-perspective-camera';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { ThreedWebRenderer } from './threed/threed-managers/threed-web-renderer';
 import { ThreedMoveToPositionComponent } from './threed/threed-components/threed-move-to-position-component';
+import * as CANNON from 'cannon-es'
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -45,12 +43,14 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
   private simulationScene: ThreedGenericSceneManager;
+  private world: CANNON.World;
   private subscriptions: Subscription[] = [];
 
   public sensed: boolean = false;
 
   constructor(
     protected store: Store<AppState>,
+    private cd: ChangeDetectorRef
   ) {
     super(store);
 
@@ -59,6 +59,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   }
 
   private async includeFeaturesToSimulationScene() {
+    this.world = new CANNON.World()
+    this.world.gravity.set(0, 0, 0) // no gravity
+    // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
+    //this.world.solver.iterations = 5
+
     const scene = this.simulationScene.scene;
     const pirSensor: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/PIR Sensor.glb")).scene;
     pirSensor.name = "Pir Sensor";
@@ -71,16 +76,64 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     humanoid.position.set(1, 0, 1);
     scene.add(humanoid);
 
-    const pirCamera = new DebugablePerspectiveCamera(this.simulationScene, 4);
-    pirCamera.camera.position.set(-0.0726, 0.037, 0.0419);
-    pirCamera.camera.rotation.x = Math.PI / 2;
-    pirSensor.add(pirCamera.camera);
+
+    // Cylinder
+    const cylinderShape = new CANNON.Cylinder(0.01, 1, .65, 20)
+    const cylinderBody = new CANNON.Body({
+      mass: 0,
+      shape: cylinderShape,
+      position: new CANNON.Vec3(-0.0726, 0.309, 0.458),//-0.0726, 0.037, 0.0419
+      isTrigger: true
+    })
+    this.world.addBody(cylinderBody);
+    cylinderBody.addEventListener('collide', (event) => {
+      console.log("Collision: ", event);
+    });
+    const cylinderGeometry = new THREE.CylinderGeometry(cylinderShape.radiusTop, cylinderShape.radiusBottom, cylinderShape.height, cylinderShape.numSegments);
+    const cylinderMesh = new THREE.Mesh(cylinderGeometry, new THREE.MeshBasicMaterial({color: 0xff00ff, wireframe: true}));
+    scene.add(cylinderMesh);
+
+
+    // Box
+    const humanoidBox = new THREE.Box3().setFromObject(humanoid);
+    const boxHelper = new THREE.BoxHelper(humanoid, 0x00ff00);
+    const size = humanoidBox.max.clone().sub(humanoidBox.min);
+    const boxBody = new CANNON.Body({
+      mass: 1,
+      position: new CANNON.Vec3(),
+      shape: new CANNON.Box(new CANNON.Vec3(size.x, size.y, size.z)),
+    })
+    this.world.addBody(boxBody);
+    scene.add(boxHelper);
+
+
+    // Collision callbacks
+    this.world.addEventListener('beginContact', (event) => {
+      if(event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id){
+        if(event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id){
+          this.sensed = true;
+          this.cd.detectChanges();
+        }
+      }
+      console.log("beginContact: ", event, event.bodyA, event.bodyB);
+    });
+    this.world.addEventListener('endContact', (event) => {
+      if(event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id){
+        if(event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id){
+          this.sensed = false;
+          this.cd.detectChanges();
+        }
+      }
+      console.log("endContact: ", event, event.bodyA, event.bodyB);
+    });
+
 
     pirSensor.position.set(0, 0.643, 0.5);
     pirSensor.rotation.x = -Math.PI;
-
     desk.add(pirSensor);
     scene.add(desk);
+
+
 
 
     this.simulationScene.getComponent(ThreedOrbitControllerComponent).focusOnObject(pirSensor);
@@ -90,40 +143,26 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     this.subscriptions.push(moveToPosition.onPointSelected.subscribe(p => this.moveToPosition(humanoid, new THREE.Vector3(p.x, humanoid.position.y, p.z)), true));
     //this.moveRandomly(humanoid);
 
+
+
+
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
+      const delta = clock.getDelta();
+      boxBody.position.set(humanoid.position.x, humanoid.position.y, humanoid.position.z);
 
+      // update physics
+      this.world.step(delta);
+
+
+      // update visuals
       if (this.tween) {
-        const delta = clock.getDelta();
         mixer.update(delta);
       }
 
-      // Create a frustum object from the camera's perspective
-      pirCamera.camera.updateMatrix();
-      pirCamera.camera.updateMatrixWorld();
-      const frustum = new THREE.Frustum();
-      const cameraViewProjectionMatrix = new THREE.Matrix4();
-      cameraViewProjectionMatrix.multiplyMatrices(
-        pirCamera.camera.projectionMatrix,
-        pirCamera.camera.matrixWorldInverse
-      );
-      frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
-
-      // Check if the person object is visible in the camera's view
-      //const isPersonVisible = frustum.intersectsObject(humanoid);
-      const humanoidBox = new THREE.Box3().setFromObject(humanoid);
-      const isPersonVisible = frustum.intersectsBox(humanoidBox);
-
-      this.sensed = isPersonVisible;
-      if (isPersonVisible) {
-        console.log("Person sensed!");
-      }
-
-      //pirCameraDebug.update();
-
-    }));
-    this.subscriptions.push(this.simulationScene.onRender.subscribe(_ => {
-      pirCamera.preview(this.sensed);
+      // @ts-ignore
+      cylinderMesh.position.copy(cylinderBody.interpolatedPosition);
+      boxHelper.update();
     }));
   }
 
