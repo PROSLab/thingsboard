@@ -29,6 +29,12 @@ import { DebugablePerspectiveCamera } from './threed/threed-extensions/debugable
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ThreedMoveToPositionComponent } from './threed/threed-components/threed-move-to-position-component';
 import * as CANNON from 'cannon-es'
+import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
+import { ThreedPerspectiveCameraComponent } from './threed/threed-components/threed-perspective-camera-component';
+import { DeviceService } from '@core/http/device.service';
+import { AttributeService } from '@core/http/attribute.service';
+import { EntityId } from '@shared/models/id/entity-id';
+import { AttributeScope, DataKeyType, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -50,7 +56,9 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
   constructor(
     protected store: Store<AppState>,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private deviceService: DeviceService,
+    private attributeService: AttributeService,
   ) {
     super(store);
 
@@ -90,7 +98,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       console.log("Collision: ", event);
     });
     const cylinderGeometry = new THREE.CylinderGeometry(cylinderShape.radiusTop, cylinderShape.radiusBottom, cylinderShape.height, cylinderShape.numSegments);
-    const cylinderMesh = new THREE.Mesh(cylinderGeometry, new THREE.MeshBasicMaterial({color: 0xff00ff, wireframe: true}));
+    const cylinderMesh = new THREE.Mesh(cylinderGeometry, new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true }));
     scene.add(cylinderMesh);
 
 
@@ -109,8 +117,8 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     // Collision callbacks
     this.world.addEventListener('beginContact', (event) => {
-      if(event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id){
-        if(event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id){
+      if (event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id) {
+        if (event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id) {
           this.sensed = true;
           this.cd.detectChanges();
         }
@@ -118,8 +126,8 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       console.log("beginContact: ", event, event.bodyA, event.bodyB);
     });
     this.world.addEventListener('endContact', (event) => {
-      if(event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id){
-        if(event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id){
+      if (event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id) {
+        if (event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id) {
           this.sensed = false;
           this.cd.detectChanges();
         }
@@ -136,8 +144,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
 
 
-    this.simulationScene.getComponent(ThreedOrbitControllerComponent).focusOnObject(pirSensor);
-    this.simulationScene.getComponent(ThreedOrbitControllerComponent).zoom(1);
+    this.simulationScene.getComponent(ThreedOrbitControllerComponent)?.focusOnObject(pirSensor);
+    this.simulationScene.getComponent(ThreedOrbitControllerComponent)?.zoom(1);
+    this.simulationScene.getComponent(ThreedPerspectiveCameraComponent)?.updateTransform(new THREE.Vector3(0, 1.7, 0));
+
+
     const moveToPosition = new ThreedMoveToPositionComponent();
     this.simulationScene.add(moveToPosition, true);
     this.subscriptions.push(moveToPosition.onPointSelected.subscribe(p => this.moveToPosition(humanoid, new THREE.Vector3(p.x, humanoid.position.y, p.z)), true));
@@ -221,8 +232,32 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     return direction;
   }
 
+  private entityId: EntityId;
+
   ngOnInit(): void {
     this.ctx.$scope.threedSimulationWidget = this;
+
+
+    this.ctx.datasources.forEach(datasource => {
+      this.entityId = {
+        entityType: datasource.entityType,
+        id: datasource.entityId
+      }
+    });
+    console.log(this.ctx);
+  }
+
+  savePresence() {
+    const saveData = [{
+      key: "presence",//this.datasource.dataKeys[0].name,
+      value: Math.round((Math.random()*10))//this.previewPhoto
+    }];
+    this.attributeService.saveEntityTimeseries(this.entityId, LatestTelemetry.LATEST_TELEMETRY, saveData).subscribe(() => console.log("done"));
+  }
+
+  lock($event) {
+    $event.stopPropagation();
+    this.simulationScene.getComponent(ThreedFirstPersonControllerComponent)?.lockControls();
   }
 
   ngAfterViewInit(): void {

@@ -83,9 +83,11 @@ export class ThreedScenes {
         const builder = new ThreedSceneBuilder({ shadow: true })
             .add(new ThreedPerspectiveCameraComponent())
             .add(new ThreedDefaultAmbientComponent(true))
-            .add(new ThreedOrbitControllerComponent())
-            .add(transformControllercomponent)
-            .add(new ThreedTransformRaycasterComponent('click', 'single', transformControllercomponent));
+            //.add(transformControllercomponent);
+            .add(new ThreedFirstPersonControllerComponent());
+            //.add(new ThreedOrbitControllerComponent());
+            //.add(new ThreedVrControllerComponent());
+            //.add(new ThreedTransformRaycasterComponent('click', 'single', transformControllercomponent));
 
         return builder.build();
     }
