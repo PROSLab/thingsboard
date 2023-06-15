@@ -35,6 +35,13 @@ import { DeviceService } from '@core/http/device.service';
 import { AttributeService } from '@core/http/attribute.service';
 import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeScope, DataKeyType, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
+import { ThreedDefaultAmbientComponent } from './threed/threed-components/threed-default-ambient-component';
+import { ThreedVrControllerComponent } from './threed/threed-components/threed-vr-controller-component';
+import { ThreedSceneBuilder } from './threed/threed-scenes/threed-scene-builder';
+import { ThreedGameObjectComponent } from './threed/threed-components/threed-gameobject-component';
+import { ThreedRigidbodyComponent } from './threed/threed-components/threed-rigidbody-component';
+import { ShapeType } from 'three-to-cannon';
+import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-object';
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -49,10 +56,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
   private simulationScene: ThreedGenericSceneManager;
-  private world: CANNON.World;
+  //private world: CANNON.World;
   private subscriptions: Subscription[] = [];
 
   public sensed: boolean = false;
+  pirRangeId: number;
 
   constructor(
     protected store: Store<AppState>,
@@ -62,47 +70,65 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   ) {
     super(store);
 
-    this.simulationScene = ThreedScenes.createSimulationScene();
+    const builder = new ThreedSceneBuilder({ vr: true, shadow: true })
+      .add(new ThreedPerspectiveCameraComponent(new THREE.Vector3(0, 1.7, 0)))
+      .add(new ThreedDefaultAmbientComponent(true))
+      .add(new ThreedFirstPersonControllerComponent())
+      .add(new ThreedVrControllerComponent());
+    this.simulationScene = builder.build();
+
     this.includeFeaturesToSimulationScene();
   }
 
   private async includeFeaturesToSimulationScene() {
-    this.world = new CANNON.World()
-    this.world.gravity.set(0, 0, 0) // no gravity
-    // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
-    //this.world.solver.iterations = 5
-
-    const scene = this.simulationScene.scene;
+    // Load the models
     const pirSensor: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/PIR Sensor.glb")).scene;
     pirSensor.name = "Pir Sensor";
+    pirSensor.position.set(0, 0.643, 0.5);
+    pirSensor.rotation.x = -Math.PI;
     const desk: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Desk.glb")).scene;
+    desk.add(pirSensor);
     const gltfHumanoid: GLTF = (await new GLTFLoader().loadAsync("./assets/models/gltf/humanoid.glb"));
     const humanoid = gltfHumanoid.scene;
     humanoid.name = "Person Mesh";
     const mixer = new THREE.AnimationMixer(humanoid);
     mixer.clipAction(gltfHumanoid.animations[0]).play();
     humanoid.position.set(1, 0, 1);
-    scene.add(humanoid);
+
+
+    // Add the model to the scene and add the physics
+    const humanoidGameObject = new ThreedGameObjectComponent(humanoid);
+    const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, handleVisuals: false, autoDefineBody: { type: ShapeType.BOX } });
+    this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
+    this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
+    this.simulationScene.add(humanoidGameObject, true)
+    this.simulationScene.add(humanoidRigidbody, true);
+    const deskGameObject = new ThreedGameObjectComponent(desk);
+    this.simulationScene.add(deskGameObject, true);
+    this.simulationScene.add(new ThreedRigidbodyComponent({ mesh: deskGameObject, handleVisuals: true }), true);
 
 
     // Cylinder
-    const cylinderShape = new CANNON.Cylinder(0.01, 1, .65, 20)
     const cylinderBody = new CANNON.Body({
       mass: 0,
-      shape: cylinderShape,
+      shape: new CANNON.Cylinder(0.01, 1, .65, 20),
       position: new CANNON.Vec3(-0.0726, 0.309, 0.458),//-0.0726, 0.037, 0.0419
       isTrigger: true
-    })
+    });
+    this.pirRangeId = cylinderBody.id;
+    this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody }), true);
+    /*
     this.world.addBody(cylinderBody);
     cylinderBody.addEventListener('collide', (event) => {
       console.log("Collision: ", event);
     });
     const cylinderGeometry = new THREE.CylinderGeometry(cylinderShape.radiusTop, cylinderShape.radiusBottom, cylinderShape.height, cylinderShape.numSegments);
     const cylinderMesh = new THREE.Mesh(cylinderGeometry, new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true }));
-    scene.add(cylinderMesh);
+    scene.add(cylinderMesh);*/
 
 
     // Box
+    /*
     const humanoidBox = new THREE.Box3().setFromObject(humanoid);
     const boxHelper = new THREE.BoxHelper(humanoid, 0x00ff00);
     const size = humanoidBox.max.clone().sub(humanoidBox.min);
@@ -113,40 +139,21 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     })
     this.world.addBody(boxBody);
     scene.add(boxHelper);
+    */
 
+    const world = this.simulationScene.physicManager.world;
+    this.simulationScene.physicManager.setVisualiseColliders(true);
 
+    console.log(this.simulationScene);
+/*
     // Collision callbacks
-    this.world.addEventListener('beginContact', (event) => {
-      if (event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id) {
-        if (event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id) {
-          this.sensed = true;
-          this.cd.detectChanges();
-        }
-      }
+    world.addEventListener('beginContact', (event) => {
       console.log("beginContact: ", event, event.bodyA, event.bodyB);
     });
-    this.world.addEventListener('endContact', (event) => {
-      if (event.bodyA.id == cylinderBody.id || event.bodyB.id == cylinderBody.id) {
-        if (event.bodyA.id == boxBody.id || event.bodyB.id == boxBody.id) {
-          this.sensed = false;
-          this.cd.detectChanges();
-        }
-      }
+    world.addEventListener('endContact', (event) => {
       console.log("endContact: ", event, event.bodyA, event.bodyB);
     });
-
-
-    pirSensor.position.set(0, 0.643, 0.5);
-    pirSensor.rotation.x = -Math.PI;
-    desk.add(pirSensor);
-    scene.add(desk);
-
-
-
-
-    this.simulationScene.getComponent(ThreedOrbitControllerComponent)?.focusOnObject(pirSensor);
-    this.simulationScene.getComponent(ThreedOrbitControllerComponent)?.zoom(1);
-    this.simulationScene.getComponent(ThreedPerspectiveCameraComponent)?.updateTransform(new THREE.Vector3(0, 1.7, 0));
+    */
 
 
     const moveToPosition = new ThreedMoveToPositionComponent();
@@ -160,10 +167,10 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
       const delta = clock.getDelta();
-      boxBody.position.set(humanoid.position.x, humanoid.position.y, humanoid.position.z);
+      //boxBody.position.set(humanoid.position.x, humanoid.position.y, humanoid.position.z);
 
       // update physics
-      this.world.step(delta);
+      //this.world.step(delta);
 
 
       // update visuals
@@ -172,12 +179,21 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       }
 
       // @ts-ignore
-      cylinderMesh.position.copy(cylinderBody.interpolatedPosition);
-      boxHelper.update();
+      //cylinderMesh.position.copy(cylinderBody.interpolatedPosition);
+      //boxHelper.update();
     }));
   }
 
-
+  private processCollisionEvent(e: {
+    event: CANNON.Constraint;
+    object: IThreedPhysicObject;
+  }, type: 'begin' | 'end') {
+    if (e.object.physicBody.id == this.pirRangeId) {
+      this.sensed = type == 'begin';
+      this.cd.detectChanges();
+      this.savePresence(this.sensed ? 1 : 0);
+    }
+  }
 
   // Create a function to animate the cube's movement
   private moveInSquare(person: THREE.Object3D, index: number) {
@@ -234,7 +250,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
   private entityId: EntityId;
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.ctx.$scope.threedSimulationWidget = this;
 
 
@@ -247,12 +263,12 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     console.log(this.ctx);
   }
 
-  savePresence() {
+  savePresence(presence?: number) {
     const saveData = [{
       key: "presence",//this.datasource.dataKeys[0].name,
-      value: Math.round((Math.random()*10))//this.previewPhoto
+      value: presence ?? Math.round((Math.random() * 10))
     }];
-    this.attributeService.saveEntityTimeseries(this.entityId, LatestTelemetry.LATEST_TELEMETRY, saveData).subscribe(() => console.log("done"));
+    this.attributeService.saveEntityTimeseries(this.entityId, LatestTelemetry.LATEST_TELEMETRY, saveData).subscribe(() => console.log("presence saved"));
   }
 
   lock($event) {
@@ -261,7 +277,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   }
 
   ngAfterViewInit(): void {
-    this.simulationScene.attachToElement(this.rendererContainer);
+    this.simulationScene?.attachToElement(this.rendererContainer);
   }
 
   ngOnDestroy(): void {

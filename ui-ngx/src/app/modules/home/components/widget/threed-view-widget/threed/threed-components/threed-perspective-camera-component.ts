@@ -23,12 +23,18 @@ import { GIZMOS_LAYER } from '../threed-constants';
 export class ThreedPerspectiveCameraComponent extends ThreedBaseComponent implements IThreedPerspectiveCamera {
 
     private camera: THREE.PerspectiveCamera;
+    private initialPosition: THREE.Vector3 = new THREE.Vector3(0, 40, -70);
+
+    constructor(initialPosition?: THREE.Vector3){
+        super();
+        this.initialPosition = initialPosition ?? this.initialPosition;
+    }
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
         this.camera = new THREE.PerspectiveCamera(60, this.sceneManager.screenWidth / this.sceneManager.screenHeight, 0.01, 10000);
-        this.camera.position.set(0, 40, -70);
+        this.camera.position.copy(this.initialPosition);
         this.camera.layers.enable(GIZMOS_LAYER);
         sceneManager.setCamera(this.camera);
     }

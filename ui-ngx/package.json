@@ -99,6 +99,7 @@
     "split.js": "^1.6.4",
     "systemjs": "6.11.0",
     "three": "^0.150.1",
+    "three-to-cannon": "^4.3.0",
     "tinycolor2": "^1.4.2",
     "tooltipster": "^4.2.8",
     "ts-transformer-keys": "^0.4.3",

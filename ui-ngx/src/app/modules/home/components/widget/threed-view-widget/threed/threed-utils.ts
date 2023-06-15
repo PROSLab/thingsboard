@@ -14,6 +14,7 @@
 /// limitations under the License.
 ///
 
+import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
@@ -35,6 +36,14 @@ export class ThreedUtils {
 
         v2.copy(v1);
         return false;
+    }
+
+    public static threeToCannon(vector3: THREE.Vector3): CANNON.Vec3 {
+        return new CANNON.Vec3(vector3.x, vector3.y, vector3.z);
+    }
+
+    public static cannonToThree(vector3: CANNON.Vec3): THREE.Vector3 {
+        return new THREE.Vector3(vector3.x, vector3.y, vector3.z);
     }
 
     /**

@@ -27,6 +27,7 @@ import { IThreedSceneManager } from "./ithreed-scene-manager";
 import { ThreedCssManager } from "./threed-css-manager";
 import { ThreedCssRenderer } from "./threed-css-renderer";
 import { ThreedModelManager } from "./threed-model-manager";
+import { ThreedPhysicManager } from "./threed-physic-manager";
 import { ThreedWebRenderer } from "./threed-web-renderer";
 import { Subscription } from "rxjs";
 import { ThreedEventManager } from "./threed-event-manager";
@@ -53,6 +54,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
     public cssManager: ThreedCssManager;
+    public physicManager: ThreedPhysicManager;
     public screenWidth = window.innerWidth;
     public screenHeight = window.innerHeight;
     public currentValues: any;
@@ -95,6 +97,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.subscriptions.push(s);
 
         this.cssManager = new ThreedCssManager(this);
+        this.physicManager = new ThreedPhysicManager(this);
         this.components.forEach(c => c.initialize(this));
     }
 
@@ -209,6 +212,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     private loop() {
         this.tick();
+        this.physicManager.updatePhysics();
+        this.physicManager.updateVisuals();
         TWEEN.update();
         this.render();
     }

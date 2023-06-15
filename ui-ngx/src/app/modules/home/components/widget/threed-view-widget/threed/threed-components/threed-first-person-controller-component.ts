@@ -120,7 +120,7 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     }
 
     onKeyDown(event: KeyboardEvent): void {
-        console.log(event.code);
+        //console.log(event.code);
         switch (event.code) {
             case 'ArrowUp':
             case 'KeyW':
