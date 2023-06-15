@@ -33,45 +33,43 @@ export function shapeToGeometry(shape, { flatShading = true } = {}) {
 
     case CANNON.Shape.types.CONVEXPOLYHEDRON: {
       const geometry = new THREE.BufferGeometry()
-      
+      const vertices = []
+      const indices = []
+    
       // Add vertices
-      const points: THREE.Vector3[] = [];
       for (let i = 0; i < shape.vertices.length; i++) {
         const vertex = shape.vertices[i]
-        points.push(new THREE.Vector3(vertex.x, vertex.y, vertex.z))
+        vertices.push(vertex.x, vertex.y, vertex.z)
       }
-      geometry.setFromPoints(points);
-
+    
       // Add faces
       for (let i = 0; i < shape.faces.length; i++) {
         const face = shape.faces[i]
-
+    
         const a = face[0]
         for (let j = 1; j < face.length - 1; j++) {
           const b = face[j]
           const c = face[j + 1]
-          geometry.addGroup(a, b, c);
+          indices.push(a, b, c)
         }
       }
-
+    
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+      geometry.setIndex(indices)
       geometry.computeBoundingSphere()
-
-      if (flatShading) {
-        //geometry.computeFaceNormals()
-      } else {
-        geometry.computeVertexNormals()
-      }
-
+      geometry.computeVertexNormals()
+    
       return geometry
     }
 
     case CANNON.Shape.types.HEIGHTFIELD: {
       const geometry = new THREE.BufferGeometry()
-
+      const vertices = []
+      const indices = []
+    
       const v0 = new CANNON.Vec3()
       const v1 = new CANNON.Vec3()
       const v2 = new CANNON.Vec3()
-      const points: THREE.Vector3[] = [];
       for (let xi = 0; xi < shape.data.length - 1; xi++) {
         for (let yi = 0; yi < shape.data[xi].length - 1; yi++) {
           for (let k = 0; k < 2; k++) {
@@ -82,56 +80,49 @@ export function shapeToGeometry(shape, { flatShading = true } = {}) {
             v0.vadd(shape.pillarOffset, v0)
             v1.vadd(shape.pillarOffset, v1)
             v2.vadd(shape.pillarOffset, v2)
-            points.push(
-              new THREE.Vector3(v0.x, v0.y, v0.z),
-              new THREE.Vector3(v1.x, v1.y, v1.z),
-              new THREE.Vector3(v2.x, v2.y, v2.z)
+            vertices.push(
+              v0.x, v0.y, v0.z,
+              v1.x, v1.y, v1.z,
+              v2.x, v2.y, v2.z
             )
-            const i = points.length - 3;
-            geometry.addGroup(i, i + 1, i + 2);
+            const i = vertices.length / 3 - 3
+            indices.push(i, i + 1, i + 2)
           }
         }
       }
-      geometry.setFromPoints(points);
-
+    
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+      geometry.setIndex(indices)
       geometry.computeBoundingSphere()
-
-      if (flatShading) {
-        //geometry.computeFaceNormals()
-      } else {
-        geometry.computeVertexNormals()
-      }
-
+      geometry.computeVertexNormals()
+      
       return geometry
     }
 
     case CANNON.Shape.types.TRIMESH: {
       const geometry = new THREE.BufferGeometry()
-
+      const vertices = []
+      const indices = []
+    
       const v0 = new CANNON.Vec3()
       const v1 = new CANNON.Vec3()
       const v2 = new CANNON.Vec3()
-      const points: THREE.Vector3[] = [];
       for (let i = 0; i < shape.indices.length / 3; i++) {
         shape.getTriangleVertices(i, v0, v1, v2)
-        points.push(
-          new THREE.Vector3(v0.x, v0.y, v0.z),
-          new THREE.Vector3(v1.x, v1.y, v1.z),
-          new THREE.Vector3(v2.x, v2.y, v2.z)
+        vertices.push(
+          v0.x, v0.y, v0.z,
+          v1.x, v1.y, v1.z,
+          v2.x, v2.y, v2.z
         )
-        const j = points.length - 3
-        geometry.addGroup(j, j + 1, j + 2)
+        const j = vertices.length / 3 - 3
+        indices.push(j, j + 1, j + 2)
       }
-      geometry.setFromPoints(points);
-
+    
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+      geometry.setIndex(indices)
       geometry.computeBoundingSphere()
-
-      if (flatShading) {
-        //geometry.computeFaceNormals()
-      } else {
-        geometry.computeVertexNormals()
-      }
-
+      geometry.computeVertexNormals()
+    
       return geometry
     }
 

@@ -72,7 +72,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     const builder = new ThreedSceneBuilder({ vr: true, shadow: true })
       .add(new ThreedPerspectiveCameraComponent(new THREE.Vector3(0, 1.7, 0)))
-      .add(new ThreedDefaultAmbientComponent(true))
+      .add(new ThreedDefaultAmbientComponent(false))
       .add(new ThreedFirstPersonControllerComponent())
       .add(new ThreedVrControllerComponent());
     this.simulationScene = builder.build();
@@ -97,18 +97,34 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
 
     // Add the model to the scene and add the physics
+    // GROUND
+    // Static ground plane
+    const groundShape = new CANNON.Plane()
+    const groundBody = new CANNON.Body({ mass: 0 })
+    groundBody.addShape(groundShape)
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
+    const material = new THREE.MeshBasicMaterial({ color: 0 });
+    const geometry = new THREE.PlaneGeometry(200, 200);
+    const ground = new THREE.Mesh(geometry, material);
+    ground.rotation.x = -Math.PI / 2;
+    const groundGameObject = new ThreedGameObjectComponent(ground);
+    this.simulationScene.add(groundGameObject, true);
+    this.simulationScene.add(new ThreedRigidbodyComponent({ mesh: groundGameObject, physicBody: groundBody, handleVisuals: true }), true);
+
+    // PERSON
     const humanoidGameObject = new ThreedGameObjectComponent(humanoid);
     const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, handleVisuals: false, autoDefineBody: { type: ShapeType.BOX } });
     this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
     this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
     this.simulationScene.add(humanoidGameObject, true)
     this.simulationScene.add(humanoidRigidbody, true);
+
+    // DESK
     const deskGameObject = new ThreedGameObjectComponent(desk);
     this.simulationScene.add(deskGameObject, true);
-    this.simulationScene.add(new ThreedRigidbodyComponent({ mesh: deskGameObject, handleVisuals: true }), true);
+    this.simulationScene.add(new ThreedRigidbodyComponent({ mesh: deskGameObject, handleVisuals: true, autoDefineBody: { type: ShapeType.BOX } }), true);
 
-
-    // Cylinder
+    // PIR Sensor Range Collider
     const cylinderBody = new CANNON.Body({
       mass: 0,
       shape: new CANNON.Cylinder(0.01, 1, .65, 20),
@@ -117,70 +133,24 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     });
     this.pirRangeId = cylinderBody.id;
     this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody }), true);
-    /*
-    this.world.addBody(cylinderBody);
-    cylinderBody.addEventListener('collide', (event) => {
-      console.log("Collision: ", event);
-    });
-    const cylinderGeometry = new THREE.CylinderGeometry(cylinderShape.radiusTop, cylinderShape.radiusBottom, cylinderShape.height, cylinderShape.numSegments);
-    const cylinderMesh = new THREE.Mesh(cylinderGeometry, new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true }));
-    scene.add(cylinderMesh);*/
 
 
-    // Box
-    /*
-    const humanoidBox = new THREE.Box3().setFromObject(humanoid);
-    const boxHelper = new THREE.BoxHelper(humanoid, 0x00ff00);
-    const size = humanoidBox.max.clone().sub(humanoidBox.min);
-    const boxBody = new CANNON.Body({
-      mass: 1,
-      position: new CANNON.Vec3(),
-      shape: new CANNON.Box(new CANNON.Vec3(size.x, size.y, size.z)),
-    })
-    this.world.addBody(boxBody);
-    scene.add(boxHelper);
-    */
-
-    const world = this.simulationScene.physicManager.world;
+    // OTHRE CONFIGUATIONS
     this.simulationScene.physicManager.setVisualiseColliders(true);
-
-    console.log(this.simulationScene);
-/*
-    // Collision callbacks
-    world.addEventListener('beginContact', (event) => {
-      console.log("beginContact: ", event, event.bodyA, event.bodyB);
-    });
-    world.addEventListener('endContact', (event) => {
-      console.log("endContact: ", event, event.bodyA, event.bodyB);
-    });
-    */
-
+    this.simulationScene.physicManager.world.gravity.set(0, -9.8, 0);
 
     const moveToPosition = new ThreedMoveToPositionComponent();
     this.simulationScene.add(moveToPosition, true);
     this.subscriptions.push(moveToPosition.onPointSelected.subscribe(p => this.moveToPosition(humanoid, new THREE.Vector3(p.x, humanoid.position.y, p.z)), true));
     //this.moveRandomly(humanoid);
 
-
-
-
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
-      const delta = clock.getDelta();
-      //boxBody.position.set(humanoid.position.x, humanoid.position.y, humanoid.position.z);
-
-      // update physics
-      //this.world.step(delta);
-
-
-      // update visuals
+      // update animation
       if (this.tween) {
+        const delta = clock.getDelta();
         mixer.update(delta);
       }
-
-      // @ts-ignore
-      //cylinderMesh.position.copy(cylinderBody.interpolatedPosition);
-      //boxHelper.update();
     }));
   }
 
