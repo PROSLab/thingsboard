@@ -28,6 +28,10 @@
                 <button mat-icon-button (click)="savePresence()" matTooltip="Save telemetries presence...">
                     <mat-icon>save</mat-icon>
                 </button>
+
+                <mat-slider min=0 max=100 [(ngModel)]="earthquakeScale"></mat-slider>
+
+
 <!--
                 <div *ngIf="orbitType=='complex'">
                     <button mat-icon-button *ngIf="!explodedView" (click)="clickMode('selection')"

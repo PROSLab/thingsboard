@@ -38,7 +38,7 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     private moveLeft = false;
     private moveRight = false;
     private canJump = false;
-    private crouch = false;
+    private positionMode: 'standing' | 'crouch' | 'laying' = 'standing';
     private pointerLocked = false;
 
     private height = 1.7;
@@ -105,9 +105,9 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
 
             this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
 
-            if (this.crouch && this.controls.getObject().position.y <= this.height) {
+            if (this.positionMode != 'standing' && this.controls.getObject().position.y <= this.height) {
                 this.velocity.y = 0;
-                this.controls.getObject().position.y = this.height / 2;
+                this.controls.getObject().position.y = this.positionMode == 'crouch' ? this.height / 2 : this.height / 4;
                 this.canJump = false;
             } else if (this.controls.getObject().position.y < this.height) {
                 this.velocity.y = 0;
@@ -146,10 +146,6 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
                 if (this.canJump === true) this.velocity.y += 2 * this.mass * this.scaleFactor;
                 this.canJump = false;
                 break;
-
-            case 'ShiftLeft':
-                this.crouch = true;
-                break;
         }
     }
     onKeyUp(event: KeyboardEvent): void {
@@ -175,7 +171,13 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
                 break;
 
             case 'ShiftLeft':
-                this.crouch = false;
+                if (this.positionMode == 'standing') {
+                    this.positionMode = 'crouch';
+                } else if (this.positionMode == 'crouch') {
+                    this.positionMode = 'laying';
+                } else {
+                    this.positionMode = 'standing';
+                }
                 break;
         }
     }

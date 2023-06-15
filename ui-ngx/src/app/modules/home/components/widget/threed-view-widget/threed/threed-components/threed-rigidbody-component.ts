@@ -33,7 +33,10 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     private debugColliderMesh?: THREE.Object3D;
     private readonly wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
     private visualiseColliders = false;
-    
+    private bodyOptions: CANNON.BodyOptions;
+    private joints: CANNON.Constraint[];
+    private link?: { rigidbody: IThreedPhysicObject, offset: CANNON.Vec3 };
+
     public physicBody: CANNON.Body;
     public mesh?: IThreedMesh;
     public readonly onBeginCollision = new EventEmitter<{ event: CANNON.Constraint, object: IThreedPhysicObject }>();
@@ -44,15 +47,21 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         mesh?: IThreedMesh,
         physicBody?: CANNON.Body,
         physicMaterial?: CANNON.Material,
+        bodyOptions?: CANNON.BodyOptions,
         autoDefineBody?: ShapeOptions,
+        joints?: CANNON.Constraint[],
+        link?: { rigidbody: IThreedPhysicObject, offset: CANNON.Vec3 },
         handleVisuals?: boolean
     } = {}) {
         super();
         this.mesh = options.mesh;
         this.physicBody = options.physicBody;
+        this.bodyOptions = options.bodyOptions;
         this.physicMaterial = options.physicMaterial;
         this.autoDefineBody = options.autoDefineBody;
         this.handleVisuals = options.handleVisuals ?? true;
+        this.joints = options.joints ?? [];
+        this.link = options.link;
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -65,6 +74,7 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
 
         this.createCollider();
         this.sceneManager.physicManager.addPhysic(this);
+        this.joints.forEach(j => this.sceneManager.physicManager.world.addConstraint(j));
     }
 
     private createBody() {
@@ -76,11 +86,16 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         const result = threeToCannon(object, this.autoDefineBody);
         const { shape, offset, orientation } = result;
 
+        console.log(object.position);
+
         this.physicBody = new CANNON.Body({
             material: this.physicMaterial,
             mass: 1
-        });
+        } && this.bodyOptions);
         this.physicBody.addShape(shape, offset, orientation);
+        this.physicBody.position.copy(ThreedUtils.threeToCannon(object.position));
+
+        console.log(this.physicBody);
     }
 
     private createCollider() {
@@ -99,27 +114,34 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     }
 
     beforeUpdatePhysics(): void {
+        if(this.link) {
+            this.physicBody?.position.copy(this.link.rigidbody.physicBody.position.clone().vadd(this.link.offset));
+        }
+
         if (!this.mesh) return;
 
         if (!this.handleVisuals) {
             this.physicBody?.position.copy(
                 ThreedUtils.threeToCannon(this.mesh.getMesh().position)
             );
+            const q = this.mesh.getMesh().quaternion;
+            this.physicBody?.quaternion.set(q.x, q.y, q.z, q.w);
         }
     }
     updatePhysics(): void { }
     updateVisuals(): void {
+        const physicPosition = ThreedUtils.cannonToThree(this.physicBody?.position);
+        const physicRotation = this.physicBody.quaternion;
+        if (this.debugColliderMesh.visible) {
+            this.debugColliderMesh.position.copy(physicPosition);
+            this.debugColliderMesh.quaternion.set(physicRotation.x, physicRotation.y, physicRotation.z, physicRotation.w);
+        }
+
         if (!this.mesh) return;
 
         if (this.handleVisuals) {
-            this.mesh.getMesh().position.copy(
-                ThreedUtils.cannonToThree(this.physicBody?.position)
-            );
-        }
-
-        if (this.debugColliderMesh.visible) {
-            this.debugColliderMesh.position.copy(this.mesh.getMesh().position);
-            this.debugColliderMesh.rotation.copy(this.mesh.getMesh().rotation);
+            this.mesh.getMesh().position.copy(physicPosition);
+            this.mesh.getMesh().quaternion.set(physicRotation.x, physicRotation.y, physicRotation.z, physicRotation.w);
         }
     }
 }

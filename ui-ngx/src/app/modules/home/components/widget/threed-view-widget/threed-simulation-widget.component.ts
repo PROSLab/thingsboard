@@ -40,8 +40,10 @@ import { ThreedVrControllerComponent } from './threed/threed-components/threed-v
 import { ThreedSceneBuilder } from './threed/threed-scenes/threed-scene-builder';
 import { ThreedGameObjectComponent } from './threed/threed-components/threed-gameobject-component';
 import { ThreedRigidbodyComponent } from './threed/threed-components/threed-rigidbody-component';
-import { ShapeType } from 'three-to-cannon';
+import { ShapeType, threeToCannon } from 'three-to-cannon';
 import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-object';
+import { F } from '@angular/cdk/keycodes';
+import { shapeToGeometry } from './threed/threed-conversion-utils';
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -61,6 +63,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
   public sensed: boolean = false;
   pirRangeId: number;
+  earthquakeScale: number = 1;
 
   constructor(
     protected store: Store<AppState>,
@@ -99,8 +102,10 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     // Add the model to the scene and add the physics
     // GROUND
     // Static ground plane
-    const groundShape = new CANNON.Plane()
-    const groundBody = new CANNON.Body({ mass: 0 })
+    const groundShape = new CANNON.Plane();
+    const groundMaterial = new CANNON.Material('ground');
+    groundMaterial.friction = 0.3;
+    const groundBody = new CANNON.Body({ mass: 0, material: groundMaterial })
     groundBody.addShape(groundShape)
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
     const material = new THREE.MeshBasicMaterial({ color: 0 });
@@ -113,31 +118,46 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     // PERSON
     const humanoidGameObject = new ThreedGameObjectComponent(humanoid);
-    const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, handleVisuals: false, autoDefineBody: { type: ShapeType.BOX } });
+    const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, bodyOptions: { mass: 50, isTrigger: true }, handleVisuals: false, autoDefineBody: { type: ShapeType.BOX } });
     this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
     this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
     this.simulationScene.add(humanoidGameObject, true)
     this.simulationScene.add(humanoidRigidbody, true);
 
-    // DESK
-    const deskGameObject = new ThreedGameObjectComponent(desk);
-    this.simulationScene.add(deskGameObject, true);
-    this.simulationScene.add(new ThreedRigidbodyComponent({ mesh: deskGameObject, handleVisuals: true, autoDefineBody: { type: ShapeType.BOX } }), true);
+    // DESK & PIR Sensor Range Collider
+    for (let index = 0; index < 8; index++) {
+      // DESK
+      const deskMesh = desk.clone();
+      deskMesh.position.set(index * 1.5, 0, 0);
+      const deskGameObject = new ThreedGameObjectComponent(deskMesh);
+      const deskRigidbody = new ThreedRigidbodyComponent({ mesh: deskGameObject, bodyOptions: { mass: 100 }, handleVisuals: true, autoDefineBody: { type: ShapeType.BOX } });
+      this.simulationScene.add(deskGameObject, true);
+      this.simulationScene.add(deskRigidbody, true);
 
-    // PIR Sensor Range Collider
-    const cylinderBody = new CANNON.Body({
-      mass: 0,
-      shape: new CANNON.Cylinder(0.01, 1, .65, 20),
-      position: new CANNON.Vec3(-0.0726, 0.309, 0.458),//-0.0726, 0.037, 0.0419
-      isTrigger: true
-    });
-    this.pirRangeId = cylinderBody.id;
-    this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody }), true);
+      // PIR Sensor Range Collider
+      const height = 0.65;
+      const radius = 0.5;
+      const cylinderBody = new CANNON.Body({
+        mass: 1,
+        shape: new CANNON.Cylinder(0.01, radius, height, 20),
+        isTrigger: true
+      });
+      this.pirRangeId = cylinderBody.id;
+      const link = {
+        rigidbody: deskRigidbody,
+        offset: new CANNON.Vec3(-0.0726, height / 2, 0.458), // y = 0.309
+      }
+      this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
+    }
 
 
-    // OTHRE CONFIGUATIONS
+
+    // OTHER CONFIGUATIONS
     this.simulationScene.physicManager.setVisualiseColliders(true);
-    this.simulationScene.physicManager.world.gravity.set(0, -9.8, 0);
+    const world = this.simulationScene.physicManager.world;
+    world.gravity.set(0, -9.8, 0);
+    console.log(world);
+
 
     const moveToPosition = new ThreedMoveToPositionComponent();
     this.simulationScene.add(moveToPosition, true);
@@ -151,6 +171,8 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
         const delta = clock.getDelta();
         mixer.update(delta);
       }
+
+      this.simulationScene.physicManager.earthquakeMagnitude = this.earthquakeScale / 100;
     }));
   }
 
