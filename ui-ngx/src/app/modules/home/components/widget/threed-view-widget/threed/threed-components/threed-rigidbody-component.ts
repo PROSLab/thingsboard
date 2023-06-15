@@ -114,10 +114,6 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     }
 
     beforeUpdatePhysics(): void {
-        if(this.link) {
-            this.physicBody?.position.copy(this.link.rigidbody.physicBody.position.clone().vadd(this.link.offset));
-        }
-
         if (!this.mesh) return;
 
         if (!this.handleVisuals) {
@@ -130,6 +126,10 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     }
     updatePhysics(): void { }
     updateVisuals(): void {
+        if(this.link) {
+            this.physicBody?.position.copy(this.link.rigidbody.physicBody.position.clone().vadd(this.link.offset));
+        }
+
         const physicPosition = ThreedUtils.cannonToThree(this.physicBody?.position);
         const physicRotation = this.physicBody.quaternion;
         if (this.debugColliderMesh.visible) {

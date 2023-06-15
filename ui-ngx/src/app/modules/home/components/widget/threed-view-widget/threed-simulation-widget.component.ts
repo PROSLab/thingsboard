@@ -19,31 +19,26 @@ import { AppState } from '@core/core.state';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
-import { ThreedScenes } from './threed/threed-scenes/threed-scenes';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import * as THREE from 'three';
 import { Subscription } from 'rxjs';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { ThreedOrbitControllerComponent } from './threed/threed-components/threed-orbit-controller-component';
-import { DebugablePerspectiveCamera } from './threed/threed-extensions/debugable-perspective-camera';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ThreedMoveToPositionComponent } from './threed/threed-components/threed-move-to-position-component';
 import * as CANNON from 'cannon-es'
 import { ThreedFirstPersonControllerComponent } from './threed/threed-components/threed-first-person-controller-component';
 import { ThreedPerspectiveCameraComponent } from './threed/threed-components/threed-perspective-camera-component';
-import { DeviceService } from '@core/http/device.service';
 import { AttributeService } from '@core/http/attribute.service';
 import { EntityId } from '@shared/models/id/entity-id';
-import { AttributeScope, DataKeyType, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
+import {  LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 import { ThreedDefaultAmbientComponent } from './threed/threed-components/threed-default-ambient-component';
 import { ThreedVrControllerComponent } from './threed/threed-components/threed-vr-controller-component';
 import { ThreedSceneBuilder } from './threed/threed-scenes/threed-scene-builder';
 import { ThreedGameObjectComponent } from './threed/threed-components/threed-gameobject-component';
 import { ThreedRigidbodyComponent } from './threed/threed-components/threed-rigidbody-component';
-import { ShapeType, threeToCannon } from 'three-to-cannon';
+import { ShapeType,  } from 'three-to-cannon';
 import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-object';
-import { F } from '@angular/cdk/keycodes';
-import { shapeToGeometry } from './threed/threed-conversion-utils';
+import { ThreedEarthquakeController } from './threed/threed-managers/threed-earthquake-controller';
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -64,11 +59,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   public sensed: boolean = false;
   pirRangeId: number;
   earthquakeScale: number = 1;
+  earthquakeController: ThreedEarthquakeController;
 
   constructor(
     protected store: Store<AppState>,
     private cd: ChangeDetectorRef,
-    private deviceService: DeviceService,
     private attributeService: AttributeService,
   ) {
     super(store);
@@ -163,16 +158,24 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     this.simulationScene.add(moveToPosition, true);
     this.subscriptions.push(moveToPosition.onPointSelected.subscribe(p => this.moveToPosition(humanoid, new THREE.Vector3(p.x, humanoid.position.y, p.z)), true));
     //this.moveRandomly(humanoid);
+    this.earthquakeController = new ThreedEarthquakeController(3, world, {
+      duration: {
+        timeToReachPeak: 10,
+        peakTime: 5,
+        timeToEnd: 2
+      }
+    });
 
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
+      const delta = clock.getDelta();
+
       // update animation
       if (this.tween) {
-        const delta = clock.getDelta();
         mixer.update(delta);
       }
 
-      this.simulationScene.physicManager.earthquakeMagnitude = this.earthquakeScale / 100;
+      this.earthquakeController.update(delta);
     }));
   }
 

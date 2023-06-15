@@ -19,12 +19,10 @@ import * as CANNON from 'cannon-es';
 import { IThreedPhysic } from "../threed-components/ithreed-physic";
 import { IThreedSceneManager } from './ithreed-scene-manager';
 import { IThreedPhysicObject } from '../threed-components/ithreed-physic-object';
-import { comparisonResultTypeTranslationMap } from '@app/shared/public-api';
 
 export class ThreedPhysicManager implements IThreedPhysic {
 
     public readonly world: CANNON.World;
-    public earthquakeMagnitude: number = 0;
 
     private readonly sceneManager: IThreedSceneManager;
     private readonly clock = new THREE.Clock();
@@ -102,9 +100,6 @@ export class ThreedPhysicManager implements IThreedPhysic {
 
     updatePhysics(): void {
         this.beforeUpdatePhysics();
-
-        this.applyEarthquakeForce();
-
         const delta = this.clock.getDelta();
         this.world.step(delta);
         this.components.forEach(c => c.updatePhysics());
@@ -114,18 +109,5 @@ export class ThreedPhysicManager implements IThreedPhysic {
         this.components.forEach(c => c.updateVisuals());
     }
 
-    private applyEarthquakeForce() {
-        if (this.earthquakeMagnitude <= 0) {
-            for (const body of this.world.bodies)
-                body.velocity.set(0, 0, 0);
-        } else {
-            // Apply a global force to all objects in the world
-            const earthquakeForce = new CANNON.Vec3(Math.random() * 10 - 5, 0, Math.random() * 10 - 5).scale(this.earthquakeMagnitude);
-            for (const body of this.world.bodies) {
-                body.velocity.set(earthquakeForce.x, 0, earthquakeForce.z);
-                //body.applyImpulse(earthquakeForce, body.position);
-                //body.applyForce(earthquakeForce, body.position);
-            }
-        }
-    }
+
 }

@@ -29,7 +29,11 @@
                     <mat-icon>save</mat-icon>
                 </button>
 
-                <mat-slider min=0 max=100 [(ngModel)]="earthquakeScale"></mat-slider>
+                <button mat-icon-button (click)="earthquakeController.start()" matTooltip="Start earthquake!">
+                    <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <mat-slider min=0 max=10 [(ngModel)]="earthquakeScale"></mat-slider>
 
 
 <!--
