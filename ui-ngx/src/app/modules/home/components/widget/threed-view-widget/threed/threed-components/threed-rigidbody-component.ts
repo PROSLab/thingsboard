@@ -29,7 +29,7 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
 
     private physicMaterial?: CANNON.Material;
     private autoDefineBody?: ShapeOptions;
-    private handleVisuals: boolean = true;
+    private handleVisuals: boolean | { position: boolean, rotation: boolean } = true;
     private debugColliderMesh?: THREE.Object3D;
     private visualiseColliders = false;
     private bodyOptions: CANNON.BodyOptions;
@@ -51,8 +51,8 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         autoDefineBody?: ShapeOptions,
         joints?: CANNON.Constraint[],
         link?: { rigidbody: IThreedPhysicObject, offset: CANNON.Vec3 },
-        handleVisuals?: boolean,
-        debugColor?:number
+        handleVisuals?: boolean | { position: boolean, rotation: boolean },
+        debugColor?: number
     } = {}) {
         super();
         this.mesh = options.mesh;
@@ -115,17 +115,18 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     beforeUpdatePhysics(): void {
         if (!this.mesh) return;
 
-        if (!this.handleVisuals) {
-            this.physicBody?.position.copy(
-                ThreedUtils.threeToCannon(this.mesh.getMesh().position)
-            );
+        if (this.handleVisuals == false || (this.handleVisuals as { position: boolean }).position == false) {
+            const p = ThreedUtils.threeToCannon(this.mesh.getMesh().position);
+            this.physicBody?.position.copy(p);
+        }
+        if (this.handleVisuals == false || (this.handleVisuals as { rotation: boolean }).rotation == false) {
             const q = this.mesh.getMesh().quaternion;
             this.physicBody?.quaternion.set(q.x, q.y, q.z, q.w);
         }
     }
     updatePhysics(): void { }
     updateVisuals(): void {
-        if(this.link) {
+        if (this.link) {
             this.physicBody?.position.copy(this.link.rigidbody.physicBody.position.clone().vadd(this.link.offset));
         }
 
@@ -138,8 +139,10 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
 
         if (!this.mesh) return;
 
-        if (this.handleVisuals) {
+        if (this.handleVisuals == true || (this.handleVisuals as { position: boolean }).position == true) {
             this.mesh.getMesh().position.copy(physicPosition);
+        }
+        if (this.handleVisuals == true || (this.handleVisuals as { rotation: boolean }).rotation == true) {
             this.mesh.getMesh().quaternion.set(physicRotation.x, physicRotation.y, physicRotation.z, physicRotation.w);
         }
     }

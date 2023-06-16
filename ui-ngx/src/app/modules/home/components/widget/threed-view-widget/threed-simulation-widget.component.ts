@@ -39,6 +39,57 @@ import { ThreedRigidbodyComponent } from './threed/threed-components/threed-rigi
 import { ShapeType, } from 'three-to-cannon';
 import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-object';
 import { ThreedEarthquakeController } from './threed/threed-managers/threed-earthquake-controller';
+import { ThreedAnimatorComponent } from './threed/threed-components/threed-animator-component';
+
+
+const cloneGltf = (gltf) => {
+  const clone = {
+    animations: gltf.animations,
+    scene: gltf.scene.clone(true)
+  };
+
+  const skinnedMeshes = {};
+
+  gltf.scene.traverse(node => {
+    if (node.isSkinnedMesh) {
+      skinnedMeshes[node.name] = node;
+    }
+  });
+
+  const cloneBones = {};
+  const cloneSkinnedMeshes = {};
+
+  clone.scene.traverse(node => {
+    if (node.isBone) {
+      cloneBones[node.name] = node;
+    }
+
+    if (node.isSkinnedMesh) {
+      cloneSkinnedMeshes[node.name] = node;
+    }
+  });
+
+  for (let name in skinnedMeshes) {
+    const skinnedMesh = skinnedMeshes[name];
+    const skeleton = skinnedMesh.skeleton;
+    const cloneSkinnedMesh = cloneSkinnedMeshes[name];
+
+    const orderedCloneBones = [];
+
+    for (let i = 0; i < skeleton.bones.length; ++i) {
+      const cloneBone = cloneBones[skeleton.bones[i].name];
+      orderedCloneBones.push(cloneBone);
+    }
+
+    cloneSkinnedMesh.bind(
+      new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses),
+      cloneSkinnedMesh.matrixWorld);
+  }
+
+  return clone;
+}
+
+
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -114,22 +165,39 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     desk.add(pirSensor);
     const gltfHumanoid: GLTF = (await new GLTFLoader().loadAsync("./assets/models/gltf/humanoid.glb"));
     const humanoid = gltfHumanoid.scene;
+    gltfHumanoid.animations
+    /*
     humanoid.name = "Person Mesh";
     const mixer = new THREE.AnimationMixer(humanoid);
     mixer.clipAction(gltfHumanoid.animations[0]).play();
-    humanoid.position.set(10, this.earthquakeController.getFloorHeight(), 1);
+    humanoid.position.set(0, this.earthquakeController.getFloorHeight(), -10);*/
     const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x0ff0ff });
     const sphereGeometry = new THREE.SphereGeometry(0.1);
     const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    console.log(gltfHumanoid.animations)
 
 
-    // PERSON
-    const humanoidGameObject = new ThreedGameObjectComponent(humanoid);
-    const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, bodyOptions: { mass: 50, isTrigger: true }, handleVisuals: false, autoDefineBody: { type: ShapeType.BOX } });
-    this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
-    this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
-    this.simulationScene.add(humanoidGameObject, true)
-    this.simulationScene.add(humanoidRigidbody, true);
+    // PEOPLE
+    for (let i = 0; i < 10; i++) {
+      const humanoidClone = cloneGltf(gltfHumanoid).scene;
+      const x = Math.random() * 20 - 10;
+      const z = Math.random() * 20 - 10;
+      humanoidClone.position.set(x, this.earthquakeController.getFloorHeight(), z);
+      const humanoidGameObject = new ThreedGameObjectComponent(humanoidClone);
+      const humanoidPhysicBody = new CANNON.Body({ isTrigger: true });
+      humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
+      const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, physicBody: humanoidPhysicBody, handleVisuals: false });
+      const humanoidAnimator = new ThreedAnimatorComponent(humanoidGameObject, ...gltfHumanoid.animations);
+
+      humanoidAnimator.play("Armature|mixamo.com|Layer0");
+      this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
+      this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
+      this.simulationScene.add(humanoidGameObject, true)
+      this.simulationScene.add(humanoidRigidbody, true);
+      this.simulationScene.add(humanoidAnimator, true);
+    }
+
+
 
 
     // DESK & SPHERE & PIR Sensor Range Collider
@@ -147,7 +215,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       this.simulationScene.add(deskGameObject, true);
       this.simulationScene.add(deskRigidbody, true);
 
-      
+
       //SPHERE over the desk
       const sphereMeshClone = sphereMesh.clone();
       sphereMeshClone.position.set(deskMesh.position.x, deskMesh.position.y + 1, deskMesh.position.z);
@@ -156,7 +224,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       this.simulationScene.add(sphereMeshObject, true);
       this.simulationScene.add(sphereMeshbody, true);
 
-      
+
       // PIR Sensor Range Collider
       const height = 0.65;
       const radius = 0.5;
@@ -193,7 +261,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
       // update animation
       if (this.tween) {
-        mixer.update(delta);
+        //mixer.update(delta);
       }
 
       this.earthquakeController.update(delta);

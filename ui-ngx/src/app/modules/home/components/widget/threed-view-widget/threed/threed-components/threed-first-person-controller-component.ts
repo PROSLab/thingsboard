@@ -20,8 +20,9 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { IThreedListener } from './ithreed-listener';
 import { ThreedBaseComponent } from "./threed-base-component";
+import { IThreedMesh } from './ithreed-mesh';
 
-export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent implements IThreedListener {
+export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent implements IThreedListener, IThreedMesh {
 
     private readonly gravity = 9.8;
     private readonly mass = 80;
@@ -187,5 +188,9 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     public lockControls(): void {
         this.controls?.lock();
         this.sceneManager.mouse.set(0, 0);
+    }
+
+    getMesh(): THREE.Object3D {
+        return this.controls.getObject();
     }
 }
