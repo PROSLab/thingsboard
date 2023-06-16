@@ -26,7 +26,7 @@ export class ThreedPhysicManager implements IThreedPhysic {
 
     private readonly sceneManager: IThreedSceneManager;
     private readonly clock = new THREE.Clock();
-    private components: IThreedPhysicObject[] = [];
+    public components: IThreedPhysicObject[] = [];
 
     constructor(sceneManager: IThreedSceneManager) {
         this.sceneManager = sceneManager;
@@ -100,8 +100,9 @@ export class ThreedPhysicManager implements IThreedPhysic {
 
     updatePhysics(): void {
         this.beforeUpdatePhysics();
-        const delta = this.clock.getDelta();
-        this.world.step(delta);
+        //const delta = this.clock.getDelta();
+        this.world.fixedStep();
+        //this.world.step(delta);
         this.components.forEach(c => c.updatePhysics());
     }
 

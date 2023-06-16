@@ -30,13 +30,13 @@ import { ThreedFirstPersonControllerComponent } from './threed/threed-components
 import { ThreedPerspectiveCameraComponent } from './threed/threed-components/threed-perspective-camera-component';
 import { AttributeService } from '@core/http/attribute.service';
 import { EntityId } from '@shared/models/id/entity-id';
-import {  LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
+import { LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 import { ThreedDefaultAmbientComponent } from './threed/threed-components/threed-default-ambient-component';
 import { ThreedVrControllerComponent } from './threed/threed-components/threed-vr-controller-component';
 import { ThreedSceneBuilder } from './threed/threed-scenes/threed-scene-builder';
 import { ThreedGameObjectComponent } from './threed/threed-components/threed-gameobject-component';
 import { ThreedRigidbodyComponent } from './threed/threed-components/threed-rigidbody-component';
-import { ShapeType,  } from 'three-to-cannon';
+import { ShapeType, } from 'three-to-cannon';
 import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-object';
 import { ThreedEarthquakeController } from './threed/threed-managers/threed-earthquake-controller';
 
@@ -79,7 +79,33 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   }
 
   private async includeFeaturesToSimulationScene() {
-    // Load the models
+
+    // SETUP World
+    const world = this.simulationScene.physicManager.world;
+    // Tweak contact properties.
+    // Contact stiffness - use to make softer/harder contacts
+    world.defaultContactMaterial.contactEquationStiffness = 1e9
+    // Stabilization time in number of timesteps
+    world.defaultContactMaterial.contactEquationRelaxation = 4
+    const solver = new CANNON.GSSolver()
+    solver.iterations = 7
+    solver.tolerance = 0.1
+    world.solver = new CANNON.SplitSolver(solver)
+    world.gravity.set(0, -9.8, 0);
+
+
+    // SETUP EARTHQUAKE CONTROLLER (it will create the static & dynamic ground for simulation)
+    this.earthquakeController = new ThreedEarthquakeController(5, this.simulationScene, {
+      duration: {
+        timeToReachPeak: 3,
+        peakTime: 5,
+        timeToEnd: 8
+      }
+    });
+
+
+
+    // LOAD MODELS
     const pirSensor: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/PIR Sensor.glb")).scene;
     pirSensor.name = "Pir Sensor";
     pirSensor.position.set(0, 0.643, 0.5);
@@ -91,25 +117,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     humanoid.name = "Person Mesh";
     const mixer = new THREE.AnimationMixer(humanoid);
     mixer.clipAction(gltfHumanoid.animations[0]).play();
-    humanoid.position.set(1, 0, 1);
+    humanoid.position.set(10, this.earthquakeController.getFloorHeight(), 1);
+    const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x0ff0ff });
+    const sphereGeometry = new THREE.SphereGeometry(0.1);
+    const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
-
-    // Add the model to the scene and add the physics
-    // GROUND
-    // Static ground plane
-    const groundShape = new CANNON.Plane();
-    const groundMaterial = new CANNON.Material('ground');
-    groundMaterial.friction = 0.3;
-    const groundBody = new CANNON.Body({ mass: 0, material: groundMaterial })
-    groundBody.addShape(groundShape)
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
-    const material = new THREE.MeshBasicMaterial({ color: 0 });
-    const geometry = new THREE.PlaneGeometry(200, 200);
-    const ground = new THREE.Mesh(geometry, material);
-    ground.rotation.x = -Math.PI / 2;
-    const groundGameObject = new ThreedGameObjectComponent(ground);
-    this.simulationScene.add(groundGameObject, true);
-    this.simulationScene.add(new ThreedRigidbodyComponent({ mesh: groundGameObject, physicBody: groundBody, handleVisuals: true }), true);
 
     // PERSON
     const humanoidGameObject = new ThreedGameObjectComponent(humanoid);
@@ -119,16 +131,32 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     this.simulationScene.add(humanoidGameObject, true)
     this.simulationScene.add(humanoidRigidbody, true);
 
-    // DESK & PIR Sensor Range Collider
+
+    // DESK & SPHERE & PIR Sensor Range Collider
     for (let index = 0; index < 8; index++) {
       // DESK
       const deskMesh = desk.clone();
-      deskMesh.position.set(index * 1.5, 0, 0);
+      deskMesh.position.set(index * 1.5, this.earthquakeController.getFloorHeight(), 0);
       const deskGameObject = new ThreedGameObjectComponent(deskMesh);
-      const deskRigidbody = new ThreedRigidbodyComponent({ mesh: deskGameObject, bodyOptions: { mass: 100 }, handleVisuals: true, autoDefineBody: { type: ShapeType.BOX } });
+      const deskRigidbody = new ThreedRigidbodyComponent({
+        mesh: deskGameObject,
+        bodyOptions: { mass: 40, type: CANNON.BODY_TYPES.DYNAMIC, material: new CANNON.Material({ restitution: 0 }), linearDamping: 0.1, angularDamping: 0.1 },
+        handleVisuals: true,
+        autoDefineBody: { type: ShapeType.BOX }
+      });
       this.simulationScene.add(deskGameObject, true);
       this.simulationScene.add(deskRigidbody, true);
 
+      
+      //SPHERE over the desk
+      const sphereMeshClone = sphereMesh.clone();
+      sphereMeshClone.position.set(deskMesh.position.x, deskMesh.position.y + 1, deskMesh.position.z);
+      const sphereMeshObject = new ThreedGameObjectComponent(sphereMeshClone);
+      const sphereMeshbody = new ThreedRigidbodyComponent({ mesh: sphereMeshObject, bodyOptions: { mass: 0.5 }, handleVisuals: true, autoDefineBody: { type: ShapeType.SPHERE } });
+      this.simulationScene.add(sphereMeshObject, true);
+      this.simulationScene.add(sphereMeshbody, true);
+
+      
       // PIR Sensor Range Collider
       const height = 0.65;
       const radius = 0.5;
@@ -149,8 +177,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     // OTHER CONFIGUATIONS
     this.simulationScene.physicManager.setVisualiseColliders(true);
-    const world = this.simulationScene.physicManager.world;
-    world.gravity.set(0, -9.8, 0);
+    //gorundRigidbody.setVisualiseColliders(false);
     console.log(world);
 
 
@@ -158,13 +185,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     this.simulationScene.add(moveToPosition, true);
     this.subscriptions.push(moveToPosition.onPointSelected.subscribe(p => this.moveToPosition(humanoid, new THREE.Vector3(p.x, humanoid.position.y, p.z)), true));
     //this.moveRandomly(humanoid);
-    this.earthquakeController = new ThreedEarthquakeController(3, world, {
-      duration: {
-        timeToReachPeak: 10,
-        peakTime: 5,
-        timeToEnd: 2
-      }
-    });
+
 
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
@@ -183,7 +204,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     event: CANNON.Constraint;
     object: IThreedPhysicObject;
   }, type: 'begin' | 'end') {
-    if (e.object.physicBody.id == this.pirRangeId) {
+    if (e.object?.physicBody.id == this.pirRangeId) {
       this.sensed = type == 'begin';
       this.cd.detectChanges();
       this.savePresence(this.sensed ? 1 : 0);

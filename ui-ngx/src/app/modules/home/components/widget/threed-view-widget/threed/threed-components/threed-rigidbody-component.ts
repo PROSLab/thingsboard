@@ -31,11 +31,11 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     private autoDefineBody?: ShapeOptions;
     private handleVisuals: boolean = true;
     private debugColliderMesh?: THREE.Object3D;
-    private readonly wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
     private visualiseColliders = false;
     private bodyOptions: CANNON.BodyOptions;
     private joints: CANNON.Constraint[];
     private link?: { rigidbody: IThreedPhysicObject, offset: CANNON.Vec3 };
+    private debugColor: number = 0xff0000;
 
     public physicBody: CANNON.Body;
     public mesh?: IThreedMesh;
@@ -51,7 +51,8 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         autoDefineBody?: ShapeOptions,
         joints?: CANNON.Constraint[],
         link?: { rigidbody: IThreedPhysicObject, offset: CANNON.Vec3 },
-        handleVisuals?: boolean
+        handleVisuals?: boolean,
+        debugColor?:number
     } = {}) {
         super();
         this.mesh = options.mesh;
@@ -62,6 +63,7 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         this.handleVisuals = options.handleVisuals ?? true;
         this.joints = options.joints ?? [];
         this.link = options.link;
+        this.debugColor = options.debugColor ?? this.debugColor;
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -86,22 +88,19 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         const result = threeToCannon(object, this.autoDefineBody);
         const { shape, offset, orientation } = result;
 
-        console.log(object.position);
-
         this.physicBody = new CANNON.Body({
             material: this.physicMaterial,
             mass: 1
         } && this.bodyOptions);
         this.physicBody.addShape(shape, offset, orientation);
         this.physicBody.position.copy(ThreedUtils.threeToCannon(object.position));
-
-        console.log(this.physicBody);
     }
 
     private createCollider() {
         if (!this.physicBody) return;
 
-        this.debugColliderMesh = bodyToMesh(this.physicBody, this.wireframeMaterial);
+        const wireframeMaterial = new THREE.MeshBasicMaterial({ color: this.debugColor, wireframe: true });
+        this.debugColliderMesh = bodyToMesh(this.physicBody, wireframeMaterial);
         this.debugColliderMesh.visible = this.visualiseColliders;
         this.debugColliderMesh.name = "Collider_" + this.mesh?.getMesh().name || "generic";
         this.sceneManager.scene.add(this.debugColliderMesh);
