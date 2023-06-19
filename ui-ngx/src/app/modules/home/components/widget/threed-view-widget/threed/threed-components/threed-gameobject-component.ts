@@ -20,17 +20,20 @@ import { ThreedBaseComponent } from "./threed-base-component";
 
 export class ThreedGameObjectComponent extends ThreedBaseComponent implements IThreedMesh {
     
-    private mesh: THREE.Object3D;
+    protected mesh: THREE.Object3D;
+    private addToScene: boolean;
 
-    constructor(mesh: THREE.Object3D) {
+    constructor(mesh: THREE.Object3D, addToScene: boolean = true) {
         super();
         this.mesh = mesh;
+        this.addToScene = addToScene;
     }
     
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
 
-        this.sceneManager.scene.add(this.mesh);
+        if(this.addToScene)
+            this.sceneManager.scene.add(this.mesh);
     }
 
     getMesh(): THREE.Object3D {

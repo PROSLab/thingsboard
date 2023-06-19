@@ -45,6 +45,7 @@ export interface IThreedSceneManager {
     onMainCameraChange: EventEmitter<Camera>;
     onVRChange: EventEmitter<boolean>;
 
+    add(component: IThreedComponent, initInstantly: boolean): void;
     initialize(): void;
     getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined;
     isActive(): boolean;

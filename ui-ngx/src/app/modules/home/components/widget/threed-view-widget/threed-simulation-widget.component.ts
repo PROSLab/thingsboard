@@ -40,6 +40,7 @@ import { ShapeType, } from 'three-to-cannon';
 import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-object';
 import { ThreedEarthquakeController } from './threed/threed-managers/threed-earthquake-controller';
 import { ThreedAnimatorComponent } from './threed/threed-components/threed-animator-component';
+import { ThreedGroupGameObjectComponent } from './threed/threed-components/threed-group-gameobject-component';
 
 
 const cloneGltf = (gltf) => {
@@ -145,6 +146,12 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     world.gravity.set(0, -9.8, 0);
 
 
+    world.defaultContactMaterial.contactEquationStiffness = 1e6;    
+    world.defaultContactMaterial.contactEquationRelaxation = 3;
+    world.allowSleep = true;
+    world.broadphase = new CANNON.SAPBroadphase(world);
+
+
     // SETUP EARTHQUAKE CONTROLLER (it will create the static & dynamic ground for simulation)
     this.earthquakeController = new ThreedEarthquakeController(5, this.simulationScene, {
       duration: {
@@ -165,17 +172,24 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     desk.add(pirSensor);
     const gltfHumanoid: GLTF = (await new GLTFLoader().loadAsync("./assets/models/gltf/humanoid.glb"));
     const humanoid = gltfHumanoid.scene;
-    gltfHumanoid.animations
-    /*
-    humanoid.name = "Person Mesh";
-    const mixer = new THREE.AnimationMixer(humanoid);
-    mixer.clipAction(gltfHumanoid.animations[0]).play();
-    humanoid.position.set(0, this.earthquakeController.getFloorHeight(), -10);*/
     const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x0ff0ff });
     const sphereGeometry = new THREE.SphereGeometry(0.1);
     const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    console.log(gltfHumanoid.animations)
 
+
+
+
+
+
+    const aula: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Aula Physics.glb")).scene;
+    aula.position.set(0, this.earthquakeController.getFloorHeight(), 0);
+    const aulaGroupGO = new ThreedGroupGameObjectComponent(aula);
+    this.simulationScene.add(aulaGroupGO, true);
+    
+
+
+
+/*
 
     // PEOPLE
     for (let i = 0; i < 10; i++) {
@@ -241,7 +255,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
     }
 
-
+*/
 
     // OTHER CONFIGUATIONS
     this.simulationScene.physicManager.setVisualiseColliders(true);

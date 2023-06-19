@@ -109,6 +109,7 @@ export function shapeToGeometry(shape, { flatShading = true } = {}) {
       const v2 = new CANNON.Vec3()
       for (let i = 0; i < shape.indices.length / 3; i++) {
         shape.getTriangleVertices(i, v0, v1, v2)
+
         vertices.push(
           v0.x, v0.y, v0.z,
           v1.x, v1.y, v1.z,

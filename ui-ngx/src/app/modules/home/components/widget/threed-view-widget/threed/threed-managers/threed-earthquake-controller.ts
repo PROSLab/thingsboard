@@ -170,17 +170,16 @@ export class ThreedEarthquakeController {
             }
 
             /*
-            for (const body of this.world.bodies) {
-                //body.velocity.set(earthquakeForce.x, 0, earthquakeForce.z);
-                body.applyForce(earthquakeForce);
-                body.applyImpulse(earthquakeForce.clone().scale(0.1));
-            }*/
-
-            //this.earthquakePlaneBody.applyLocalImpulse(earthquakeForce.scale(5000));
             const finalForce = earthquakeForce.scale(300000);
             this.history.push(finalForce);
             this.earthquakePlaneBody.applyLocalImpulse(earthquakeForce);
             this.earthquakePlaneBody.applyLocalForce(finalForce);
+            */
+
+            const finalForce = earthquakeForce.scale(30000);
+            this.history.push(finalForce);
+            this.earthquakePlaneBody.applyLocalImpulse(finalForce);
+
         }
     }
 
@@ -193,6 +192,9 @@ export class ThreedEarthquakeController {
         const earthGroundBody = new CANNON.Body({ mass: 1000, material: earthGroundMaterial, })
         earthGroundBody.addShape(earthGroundShape)
         earthGroundBody.position.set(0, .1, 0);
+        //earthGroundBody.allowSleep = true;
+        //earthGroundBody.sleepSpeedLimit = 1.0;
+        //earthGroundBody.sleepTimeLimit = 1.0;
         this.earthquakePlaneBody = earthGroundBody;
 
         this.scene.add(new ThreedRigidbodyComponent({ physicBody: earthGroundBody, handleVisuals: true, debugColor: 0xffffff }), true);
@@ -207,6 +209,9 @@ export class ThreedEarthquakeController {
         const groundMaterial = new CANNON.Material('ground');
         groundMaterial.friction = 0.5;
         const groundBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC, material: groundMaterial })
+       // groundBody.allowSleep = true;
+       // groundBody.sleepSpeedLimit = 1.0;
+       // groundBody.sleepTimeLimit = 1.0;
         groundBody.addShape(groundShape)
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0 });
