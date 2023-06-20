@@ -33,10 +33,10 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
     private floorSize: THREE.Vector3;
     private grid: PF.Grid;
 
-    public get sizeX() : number {
+    public get sizeX(): number {
         return this.floorSize.x;
     }
-    public get sizeZ() : number {
+    public get sizeZ(): number {
         return this.floorSize.z;
     }
 
@@ -113,7 +113,7 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         });
         this.previousGrid = [];
 
-        
+
         this.grid.nodes.forEach((nodes: { x: number, y: number, walkable: boolean }[]) => {
             nodes.forEach((node: { x: number, y: number, walkable: boolean }) => {
                 //console.log(node);
@@ -151,5 +151,20 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         const zPos = (y * this.cellSize) - (this.sizeZ / 2);
 
         return new THREE.Vector3(xPos, 0, zPos);
+    }
+
+    public findNearestWalkablePoint(x: number, y: number, maxIterations: number = 5): { x: number, y: number } {
+        if (this.grid.isWalkableAt(x, y))
+            return { x, y }
+
+        for (let i = 1; i <= maxIterations; i++) {
+            for (let xSide = -i; xSide <= i; xSide++) {
+                for (let ySide = -i; ySide <= i; ySide++) {
+                    if(ySide >= -i+1 && ySide <= i-1 && xSide >= -i+1 && xSide <= i-1) continue;
+
+                    if (this.grid.isWalkableAt(x - xSide, y - ySide)) return { x: x - xSide, y: y - ySide };
+                }
+            }
+        }
     }
 }

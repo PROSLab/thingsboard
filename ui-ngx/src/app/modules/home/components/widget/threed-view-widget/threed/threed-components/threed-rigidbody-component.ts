@@ -39,12 +39,14 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
 
     public physicBody: CANNON.Body;
     public mesh?: IThreedMesh;
+    public tag?: string;
     public readonly onBeginCollision = new EventEmitter<{ event: CANNON.Constraint, object: IThreedPhysicObject }>();
     public readonly onEndCollision = new EventEmitter<{ event: CANNON.Constraint, object: IThreedPhysicObject }>();
     public readonly onCollide = new EventEmitter<{ event: CANNON.Constraint }>();
 
     constructor(options: {
         mesh?: IThreedMesh,
+        tag?: string,
         physicBody?: CANNON.Body,
         physicMaterial?: CANNON.Material,
         bodyOptions?: CANNON.BodyOptions,
@@ -56,6 +58,7 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
     } = {}) {
         super();
         this.mesh = options.mesh;
+        this.tag = options.tag;
         this.physicBody = options.physicBody;
         this.bodyOptions = options.bodyOptions;
         this.physicMaterial = options.physicMaterial;

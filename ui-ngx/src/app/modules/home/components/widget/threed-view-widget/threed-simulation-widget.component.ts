@@ -159,19 +159,21 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
         desks.push(object);
 
         const position = object.userData.pirPosition;
-        const height = 0.6;
+        const height = 0.5;
         const radius = 0.5;
         const cylinderBody = new CANNON.Body({
-          mass: 1,
+          type: CANNON.BODY_TYPES.DYNAMIC,
           shape: new CANNON.Cylinder(0.01, radius, height, 20),
-          isTrigger: true
+          isTrigger: true,
+          allowSleep: true
         });
         this.pirRangeId = cylinderBody.id;
+
         const link = {
           rigidbody: rb,
-          offset: new CANNON.Vec3(position[0], height / 2, position[2]),
+          offset: new CANNON.Vec3(position[0], height / 2 + 0.1, position[2]),
         }
-        this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
+        this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link, tag: "PIR Sensor" }), true);
       }
     });
 
@@ -179,8 +181,8 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     // ADDING PEOPLE
     for (let k = 0; k < 1; k++) {
-      const x = Math.random() * navMesh.sizeX - navMesh.sizeX / 2;
-      const z = Math.random() * navMesh.sizeZ - navMesh.sizeZ / 2;
+      const x = -6.5//Math.random() * navMesh.sizeX - navMesh.sizeX / 2;
+      const z = 3.8//Math.random() * navMesh.sizeZ - navMesh.sizeZ / 2;
       const person = new ThreedPersonComponent(navMesh, gltfHumanoid);
       this.simulationScene.add(person, true);
       person.getMesh().position.set(x, this.earthquakeController.getFloorHeight(), z);

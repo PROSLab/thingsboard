@@ -25,6 +25,7 @@ import { ThreedUtils } from "../threed-utils";
 import { ThreedGameObjectComponent } from "./threed-gameobject-component";
 import { ThreedRigidbodyComponent } from "./threed-rigidbody-component";
 import { ThreedAnimatorComponent } from "./threed-animator-component";
+import { IThreedPhysicObject } from "./ithreed-physic-object";
 
 export class ThreedPersonComponent extends ThreedGameObjectComponent {
 
@@ -49,8 +50,34 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         super.initialize(sceneManager);
 
         this.addModel();
+        this.addCollisionTrigger();
         this.sceneManager.add(this.rigidbody, true);
         this.sceneManager.add(this.animator, true);
+    }
+
+    private addCollisionTrigger() {
+        this.subscriptions.push(this.rigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
+        this.subscriptions.push(this.rigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
+    }
+
+    private processCollisionEvent(e: {
+        event: CANNON.Constraint;
+        object: IThreedPhysicObject;
+    }, type: 'begin' | 'end') {
+        if (e.object?.tag == "PIR Sensor") {
+
+            let result = [];
+            const world = this.sceneManager.physicManager.world;
+            world.narrowphase.getContacts([e.object.physicBody], [this.rigidbody.physicBody], world, result, [], [], []);
+            let overlaps = result.length > 0;
+
+            console.log(overlaps ? "presence" : "no presence")
+            /*
+            this.sensed = type == 'begin';
+            this.cd.detectChanges();
+            this.savePresence(this.sensed ? 1 : 0);
+            */
+        }
     }
 
     tick(): void {
@@ -87,54 +114,30 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
         this.rigidbody = new ThreedRigidbodyComponent({ mesh: this, physicBody: humanoidPhysicBody, handleVisuals: false });
         this.animator = new ThreedAnimatorComponent(this, ...this.clonedGLTF.animations);
-
-        // TODO
-        // this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
-        // this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
     }
 
     public earthquakeAlert(magnitude: number, desks: THREE.Object3D[]) {
-        if (this.alerted) return;
+        if (this.alerted || magnitude == 0) return;
 
-        let index = 0;
-        let entrance = 0;
-        while (index < desks.length && !this.deskFound) {
-            const desk = desks[index];
-            const deskEntrance = desk.position.clone();
-            const sphereMaterial = new THREE.MeshBasicMaterial({ color: index == 0 ? 0xff0000 : 0x00ff00 });
-
-            if (entrance == 0) {
-                deskEntrance.x += desk.userData.entrance1[0];
-                deskEntrance.y = 0;
-                deskEntrance.z += desk.userData.entrance1[2];
-                entrance++;
-            }
-            else {
-                deskEntrance.x += desk.userData.entrance2[0];
-                deskEntrance.y = 0;
-                deskEntrance.z += desk.userData.entrance2[2];
-                
-                index++;
-                entrance = 0;
-            }
-
-            // debug positions!
-            const sphereGeometry = new THREE.SphereGeometry(0.1);
-            const ball = new THREE.Mesh(sphereGeometry, sphereMaterial);
-            ball.position.copy(deskEntrance);
-            this.sceneManager.scene.add(ball);
-
-
-            if(this.findPathToDesk(this.mesh.position, deskEntrance))
+        for (let i = 0; i < desks.length; i++) {
+            const desk = desks[i];
+            const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.position);
+            const { x, y } = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
+            if (this.findPathToDesk(this.mesh.position, { x, y }))
                 this.deskFound = desk;
         }
 
         this.alerted = true;
     }
 
-    public findPathToDesk(start: THREE.Vector3, end: THREE.Vector3): boolean {
-        const startCoords = this.navMesh.getGridCoordsFromPosition(start);
-        const endCoords = this.navMesh.getGridCoordsFromPosition(end);
+    public findPathToDesk(start: THREE.Vector3 | { x: number, y: number }, end: THREE.Vector3 | { x: number, y: number }): boolean {
+
+        let startCoords: { x: number, y: number };
+        let endCoords: { x: number, y: number };
+        if (start instanceof THREE.Vector3) startCoords = this.navMesh.getGridCoordsFromPosition(start);
+        else startCoords = start;
+        if (end instanceof THREE.Vector3) endCoords = this.navMesh.getGridCoordsFromPosition(end);
+        else endCoords = end;
 
         // Find the path using Pathfinding.js
         this.path = this.finder.findPath(
