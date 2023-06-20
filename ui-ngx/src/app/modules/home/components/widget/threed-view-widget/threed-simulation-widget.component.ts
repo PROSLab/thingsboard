@@ -21,7 +21,7 @@ import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { ThreedGenericSceneManager } from './threed/threed-managers/threed-generic-scene-manager';
 import * as THREE from 'three';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, timer } from 'rxjs';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ThreedMoveToPositionComponent } from './threed/threed-components/threed-move-to-position-component';
@@ -44,6 +44,8 @@ import { ThreedGroupGameObjectComponent } from './threed/threed-components/three
 import { ThreedPersonComponent } from './threed/threed-components/threed-person-component';
 import * as PF from "pathfinding";
 import { ThreedNavMeshComponent } from './threed/threed-components/threed-nav-mesh-component';
+import { AbstractControl } from '@angular/forms';
+import { IThreedTester } from './threed/threed-components/ithreed-tester';
 
 
 
@@ -60,13 +62,19 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   @ViewChild('rendererContainer') rendererContainer?: ElementRef;
 
   private simulationScene: ThreedGenericSceneManager;
-  //private world: CANNON.World;
   private subscriptions: Subscription[] = [];
 
-  public sensed: boolean = false;
-  pirRangeId: number;
-  earthquakeScale: number = 1;
+  openOptionsMenu = false;
+  debugMode = false;
+  magnitude: number = 5;
+  timeToReachPeak: number = 3;
+  peakTime: number = 5;
+  timeToEnd: number = 8;
+
   earthquakeController: ThreedEarthquakeController;
+  time: number = 0;
+  timeHandler: NodeJS.Timeout;
+  running = false;
 
   constructor(
     protected store: Store<AppState>,
@@ -108,11 +116,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
 
     // SETUP EARTHQUAKE CONTROLLER (it will create the static & dynamic ground for simulation)
-    this.earthquakeController = new ThreedEarthquakeController(5, this.simulationScene, {
+    this.earthquakeController = new ThreedEarthquakeController(this.magnitude, this.simulationScene, {
       duration: {
-        timeToReachPeak: 3,
-        peakTime: 5,
-        timeToEnd: 8
+        timeToReachPeak: this.timeToReachPeak,
+        peakTime: this.peakTime,
+        timeToEnd: this.timeToEnd
       }
     });
 
@@ -123,19 +131,9 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     pirSensor.name = "Pir Sensor";
     pirSensor.position.set(0, 0.643, 0.5);
     pirSensor.rotation.x = -Math.PI;
-    const desk: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Desk.glb")).scene;
-    desk.add(pirSensor);
     // Character animations
     // https://www.donmccurdy.com/2017/11/06/creating-animated-gltf-characters-with-mixamo-and-blender/
     const gltfHumanoid: GLTF = (await new GLTFLoader().loadAsync("./assets/models/gltf/Character.glb"));
-    const humanoid = gltfHumanoid.scene;
-    console.log(gltfHumanoid);
-    const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x0ff0ff });
-    const sphereGeometry = new THREE.SphereGeometry(0.1);
-    const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
-
-
-
 
 
     const room: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Aula Physics.glb")).scene;
@@ -147,7 +145,6 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     const navMesh = new ThreedNavMeshComponent(roomGroupGO);
     this.simulationScene.add(navMesh, true);
     //navMesh.visualizeGrid();
-
 
 
     let desks: THREE.Object3D[] = [];
@@ -167,8 +164,6 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
           isTrigger: true,
           allowSleep: true
         });
-        this.pirRangeId = cylinderBody.id;
-
         const link = {
           rigidbody: rb,
           offset: new CANNON.Vec3(position[0], height / 2 + 0.1, position[2]),
@@ -180,25 +175,9 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     // ADDING PEOPLE
     for (let k = 0; k < 7; k++) {
-      const side = THREE.MathUtils.randInt(0, 3);
-      let x = 0;
-      let z = 0;
-      if (side == 0) {
-        x = THREE.MathUtils.randFloat(-5, 5);
-        z = -3;
-      } else if (side == 1) {
-        x = 5.2;
-        z = THREE.MathUtils.randFloat(-3, 3);
-      } else if (side == 2) {
-        x = THREE.MathUtils.randFloat(-5, 5);
-        z = 3;
-      } else {
-        x = -4.5;
-        z = THREE.MathUtils.randFloat(-3, 3);
-      }
       const person = new ThreedPersonComponent(navMesh, gltfHumanoid);
       this.simulationScene.add(person, true);
-      person.getMesh().position.set(x, this.earthquakeController.getFloorHeight(), z);
+      person.getMesh().position.copy(this.getRandomPosition())
       person.getMesh().lookAt(new THREE.Vector3());
       this.earthquakeController.MagnitudeChanged.subscribe(m => {
         person.earthquakeAlert(m, desks);
@@ -209,75 +188,12 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     }
 
 
-    /*
-     
-    
-    
-    
-        // DESK & SPHERE & PIR Sensor Range Collider
-        for (let index = 0; index < 8; index++) {
-          // DESK
-          const deskMesh = desk.clone();
-          deskMesh.position.set(index * 1.5, this.earthquakeController.getFloorHeight(), 0);
-          const deskGameObject = new ThreedGameObjectComponent(deskMesh);
-          const deskRigidbody = new ThreedRigidbodyComponent({
-            mesh: deskGameObject,
-            bodyOptions: { mass: 40, type: CANNON.BODY_TYPES.DYNAMIC, material: new CANNON.Material({ restitution: 0 }), linearDamping: 0.1, angularDamping: 0.1 },
-            handleVisuals: true,
-            autoDefineBody: { type: ShapeType.BOX }
-          });
-          this.simulationScene.add(deskGameObject, true);
-          this.simulationScene.add(deskRigidbody, true);
-    
-    
-          //SPHERE over the desk
-          const sphereMeshClone = sphereMesh.clone();
-          sphereMeshClone.position.set(deskMesh.position.x, deskMesh.position.y + 1, deskMesh.position.z);
-          const sphereMeshObject = new ThreedGameObjectComponent(sphereMeshClone);
-          const sphereMeshbody = new ThreedRigidbodyComponent({ mesh: sphereMeshObject, bodyOptions: { mass: 0.5 }, handleVisuals: true, autoDefineBody: { type: ShapeType.SPHERE } });
-          this.simulationScene.add(sphereMeshObject, true);
-          this.simulationScene.add(sphereMeshbody, true);
-    
-    
-          // PIR Sensor Range Collider
-          const height = 0.65;
-          const radius = 0.5;
-          const cylinderBody = new CANNON.Body({
-            mass: 1,
-            shape: new CANNON.Cylinder(0.01, radius, height, 20),
-            isTrigger: true
-          });
-          this.pirRangeId = cylinderBody.id;
-          const link = {
-            rigidbody: deskRigidbody,
-            offset: new CANNON.Vec3(-0.0726, height / 2, 0.458), // y = 0.309
-          }
-          this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
-        }
-    
-    */
-
     // OTHER CONFIGUATIONS
     this.simulationScene.physicManager.setVisualiseColliders(true);
-    //gorundRigidbody.setVisualiseColliders(false);
-    console.log(world);
-
-
-    const moveToPosition = new ThreedMoveToPositionComponent();
-    this.simulationScene.add(moveToPosition, true);
-    this.subscriptions.push(moveToPosition.onPointSelected.subscribe(p => this.moveToPosition(humanoid, new THREE.Vector3(p.x, humanoid.position.y, p.z)), true));
-    //this.moveRandomly(humanoid);
-
 
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
       const delta = clock.getDelta();
-
-      // update animation
-      if (this.tween) {
-        //mixer.update(delta);
-      }
-
       this.earthquakeController.update(delta);
     }));
   }
@@ -302,64 +218,12 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     }
   }
 
-  // Create a function to animate the cube's movement
-  private moveInSquare(person: THREE.Object3D, index: number) {
-    const targetPositions = [
-      new THREE.Vector3(-1, person.position.y, -1),
-      new THREE.Vector3(-1, person.position.y, 1),
-      new THREE.Vector3(1, person.position.y, 1),
-      new THREE.Vector3(1, person.position.y, -1),
-    ];
-    const nextPosition = targetPositions[index % targetPositions.length];
 
-    this.moveToPosition(person, nextPosition).onComplete(() => { this.moveInSquare(person, ++index) });
-  }
-
-  // Create a function to animate the cube's movement
-  private moveRandomly(person: THREE.Object3D) {
-    let nextPosition = person.position.clone();
-    if (Math.random() > 0.5) nextPosition = new THREE.Vector3(Math.random() * 4, 0, Math.random() * 4);
-    else nextPosition = new THREE.Vector3(Math.random() * 4, 0, Math.random() * 4).negate();
-    nextPosition.setY(person.position.y);
-
-    this.moveToPosition(person, nextPosition).onComplete(() => { this.moveRandomly(person) });
-  }
-
-  private tween?: TWEEN.Tween;
-  private moveToPosition(person: THREE.Object3D, targetPosition: THREE.Vector3, forceStop: boolean = true): TWEEN.Tween {
-    if (forceStop) {
-      this.tween?.stop();
-      this.tween = undefined;
-    }
-    if (this.tween) return;
-
-    person.lookAt(targetPosition);
-    // Create a new TWEEN object to animate the cube's position
-    this.tween = new TWEEN.Tween(person.position)
-      .to(targetPosition, 2000) // animate the cube to the target position over 2 seconds
-      .onComplete(() => {
-        this.tween = undefined;
-      })
-      .start();
-    return this.tween;
-  }
-
-  private drawDirection(mesh: THREE.Object3D, color: number = 0xff0000): THREE.Vector3 {
-    const direction = new THREE.Vector3(0, 1, 0).applyQuaternion(mesh.quaternion);
-    const position = new THREE.Vector3();
-    mesh.localToWorld(position);
-
-    const arrowHelper = new THREE.ArrowHelper(direction.clone().normalize(), position, 1, color);
-    this.simulationScene.scene.add(arrowHelper);
-
-    return direction;
-  }
 
   private entityId: EntityId;
 
   ngOnInit() {
     this.ctx.$scope.threedSimulationWidget = this;
-
 
     this.ctx.datasources.forEach(datasource => {
       this.entityId = {
@@ -381,6 +245,73 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   lock($event) {
     $event.stopPropagation();
     this.simulationScene.getComponent(ThreedFirstPersonControllerComponent)?.lockControls();
+  }
+
+  public toggleDebugMode() {
+    this.debugMode = !this.debugMode;
+    const navMesh = this.simulationScene.getComponent(ThreedNavMeshComponent);
+    navMesh.visualiseGrid(this.debugMode);
+    this.simulationScene.physicManager.setVisualiseColliders(this.debugMode);
+
+    const people = this.simulationScene.findComponentsByTester(IThreedTester.isIThreedPerson);
+    people.forEach(p => p.setDebugMode(this.debugMode));
+  }
+
+  public startSimulation() {
+    this.running = true;
+
+    const navMesh = this.simulationScene.getComponent(ThreedNavMeshComponent);
+    navMesh.compureGrid();
+    this.earthquakeController.start({
+      magnitude: this.magnitude,
+      duration: {
+        timeToReachPeak: this.timeToReachPeak,
+        peakTime: this.peakTime,
+        timeToEnd: this.timeToEnd
+      },
+      onComplete: () => { this.endSimulation(); }
+    });
+
+    const millis = 200;
+    this.time = 0;
+    this.timeHandler = setInterval(() => {
+      this.time += millis / 1000;
+      this.time = Number(this.time.toFixed(2));
+      this.cd.detectChanges();
+    }, millis);
+  }
+
+  private endSimulation() {
+    clearInterval(this.timeHandler);
+    this.running = false;
+  }
+
+  public resetSimulation(): void {
+    this.endSimulation();
+    this.time = 0;
+    this.earthquakeController.stop();
+    const people = this.simulationScene.findComponentsByTester(IThreedTester.isIThreedPerson);
+    people.forEach(p => p.reset(this.getRandomPosition()));
+  }
+
+  private getRandomPosition(): THREE.Vector3 {
+    const side = THREE.MathUtils.randInt(0, 3);
+    let x = 0;
+    let z = 0;
+    if (side == 0) {
+      x = THREE.MathUtils.randFloat(-5, 5);
+      z = -3;
+    } else if (side == 1) {
+      x = 5.2;
+      z = THREE.MathUtils.randFloat(-3, 3);
+    } else if (side == 2) {
+      x = THREE.MathUtils.randFloat(-5, 5);
+      z = 3;
+    } else {
+      x = -4.5;
+      z = THREE.MathUtils.randFloat(-3, 3);
+    }
+    return new THREE.Vector3(x, this.earthquakeController.getFloorHeight(), z);
   }
 
   ngAfterViewInit(): void {

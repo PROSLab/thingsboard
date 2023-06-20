@@ -27,12 +27,17 @@ import { ThreedGameObjectComponent } from "./threed-gameobject-component";
 import { ThreedRigidbodyComponent } from "./threed-rigidbody-component";
 import { ThreedAnimatorComponent } from "./threed-animator-component";
 import { IThreedPhysicObject } from "./ithreed-physic-object";
+import { IThreedPerson } from "./ithreed-person";
 
-export class ThreedPersonComponent extends ThreedGameObjectComponent {
+const OCCUPIED_BY = "occupiedBy";
+
+export class ThreedPersonComponent extends ThreedGameObjectComponent implements IThreedPerson {
 
     private readonly navMesh: ThreedNavMeshComponent;
     private readonly finder: PF.AStarFinder = new PF.AStarFinder();
+
     private path: number[][];
+    private clonedPath: number[][];
     private previousPath?: THREE.Object3D;
     private alerted = false;
     private underDesk = false;
@@ -44,11 +49,29 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
 
     public rigidbody: ThreedRigidbodyComponent;
     public animator: ThreedAnimatorComponent;
+    public debugMode: boolean = false;
 
     constructor(navMesh: ThreedNavMeshComponent, gltf: GLTF) {
         super(gltf);
 
         this.navMesh = navMesh;
+    }
+
+    public reset(position: THREE.Vector3) {
+        this.path = undefined;
+        this.alerted = false;
+        this.underDesk = false;
+        if (this.deskFound) {
+            this.deskFound.userData[OCCUPIED_BY] = undefined;
+        }
+        this.deskFound = undefined;
+
+        this.tween?.stop();
+        this.tween = undefined;
+
+        this.mesh.position.copy(position);
+        this.animator.stop();
+        this.animator.play("Idle");
     }
 
     initialize(sceneManager: IThreedSceneManager): void {
@@ -67,9 +90,9 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     }
 
     private walkToDesk() {
-        if (!this.path || !this.deskFound || this.underDesk) return;
+        if (!this.clonedPath || !this.deskFound || this.underDesk) return;
 
-        if (this.path.length == 0 && this.deskFound) {
+        if (this.clonedPath.length == 0 && this.deskFound) {
             this.underDesk = true;
             this.animator.stop();
             this.animator.play("Laying");
@@ -82,9 +105,10 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         }
         if (this.tween) return;
 
-        const first = this.path.shift();
+        const first = this.clonedPath.shift();
         const targetPosition = this.navMesh.getPostionFromGridCoords(first[0], first[1]).multiply(new THREE.Vector3(1, 0, 1));
         const time = this.velocity / this.navMesh.cellSize;
+        this.mesh.lookAt(targetPosition);
         this.tween = new TWEEN.Tween(this.mesh.position)
             .to(targetPosition, time)
             .onComplete(() => {
@@ -127,7 +151,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         const sortedDeskByDistance = desks.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
         //console.log(sortedDeskByDistance.map(o => o.name));
         for (const desk of sortedDeskByDistance) {
-            if (desk.userData.occupiedBy != undefined) continue;
+            if (desk.userData[OCCUPIED_BY] != undefined) continue;
             const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.position);
             const { x, y } = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
             if (this.findPathToDesk(this.mesh.position, { x, y })) {
@@ -155,14 +179,26 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
             endCoords.x, endCoords.y,
             this.navMesh.getGrid(true).clone()
         );
-        //console.log(this.path);
+        this.clonedPath = [...this.path];
 
-        this.visualizePath();
+        this.visualisePath(this.debugMode);
 
         return this.path?.length > 0;
     }
 
-    private visualizePath() {
+    public setDebugMode(mode: boolean) {
+        this.debugMode = mode;
+        this.visualisePath(this.debugMode);
+    }
+
+    private visualisePath(visualise: boolean) {
+        if (!visualise) {
+            if (this.previousPath) this.sceneManager.scene.remove(this.previousPath);
+            this.previousPath = undefined;
+            return;
+        }
+        if (!this.path) return;
+
         const points = [];
         this.path.forEach((point) => {
             const pos = this.navMesh.getPostionFromGridCoords(point[0], point[1]);

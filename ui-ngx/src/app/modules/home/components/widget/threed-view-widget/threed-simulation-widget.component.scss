@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- ::ng-deep .label {
+::ng-deep .label {
     color: #FFF;
     font-family: sans-serif;
     padding: 2px;
@@ -33,12 +33,12 @@
     position: relative !important;
 }
 
-.top{
-    top:0px!important
+.top {
+    top: 0px !important
 }
 
-.bottom{
-    bottom:0px!important
+.bottom {
+    bottom: 0px !important
 }
 
 .w-100 {
@@ -46,18 +46,36 @@
 }
 
 .slider-tooltip {
-    background-color: rgba(255,255,255,.8);
+    background-color: rgba(255, 255, 255, .8);
     padding: 5px;
     border: solid 1px gray;
     border-radius: 5px;
 }
 
 .active-mode {
-    color: rgba(0,0,255,0.75);
+    color: rgba(0, 0, 255, 0.75);
 }
 
 .tools-panel {
-    bottom:0!important; 
-    color:white;
+    top: 0 !important;
+    color: white;
     z-index: 10;
 }
+
+.example-margin {
+    margin: 4px;
+}
+
+.example-width {
+    max-width: 180px;
+    width: 100%;
+}
+
+.menu {
+    text-align:center;
+    background-color: rgba(230, 230, 230, .7);
+    border-radius: 5px;
+    margin: 10px;
+}
+
+::ng-deep .mat-menu-content {text-align: center;}

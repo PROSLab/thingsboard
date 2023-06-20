@@ -29,7 +29,7 @@ export class ThreedEarthquakeController {
     private readonly maxSteps: number = 10;
     private readonly magnitudeCurve: any = TWEEN.Easing.Quadratic.In;
     private magnitude: number = 1;
-    private readonly duration: {
+    private duration: {
         timeToReachPeak: number,
         peakTime: number,
         timeToEnd: number
@@ -43,7 +43,7 @@ export class ThreedEarthquakeController {
     private history: CANNON.Vec3[] = [];
     private step = 0;
     private elapsedTime: number = 0;
-    private currentMagnitude: { value: number } = { value: 0 };
+    public currentMagnitude: { value: number } = { value: 0 };
 
     private earthquakePlaneBody: CANNON.Body;
 
@@ -80,10 +80,21 @@ export class ThreedEarthquakeController {
             this.generatePlane();
     }
 
-    public start() {
+    public start(options: {
+        magnitude?: number, 
+        duration?: {
+            timeToReachPeak: number,
+            peakTime: number,
+            timeToEnd: number
+        }, 
+        onComplete?: () => void
+    } = {}) {
         if (this.started) return;
 
-        console.log(this.duration);
+        this.magnitude = options.magnitude ?? this.magnitude;
+        this.duration = options.duration ?? this.duration;
+
+        console.log(this.duration, this.magnitude);
         this.started = true;
         this.tween = new TWEEN.Tween(this.currentMagnitude)
             .to({ value: this.magnitude }, this.duration.timeToReachPeak * 1000)
@@ -106,6 +117,7 @@ export class ThreedEarthquakeController {
                             .onUpdate(v => console.log("timeToEnd"))
                             .onComplete(() => {
                                 this.tween = undefined;
+                                options.onComplete?.();
                                 this.reset();
                             })
                             .start()
@@ -120,6 +132,10 @@ export class ThreedEarthquakeController {
         this.start();
     }
 
+    public stop() {
+        this.reset();
+    }
+
     private reset(): void {
         this.elapsedTime = 0;
         this.step = 0;
@@ -131,7 +147,7 @@ export class ThreedEarthquakeController {
         for (const body of this.world.bodies)
             body.velocity.set(0, 0, 0);
 
-        console.log([...this.history]);
+        //console.log([...this.history]);
         this.history = [];
     }
 
@@ -141,10 +157,6 @@ export class ThreedEarthquakeController {
             this.applyEarthquakeForce();
             this.MagnitudeChanged.emit(this.currentMagnitude.value);
         }
-    }
-
-    private randomRange(min: number, max: number) {
-        return Math.random() * (max - min) + min;
     }
 
     private applyEarthquakeForce() {
@@ -211,9 +223,9 @@ export class ThreedEarthquakeController {
         const groundMaterial = new CANNON.Material('ground');
         groundMaterial.friction = 0.5;
         const groundBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC, material: groundMaterial })
-       // groundBody.allowSleep = true;
-       // groundBody.sleepSpeedLimit = 1.0;
-       // groundBody.sleepTimeLimit = 1.0;
+        // groundBody.allowSleep = true;
+        // groundBody.sleepSpeedLimit = 1.0;
+        // groundBody.sleepTimeLimit = 1.0;
         groundBody.addShape(groundShape)
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0 });

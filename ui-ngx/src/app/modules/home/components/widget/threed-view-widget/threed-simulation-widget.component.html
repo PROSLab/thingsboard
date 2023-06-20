@@ -20,52 +20,60 @@
     <div class="position-absolute w-100 tools-panel">
 
         <div fxLayout="row">
-            <div fxFlex="66" (click)="lock($event);" fxLayoutAlign="center end" fxFlexOffset="17">
-                <p>
-                    Collision detected {{sensed}}
-                </p>
-                
-                <button mat-icon-button (click)="savePresence()" matTooltip="Save telemetries presence...">
-                    <mat-icon>save</mat-icon>
-                </button>
-
-                <button mat-icon-button (click)="earthquakeController.start()" matTooltip="Start earthquake!">
+            <div fxFlex="33" fxLayoutAlign="start">
+                <button mat-icon-button (click)="startSimulation()" [disabled]="running" matTooltip="Start earthquake!">
                     <mat-icon>play_arrow</mat-icon>
                 </button>
 
-                <mat-slider min=0 max=10 [(ngModel)]="earthquakeScale"></mat-slider>
+                <button mat-icon-button (click)="resetSimulation()" matTooltip="Reset simulation">
+                    <mat-icon>replay</mat-icon>
+                </button>
 
+                <button mat-icon-button (click)="lock($event)" matTooltip="Lock">
+                    <mat-icon>lock</mat-icon>
+                </button>
+            </div>
 
-<!--
-                <div *ngIf="orbitType=='complex'">
-                    <button mat-icon-button *ngIf="!explodedView" (click)="clickMode('selection')"
-                        matTooltip="Select object" [ngClass]="activeMode == 'selection' ? 'active-mode' : ''">
-                        <mat-icon>touch_app</mat-icon>
-                    </button>
+            <div fxFlex="33" fxLayout="column" fxLayoutAlign="center center">
+                <span style="font-size: 20px; font-weight: bold;" *ngIf="running">Time: {{time}}</span>
+                <span style="font-size: 18px; font-weight: 200;" *ngIf="running">Magnitude:
+                    {{earthquakeController.currentMagnitude.value.toFixed(2)}}</span>
+            </div>
 
-                    <button mat-icon-button *ngIf="!explodedView" (click)="clickMode('pan')"
-                        matTooltip="Move, rotate and zoom" [ngClass]="activeMode == 'pan' ? 'active-mode' : ''">
-                        <mat-icon>pan_tool</mat-icon>
-                    </button>
-
-                    <button mat-icon-button *ngIf="!explodedView" (click)="deselectObject()"
-                        matTooltip="Deselect object">
-                        <mat-icon>close</mat-icon>
-                    </button>
-                </div>
-
-                <div fxLayout="column" fxLayoutAlign="space-around center">
-                    <div class="slider-tooltip" *ngIf="explodedView">
-                        <mat-slider tickInterval="1" step="0.1" min="0" max="10" aria-label="units"
-                            matTooltip="Explode factor" (input)="explodeFactorChange($event)"></mat-slider>
+            <div fxFlex="33" fxLayoutAlign="end">
+                <button mat-icon-button (click)="openOptionsMenu=!openOptionsMenu">
+                    <mat-icon>{{openOptionsMenu ? "close" : "more_vert"}}</mat-icon>
+                </button>
+                <div class="menu" *ngIf="openOptionsMenu">
+                    <div style="margin: 1em;">
+                        <label>Magnitude: {{magnitude}}</label>
                     </div>
+                    <mat-slider min=1 max=10 [(ngModel)]="magnitude"></mat-slider>
+                    <hr>
 
-                    <button mat-icon-button (click)="toggleExplodedView()" matTooltip="Exploded view"
-                        [disabled]="animating">
-                        <mat-icon>view_module</mat-icon>
+                    <mat-form-field class="example-margin example-width" appearance="fill">
+                        <mat-label>Time to reach peak Magnitude</mat-label>
+                        <input matInput type="number" [(ngModel)]="timeToReachPeak">
+                    </mat-form-field>
+
+                    <mat-form-field class="example-margin example-width" appearance="fill">
+                        <mat-label>Time of peak Magnitude</mat-label>
+                        <input matInput type="number" [(ngModel)]="peakTime">
+                    </mat-form-field>
+
+                    <mat-form-field class="example-margin example-width" appearance="fill">
+                        <mat-label>Time to end</mat-label>
+                        <input matInput type="number" [(ngModel)]="timeToEnd">
+                    </mat-form-field>
+
+                    <hr>
+
+                    <button mat-button style="margin-bottom:10px" (click)="toggleDebugMode()">Debug Mode
+                        <span style="color:green" *ngIf="debugMode">Enabled</span>
+                        <span style="color:red" *ngIf="!debugMode">Disabled</span>
                     </button>
+
                 </div>
-            -->
             </div>
         </div>
     </div>

@@ -103,7 +103,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     public add(component: IThreedComponent, initInstantly: boolean = false): void {
         this.components.push(component);
-        if(initInstantly) component.initialize(this);
+        if (initInstantly) component.initialize(this);
     }
 
     public addSubscription(subscription: Subscription): void {
@@ -151,8 +151,12 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         return this.active && ThreedGenericSceneManager.activeSceneManagers.get(this.sceneId) == true;
     }
 
-    public getComponent<T extends IThreedComponent>(type: new () => T): T | undefined {
+    public getComponent<T extends IThreedComponent>(type: new (...args: any[]) => T): T | undefined {
         return this.components.find(c => c instanceof type) as T | undefined;
+    }
+
+    public getComponents<T extends IThreedComponent>(type: new (...args: any[]) => T): T[] {
+        return this.components.filter(c => c instanceof type) as T[];
     }
 
     public findComponentsByTester<T>(tester: (obj: any) => obj is T): T[] {

@@ -101,7 +101,15 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
 
 
     private previousGrid = [];
-    public visualizeGrid() {
+    public visualiseGrid(visualize: boolean = true) {
+        if (!visualize) {
+            this.previousGrid?.forEach(element => {
+                this.sceneManager.scene.remove(element);
+            });
+            this.previousGrid = [];
+            return;
+        }
+
         //console.log("visualizeGrid");
         const geometry = new THREE.BoxGeometry(this.cellSize, this.cellSize, this.cellSize);
         const materialWalkable = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
@@ -160,7 +168,7 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         for (let i = 1; i <= maxIterations; i++) {
             for (let xSide = -i; xSide <= i; xSide++) {
                 for (let ySide = -i; ySide <= i; ySide++) {
-                    if(ySide >= -i+1 && ySide <= i-1 && xSide >= -i+1 && xSide <= i-1) continue;
+                    if (ySide >= -i + 1 && ySide <= i - 1 && xSide >= -i + 1 && xSide <= i - 1) continue;
 
                     if (this.grid.isWalkableAt(x - xSide, y - ySide)) return { x: x - xSide, y: y - ySide };
                 }
