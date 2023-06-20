@@ -99,6 +99,8 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         return this.grid;
     }
 
+
+    private previousGrid = [];
     public visualizeGrid() {
         console.log("visualizeGrid");
         const geometry = new THREE.BoxGeometry(this.cellSize, this.cellSize, this.cellSize);
@@ -106,7 +108,12 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         const materialUnwalkable = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
 
         const y = 1;
+        this.previousGrid?.forEach(element => {
+            this.sceneManager.scene.remove(element);
+        });
+        this.previousGrid = [];
 
+        
         this.grid.nodes.forEach((nodes: { x: number, y: number, walkable: boolean }[]) => {
             nodes.forEach((node: { x: number, y: number, walkable: boolean }) => {
                 //console.log(node);
@@ -114,6 +121,7 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
                 const cube = new THREE.Mesh(geometry, !node.walkable ? materialUnwalkable : materialWalkable);
                 cube.position.set(pos.x, y, pos.z);
                 this.sceneManager.scene.add(cube);
+                this.previousGrid.push(cube);
             });
         });
     }

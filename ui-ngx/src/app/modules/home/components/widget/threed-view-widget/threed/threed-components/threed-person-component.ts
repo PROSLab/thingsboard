@@ -34,6 +34,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     private previousPath?: THREE.Object3D;
     private alerted = false;
     private underDesk = false;
+    private deskFound?: THREE.Object3D;
 
     private rigidbody: ThreedRigidbodyComponent;
     private animator: ThreedAnimatorComponent;
@@ -59,16 +60,21 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     }
 
     private updatePosition() {
-        if (!this.path || this.underDesk) return;
+        if (!this.path || !this.deskFound || this.underDesk) return;
 
-        if(this.path.length == 0) {
+        if (this.path.length == 0 && this.deskFound) {
             this.underDesk = true;
-            this.animator.stop("Armature|mixamo.com|Layer0");
+            this.animator.stop("Walking");
+            this.animator.play("Laying");
+            const deskPosition = this.deskFound.position.clone();
+            deskPosition.x += this.deskFound.userData.pirPosition[0];
+            deskPosition.z += this.deskFound.userData.pirPosition[2];
+            this.mesh.position.copy(deskPosition);
             return;
         }
 
-        if(!this.animator.isPlaying("Armature|mixamo.com|Layer0"))
-            this.animator.play("Armature|mixamo.com|Layer0");
+        if (!this.animator.isPlaying("Walking"))
+            this.animator.play("Walking");
 
         const first = this.path.shift();
         const pos = this.navMesh.getPostionFromGridCoords(first[0], first[1]);
@@ -77,9 +83,6 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     }
 
     private addModel() {
-        const x = 2;
-        const z = -3;
-        this.mesh.position.set(x, 0, z);
         const humanoidPhysicBody = new CANNON.Body({ isTrigger: true });
         humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
         this.rigidbody = new ThreedRigidbodyComponent({ mesh: this, physicBody: humanoidPhysicBody, handleVisuals: false });
@@ -90,16 +93,46 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         // this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
     }
 
-    public earthquakeAlert(magnitude: number) {
+    public earthquakeAlert(magnitude: number, desks: THREE.Object3D[]) {
         if (this.alerted) return;
 
-        if (magnitude > 1) {
-            this.findPathToDesk(this.mesh.position, new THREE.Vector3(-6, 0, 0));
-            this.alerted = true;
+        let index = 0;
+        let entrance = 0;
+        while (index < desks.length && !this.deskFound) {
+            const desk = desks[index];
+            const deskEntrance = desk.position.clone();
+            const sphereMaterial = new THREE.MeshBasicMaterial({ color: index == 0 ? 0xff0000 : 0x00ff00 });
+
+            if (entrance == 0) {
+                deskEntrance.x += desk.userData.entrance1[0];
+                deskEntrance.y = 0;
+                deskEntrance.z += desk.userData.entrance1[2];
+                entrance++;
+            }
+            else {
+                deskEntrance.x += desk.userData.entrance2[0];
+                deskEntrance.y = 0;
+                deskEntrance.z += desk.userData.entrance2[2];
+                
+                index++;
+                entrance = 0;
+            }
+
+            // debug positions!
+            const sphereGeometry = new THREE.SphereGeometry(0.1);
+            const ball = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            ball.position.copy(deskEntrance);
+            this.sceneManager.scene.add(ball);
+
+
+            if(this.findPathToDesk(this.mesh.position, deskEntrance))
+                this.deskFound = desk;
         }
+
+        this.alerted = true;
     }
 
-    public findPathToDesk(start: THREE.Vector3, end: THREE.Vector3) {
+    public findPathToDesk(start: THREE.Vector3, end: THREE.Vector3): boolean {
         const startCoords = this.navMesh.getGridCoordsFromPosition(start);
         const endCoords = this.navMesh.getGridCoordsFromPosition(end);
 
@@ -112,14 +145,11 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         console.log(this.path);
 
         this.visualizePath();
+
+        return this.path?.length > 0;
     }
 
     private visualizePath() {
-        //const boxSize = this.navMesh.box.getSize(new THREE.Vector3());
-        const cellSize = this.navMesh.cellSize
-        const sizeX = this.navMesh.sizeX
-        const sizeZ = this.navMesh.sizeZ
-
         const points = [];
         this.path.forEach((point) => {
             const pos = this.navMesh.getPostionFromGridCoords(point[0], point[1]);

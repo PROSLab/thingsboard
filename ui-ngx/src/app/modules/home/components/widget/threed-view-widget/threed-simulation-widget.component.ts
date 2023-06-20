@@ -108,7 +108,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
 
     // SETUP EARTHQUAKE CONTROLLER (it will create the static & dynamic ground for simulation)
-    this.earthquakeController = new ThreedEarthquakeController(5, this.simulationScene, {
+    this.earthquakeController = new ThreedEarthquakeController(1, this.simulationScene, {
       duration: {
         timeToReachPeak: 3,
         peakTime: 5,
@@ -125,8 +125,11 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     pirSensor.rotation.x = -Math.PI;
     const desk: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Desk.glb")).scene;
     desk.add(pirSensor);
-    const gltfHumanoid: GLTF = (await new GLTFLoader().loadAsync("./assets/models/gltf/humanoid.glb"));
+    // Character animations
+    // https://www.donmccurdy.com/2017/11/06/creating-animated-gltf-characters-with-mixamo-and-blender/
+    const gltfHumanoid: GLTF = (await new GLTFLoader().loadAsync("./assets/models/gltf/Character.glb"));
     const humanoid = gltfHumanoid.scene;
+    console.log(gltfHumanoid);
     const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x0ff0ff });
     const sphereGeometry = new THREE.SphereGeometry(0.1);
     const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
@@ -135,48 +138,60 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
 
 
+    const room: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Aula Physics.glb")).scene;
+    room.position.set(0, this.earthquakeController.getFloorHeight(), 0);
+    const roomGroupGO = new ThreedGroupGameObjectComponent(room);
+    this.simulationScene.add(roomGroupGO, true);
 
-    const aula: THREE.Group = (await new GLTFLoader().loadAsync("./assets/models/gltf/Aula Physics.glb")).scene;
-    aula.position.set(0, this.earthquakeController.getFloorHeight(), 0);
-    const aulaGroupGO = new ThreedGroupGameObjectComponent(aula);
-    this.simulationScene.add(aulaGroupGO, true);
 
-
-    const navMesh = new ThreedNavMeshComponent(aulaGroupGO);
+    const navMesh = new ThreedNavMeshComponent(roomGroupGO);
     this.simulationScene.add(navMesh, true);
     navMesh.visualizeGrid();
 
 
-    const person = new ThreedPersonComponent(navMesh, gltfHumanoid);
-    this.simulationScene.add(person, true);
-    //const start = new THREE.Vector3(-3.5, 0, 2.5);
-    //const end = new THREE.Vector3(-6, 0, 0);
-    //person.findPathToDesk(start, end);
-    this.earthquakeController.MagnitudeChanged.subscribe(m => person.earthquakeAlert(m));
+
+    let desks: THREE.Object3D[] = [];
+    // ADDING PIR SENSORS
+    roomGroupGO.rigidbodies.forEach(rb => {
+      const object = rb.mesh.getMesh();
+      if (object.userData.pirPosition) {
+        // PIR Sensor Range Collider
+        desks.push(object);
+
+        const position = object.userData.pirPosition;
+        const height = 0.6;
+        const radius = 0.5;
+        const cylinderBody = new CANNON.Body({
+          mass: 1,
+          shape: new CANNON.Cylinder(0.01, radius, height, 20),
+          isTrigger: true
+        });
+        this.pirRangeId = cylinderBody.id;
+        const link = {
+          rigidbody: rb,
+          offset: new CANNON.Vec3(position[0], height / 2, position[2]),
+        }
+        this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
+      }
+    });
+
+
+
+    // ADDING PEOPLE
+    for (let k = 0; k < 1; k++) {
+      const x = Math.random() * navMesh.sizeX - navMesh.sizeX / 2;
+      const z = Math.random() * navMesh.sizeZ - navMesh.sizeZ / 2;
+      const person = new ThreedPersonComponent(navMesh, gltfHumanoid);
+      this.simulationScene.add(person, true);
+      person.getMesh().position.set(x, this.earthquakeController.getFloorHeight(), z);
+      this.earthquakeController.MagnitudeChanged.subscribe(m => {
+        person.earthquakeAlert(m, desks);
+      });
+    }
 
 
     /*
-    
-        // PEOPLE
-        for (let i = 0; i < 10; i++) {
-          const humanoidClone = cloneGltf(gltfHumanoid).scene;
-          const x = Math.random() * 20 - 10;
-          const z = Math.random() * 20 - 10;
-          humanoidClone.position.set(x, this.earthquakeController.getFloorHeight(), z);
-          const humanoidGameObject = new ThreedGameObjectComponent(humanoidClone);
-          const humanoidPhysicBody = new CANNON.Body({ isTrigger: true });
-          humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
-          const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, physicBody: humanoidPhysicBody, handleVisuals: false });
-          const humanoidAnimator = new ThreedAnimatorComponent(humanoidGameObject, ...gltfHumanoid.animations);
-    
-          humanoidAnimator.play("Armature|mixamo.com|Layer0");
-          this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
-          this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
-          this.simulationScene.add(humanoidGameObject, true)
-          this.simulationScene.add(humanoidRigidbody, true);
-          this.simulationScene.add(humanoidAnimator, true);
-        }
-    
+     
     
     
     
