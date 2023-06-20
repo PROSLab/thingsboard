@@ -14,16 +14,17 @@
 /// limitations under the License.
 ///
 
+import { EventEmitter } from '@angular/core';
 import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import { IThreedSceneManager } from './ithreed-scene-manager';
 import { ThreedGenericSceneManager } from './threed-generic-scene-manager';
 import { ThreedRigidbodyComponent } from '../threed-components/threed-rigidbody-component';
 import { ThreedGameObjectComponent } from '../threed-components/threed-gameobject-component';
 
 export class ThreedEarthquakeController {
     private readonly scene: ThreedGenericSceneManager;
+    public MagnitudeChanged = new EventEmitter<number>();
 
     private readonly maxSteps: number = 10;
     private readonly magnitudeCurve: any = TWEEN.Easing.Quadratic.In;
@@ -138,6 +139,7 @@ export class ThreedEarthquakeController {
         if (this.started) {
             this.elapsedTime += delta;
             this.applyEarthquakeForce();
+            this.MagnitudeChanged.emit(this.currentMagnitude.value);
         }
     }
 

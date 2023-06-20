@@ -45,53 +45,6 @@ import { ThreedPersonComponent } from './threed/threed-components/threed-person-
 import * as PF from "pathfinding";
 import { ThreedNavMeshComponent } from './threed/threed-components/threed-nav-mesh-component';
 
-const cloneGltf = (gltf) => {
-  const clone = {
-    animations: gltf.animations,
-    scene: gltf.scene.clone(true)
-  };
-
-  const skinnedMeshes = {};
-
-  gltf.scene.traverse(node => {
-    if (node.isSkinnedMesh) {
-      skinnedMeshes[node.name] = node;
-    }
-  });
-
-  const cloneBones = {};
-  const cloneSkinnedMeshes = {};
-
-  clone.scene.traverse(node => {
-    if (node.isBone) {
-      cloneBones[node.name] = node;
-    }
-
-    if (node.isSkinnedMesh) {
-      cloneSkinnedMeshes[node.name] = node;
-    }
-  });
-
-  for (let name in skinnedMeshes) {
-    const skinnedMesh = skinnedMeshes[name];
-    const skeleton = skinnedMesh.skeleton;
-    const cloneSkinnedMesh = cloneSkinnedMeshes[name];
-
-    const orderedCloneBones = [];
-
-    for (let i = 0; i < skeleton.bones.length; ++i) {
-      const cloneBone = cloneBones[skeleton.bones[i].name];
-      orderedCloneBones.push(cloneBone);
-    }
-
-    cloneSkinnedMesh.bind(
-      new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses),
-      cloneSkinnedMesh.matrixWorld);
-  }
-
-  return clone;
-}
-
 
 
 @Component({
@@ -194,11 +147,12 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     navMesh.visualizeGrid();
 
 
-    const person = new ThreedPersonComponent(navMesh);
+    const person = new ThreedPersonComponent(navMesh, gltfHumanoid);
     this.simulationScene.add(person, true);
-    const start = new THREE.Vector3(-3.5, 0, 2.5);
-    const end = new THREE.Vector3(-6, 0, 0);
-    person.findPathToDesk(start, end);
+    //const start = new THREE.Vector3(-3.5, 0, 2.5);
+    //const end = new THREE.Vector3(-6, 0, 0);
+    //person.findPathToDesk(start, end);
+    this.earthquakeController.MagnitudeChanged.subscribe(m => person.earthquakeAlert(m));
 
 
     /*

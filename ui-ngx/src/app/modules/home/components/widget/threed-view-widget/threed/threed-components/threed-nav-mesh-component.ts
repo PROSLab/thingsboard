@@ -30,10 +30,14 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
     public readonly cellSize: number;
     private floor: THREE.Object3D;
     private floorBox: THREE.Box3;
+    private floorSize: THREE.Vector3;
     private grid: PF.Grid;
 
-    public get box(): THREE.Box3 {
-        return this.floorBox;
+    public get sizeX() : number {
+        return this.floorSize.x;
+    }
+    public get sizeZ() : number {
+        return this.floorSize.z;
     }
 
 
@@ -63,18 +67,15 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
     public compureGrid(): PF.Grid {
         if (!this.floorBox) return;
 
-        const size = this.floorBox.getSize(new THREE.Vector3());
-        console.log(size);
+        this.floorSize = this.floorBox.getSize(new THREE.Vector3());
+        console.log(this.floorSize);
 
         // Create the Pathfinding.js grid
         this.grid = new PF.Grid(
-            Math.ceil(size.x / this.cellSize),
-            Math.ceil(size.z / this.cellSize)
+            Math.ceil(this.sizeX / this.cellSize),
+            Math.ceil(this.sizeZ / this.cellSize)
         );
         console.log(this.grid);
-
-        console.log(this.getGridCoords(new THREE.Vector3()));
-        console.log(this.getGridCoords(new THREE.Vector3(1, 0, 2)));
 
         this.groupGameobject.rigidbodies.forEach(rb => {
             const object = rb.mesh.getMesh();
@@ -83,13 +84,12 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
                 rb.physicBody.updateAABB();
 
                 // Convert AABB to grid coordinates
-                const min = this.getGridCoords(ThreedUtils.cannonToThree(rb.physicBody.aabb.lowerBound));
-                const max = this.getGridCoords(ThreedUtils.cannonToThree(rb.physicBody.aabb.upperBound));
+                const min = this.getGridCoordsFromPosition(ThreedUtils.cannonToThree(rb.physicBody.aabb.lowerBound));
+                const max = this.getGridCoordsFromPosition(ThreedUtils.cannonToThree(rb.physicBody.aabb.upperBound));
 
                 // Mark all cells within the AABB as unwalkable
                 for (let x = min.x; x <= max.x; x++) {
                     for (let y = min.y; y <= max.y; y++) {
-                        console.log(x, y);
                         this.grid.setWalkableAt(x, y, false);
                     }
                 }
@@ -104,22 +104,15 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         const geometry = new THREE.BoxGeometry(this.cellSize, this.cellSize, this.cellSize);
         const materialWalkable = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const materialUnwalkable = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
-        const size = this.floorBox.getSize(new THREE.Vector3());
+
+        const y = 1;
 
         this.grid.nodes.forEach((nodes: { x: number, y: number, walkable: boolean }[]) => {
             nodes.forEach((node: { x: number, y: number, walkable: boolean }) => {
                 //console.log(node);
-                const x = (node.x * this.cellSize) - (size.x / 2);
-                const y = 1;
-                const z = (node.y * this.cellSize) - (size.z / 2);
-
-                if (node.x == 0 && node.y == 0) {
-                    console.log(x, z);
-                }
-
-                const cube = new THREE.Mesh(geometry, !node.walkable || (node.x == 0 && node.y == 0) ? materialUnwalkable : materialWalkable);
-
-                cube.position.set(x, y, z);
+                const pos = this.getPostionFromGridCoords(node.x, node.y);
+                const cube = new THREE.Mesh(geometry, !node.walkable ? materialUnwalkable : materialWalkable);
+                cube.position.set(pos.x, y, pos.z);
                 this.sceneManager.scene.add(cube);
             });
         });
@@ -132,17 +125,23 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         return this.grid;
     }
 
-    public getGridCoords(position: THREE.Vector3): { x: number, y: number } {
+    public getGridCoordsFromPosition(position: THREE.Vector3): { x: number, y: number } {
         if (!this.floorBox) return null;
 
         // Convert position to local coordinates
         const localPosition = this.floor.localToWorld(position.clone());
-        const size = this.floorBox.getSize(new THREE.Vector3());
 
         // Convert local position to grid coordinates
-        const x = clamp(Math.floor(localPosition.x / this.cellSize + size.x / (2 * this.cellSize)), 0, this.grid.width);
-        const y = clamp(Math.floor(localPosition.z / this.cellSize + size.z / (2 * this.cellSize)), 0, this.grid.height);
+        const x = clamp(Math.floor(localPosition.x / this.cellSize + this.sizeX / (2 * this.cellSize)), 0, this.grid.width);
+        const y = clamp(Math.floor(localPosition.z / this.cellSize + this.sizeZ / (2 * this.cellSize)), 0, this.grid.height);
 
         return { x, y };
+    }
+
+    public getPostionFromGridCoords(x: number, y: number): THREE.Vector3 {
+        const xPos = (x * this.cellSize) - (this.sizeX / 2);
+        const zPos = (y * this.cellSize) - (this.sizeZ / 2);
+
+        return new THREE.Vector3(xPos, 0, zPos);
     }
 }

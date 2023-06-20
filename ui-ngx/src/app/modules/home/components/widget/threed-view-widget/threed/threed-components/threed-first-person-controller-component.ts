@@ -123,7 +123,6 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     }
 
     onKeyDown(event: KeyboardEvent): void {
-        //console.log(event.code);
         switch (event.code) {
             case 'ArrowUp':
             case 'KeyW':
@@ -148,6 +147,10 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
             case 'Space':
                 if (this.canJump === true) this.velocity.y += 2 * this.mass * this.scaleFactor;
                 this.canJump = false;
+                break;
+
+            case 'KeyP':
+                console.log(this.controls.getObject().position);
                 break;
         }
     }

@@ -70,4 +70,14 @@ export class ThreedAnimatorComponent extends ThreedBaseComponent {
     public unpause(){
         this.mixer.timeScale = 1;
     }
+
+    public isPlaying(animation: THREE.AnimationClip | string): boolean {
+        if (animation instanceof THREE.AnimationClip) {
+            return this.mixer.clipAction(animation).isRunning();
+        } else {
+            const anim = this.animations.find(a => a.name == animation);
+            if (anim) return this.mixer.clipAction(anim).isRunning();
+        }
+        return false;
+    }
 }
