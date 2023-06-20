@@ -111,7 +111,7 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         }
 
         //console.log("visualizeGrid");
-        const geometry = new THREE.BoxGeometry(this.cellSize, this.cellSize, this.cellSize);
+        const geometry = new THREE.PlaneGeometry(this.cellSize, this.cellSize);
         const materialWalkable = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const materialUnwalkable = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
 
@@ -127,6 +127,7 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
                 //console.log(node);
                 const pos = this.getPostionFromGridCoords(node.x, node.y);
                 const cube = new THREE.Mesh(geometry, !node.walkable ? materialUnwalkable : materialWalkable);
+                cube.rotation.x = -Math.PI / 2;
                 cube.position.set(pos.x, y, pos.z);
                 this.sceneManager.scene.add(cube);
                 this.previousGrid.push(cube);
