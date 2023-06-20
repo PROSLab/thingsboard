@@ -37,8 +37,8 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     private underDesk = false;
     private deskFound?: THREE.Object3D;
 
-    private rigidbody: ThreedRigidbodyComponent;
-    private animator: ThreedAnimatorComponent;
+    public rigidbody: ThreedRigidbodyComponent;
+    public animator: ThreedAnimatorComponent;
 
     constructor(navMesh: ThreedNavMeshComponent, gltf: GLTF) {
         super(gltf);
@@ -50,34 +50,8 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         super.initialize(sceneManager);
 
         this.addModel();
-        this.addCollisionTrigger();
         this.sceneManager.add(this.rigidbody, true);
         this.sceneManager.add(this.animator, true);
-    }
-
-    private addCollisionTrigger() {
-        this.subscriptions.push(this.rigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
-        this.subscriptions.push(this.rigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
-    }
-
-    private processCollisionEvent(e: {
-        event: CANNON.Constraint;
-        object: IThreedPhysicObject;
-    }, type: 'begin' | 'end') {
-        if (e.object?.tag == "PIR Sensor") {
-
-            let result = [];
-            const world = this.sceneManager.physicManager.world;
-            world.narrowphase.getContacts([e.object.physicBody], [this.rigidbody.physicBody], world, result, [], [], []);
-            let overlaps = result.length > 0;
-
-            console.log(overlaps ? "presence" : "no presence")
-            /*
-            this.sensed = type == 'begin';
-            this.cd.detectChanges();
-            this.savePresence(this.sensed ? 1 : 0);
-            */
-        }
     }
 
     tick(): void {
@@ -91,7 +65,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
 
         if (this.path.length == 0 && this.deskFound) {
             this.underDesk = true;
-            this.animator.stop("Walking");
+            this.animator.stop();
             this.animator.play("Laying");
             const deskPosition = this.deskFound.position.clone();
             deskPosition.x += this.deskFound.userData.pirPosition[0];
@@ -100,8 +74,10 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
             return;
         }
 
-        if (!this.animator.isPlaying("Walking"))
+        if (!this.animator.isPlaying("Walking")) {
+            this.animator.stop();
             this.animator.play("Walking");
+        }
 
         const first = this.path.shift();
         const pos = this.navMesh.getPostionFromGridCoords(first[0], first[1]);
@@ -114,17 +90,23 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
         humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
         this.rigidbody = new ThreedRigidbodyComponent({ mesh: this, physicBody: humanoidPhysicBody, handleVisuals: false });
         this.animator = new ThreedAnimatorComponent(this, ...this.clonedGLTF.animations);
+        this.animator.play("Idle");
     }
 
     public earthquakeAlert(magnitude: number, desks: THREE.Object3D[]) {
         if (this.alerted || magnitude == 0) return;
 
-        for (let i = 0; i < desks.length; i++) {
-            const desk = desks[i];
+        const sortedDeskByDistance = desks.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
+        //console.log(sortedDeskByDistance.map(o => o.name));
+        for (const desk of sortedDeskByDistance) {
+            if (desk.userData.occupiedBy != undefined) continue;
             const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.position);
             const { x, y } = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
-            if (this.findPathToDesk(this.mesh.position, { x, y }))
+            if (this.findPathToDesk(this.mesh.position, { x, y })) {
                 this.deskFound = desk;
+                desk.userData.occupiedBy = this;
+                break;
+            }
         }
 
         this.alerted = true;
@@ -145,7 +127,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
             endCoords.x, endCoords.y,
             this.navMesh.getGrid(true).clone()
         );
-        console.log(this.path);
+        //console.log(this.path);
 
         this.visualizePath();
 

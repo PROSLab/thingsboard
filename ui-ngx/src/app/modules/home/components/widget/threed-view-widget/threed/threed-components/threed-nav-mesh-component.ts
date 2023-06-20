@@ -68,14 +68,14 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
         if (!this.floorBox) return;
 
         this.floorSize = this.floorBox.getSize(new THREE.Vector3());
-        console.log(this.floorSize);
+        //console.log(this.floorSize);
 
         // Create the Pathfinding.js grid
         this.grid = new PF.Grid(
             Math.ceil(this.sizeX / this.cellSize),
             Math.ceil(this.sizeZ / this.cellSize)
         );
-        console.log(this.grid);
+        //console.log(this.grid);
 
         this.groupGameobject.rigidbodies.forEach(rb => {
             const object = rb.mesh.getMesh();
@@ -102,7 +102,7 @@ export class ThreedNavMeshComponent extends ThreedBaseComponent {
 
     private previousGrid = [];
     public visualizeGrid() {
-        console.log("visualizeGrid");
+        //console.log("visualizeGrid");
         const geometry = new THREE.BoxGeometry(this.cellSize, this.cellSize, this.cellSize);
         const materialWalkable = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const materialUnwalkable = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });

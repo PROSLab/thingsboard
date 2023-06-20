@@ -108,7 +108,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
 
     // SETUP EARTHQUAKE CONTROLLER (it will create the static & dynamic ground for simulation)
-    this.earthquakeController = new ThreedEarthquakeController(1, this.simulationScene, {
+    this.earthquakeController = new ThreedEarthquakeController(5, this.simulationScene, {
       duration: {
         timeToReachPeak: 3,
         peakTime: 5,
@@ -146,7 +146,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
 
     const navMesh = new ThreedNavMeshComponent(roomGroupGO);
     this.simulationScene.add(navMesh, true);
-    navMesh.visualizeGrid();
+    //navMesh.visualizeGrid();
 
 
 
@@ -178,17 +178,34 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     });
 
 
-
     // ADDING PEOPLE
-    for (let k = 0; k < 1; k++) {
-      const x = -6.5//Math.random() * navMesh.sizeX - navMesh.sizeX / 2;
-      const z = 3.8//Math.random() * navMesh.sizeZ - navMesh.sizeZ / 2;
+    for (let k = 0; k < 7; k++) {
+      const side = THREE.MathUtils.randInt(0, 3);
+      let x = 0;
+      let z = 0;
+      if (side == 0) {
+        x = THREE.MathUtils.randFloat(-5, 5);
+        z = -3;
+      } else if (side == 1) {
+        x = 5.2;
+        z = THREE.MathUtils.randFloat(-3, 3);
+      } else if (side == 2) {
+        x = THREE.MathUtils.randFloat(-5, 5);
+        z = 3;
+      } else {
+        x = -4.5;
+        z = THREE.MathUtils.randFloat(-3, 3);
+      }
       const person = new ThreedPersonComponent(navMesh, gltfHumanoid);
       this.simulationScene.add(person, true);
       person.getMesh().position.set(x, this.earthquakeController.getFloorHeight(), z);
+      person.getMesh().lookAt(new THREE.Vector3());
       this.earthquakeController.MagnitudeChanged.subscribe(m => {
         person.earthquakeAlert(m, desks);
       });
+
+      this.subscriptions.push(person.rigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(person, o, 'begin')));
+      this.subscriptions.push(person.rigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(person, o, 'end')));
     }
 
 
@@ -265,14 +282,23 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     }));
   }
 
-  private processCollisionEvent(e: {
+  private processCollisionEvent(person: ThreedPersonComponent, e: {
     event: CANNON.Constraint;
     object: IThreedPhysicObject;
   }, type: 'begin' | 'end') {
-    if (e.object?.physicBody.id == this.pirRangeId) {
+    if (e.object?.tag == "PIR Sensor") {
+
+      let result = [];
+      const world = this.simulationScene.physicManager.world;
+      world.narrowphase.getContacts([e.object.physicBody], [person.rigidbody.physicBody], world, result, [], [], []);
+      let overlaps = result.length > 0;
+
+      console.log(overlaps ? "presence" : "no presence")
+      /*
       this.sensed = type == 'begin';
       this.cd.detectChanges();
       this.savePresence(this.sensed ? 1 : 0);
+      */
     }
   }
 
