@@ -23,8 +23,8 @@ import { threeToCannon } from "three-to-cannon";
 
 export class ThreedGroupGameObjectComponent extends ThreedGameObjectComponent {
 
-    private gameobjects: ThreedGameObjectComponent[] = [];
-    private rigidbodies: ThreedRigidbodyComponent[] = [];
+    public readonly gameobjects: ThreedGameObjectComponent[] = [];
+    public readonly rigidbodies: ThreedRigidbodyComponent[] = [];
 
     constructor(mesh: THREE.Object3D) {
         super(mesh);
@@ -34,7 +34,6 @@ export class ThreedGroupGameObjectComponent extends ThreedGameObjectComponent {
         super.initialize(sceneManager);
 
         let previousContraints = new Map<string, CANNON.Body[]>();
-        let previous;
         this.mesh.traverse(o => {
             if (o.userData.physicShape) {
                 // create rigidbody for o
@@ -55,7 +54,6 @@ export class ThreedGroupGameObjectComponent extends ThreedGameObjectComponent {
 
                 const joints: CANNON.Constraint[] = [];
                 if (o.userData.constraintLockTag != undefined) {
-                    //pb.mass = 0;
                     const lockContraintName = o.userData.constraintLockTag;
                     let prevs = [];
                     if (previousContraints.has(lockContraintName)) {
@@ -67,18 +65,7 @@ export class ThreedGroupGameObjectComponent extends ThreedGameObjectComponent {
                     prevs.push(pb);
                     previousContraints.set(lockContraintName, prevs);
                 }
-
-                /*
-                if (o.name.includes("Muro")) {
-                    if (previous) 
-                        joints.push(new CANNON.LockConstraint(pb, previous));
-                    previous = pb;
-                }*/
-
-
                 const rigidbody = new ThreedRigidbodyComponent({ mesh: gameobject, physicBody: pb, joints: joints });
-
-                console.log(o.userData.physicShape, o.name, o.position, pb);
 
 
                 this.gameobjects.push(gameobject);

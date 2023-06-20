@@ -41,7 +41,9 @@ import { IThreedPhysicObject } from './threed/threed-components/ithreed-physic-o
 import { ThreedEarthquakeController } from './threed/threed-managers/threed-earthquake-controller';
 import { ThreedAnimatorComponent } from './threed/threed-components/threed-animator-component';
 import { ThreedGroupGameObjectComponent } from './threed/threed-components/threed-group-gameobject-component';
-
+import { ThreedPersonComponent } from './threed/threed-components/threed-person-component';
+import * as PF from "pathfinding";
+import { ThreedNavMeshComponent } from './threed/threed-components/threed-nav-mesh-component';
 
 const cloneGltf = (gltf) => {
   const clone = {
@@ -146,7 +148,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     world.gravity.set(0, -9.8, 0);
 
 
-    world.defaultContactMaterial.contactEquationStiffness = 1e6;    
+    world.defaultContactMaterial.contactEquationStiffness = 1e6;
     world.defaultContactMaterial.contactEquationRelaxation = 3;
     world.allowSleep = true;
     world.broadphase = new CANNON.SAPBroadphase(world);
@@ -185,77 +187,87 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     aula.position.set(0, this.earthquakeController.getFloorHeight(), 0);
     const aulaGroupGO = new ThreedGroupGameObjectComponent(aula);
     this.simulationScene.add(aulaGroupGO, true);
+
+
+    const navMesh = new ThreedNavMeshComponent(aulaGroupGO);
+    this.simulationScene.add(navMesh, true);
+    navMesh.visualizeGrid();
+
+
+    const person = new ThreedPersonComponent(navMesh);
+    this.simulationScene.add(person, true);
+    const start = new THREE.Vector3(-3.5, 0, 2.5);
+    const end = new THREE.Vector3(-6, 0, 0);
+    person.findPathToDesk(start, end);
+
+
+    /*
     
-
-
-
-/*
-
-    // PEOPLE
-    for (let i = 0; i < 10; i++) {
-      const humanoidClone = cloneGltf(gltfHumanoid).scene;
-      const x = Math.random() * 20 - 10;
-      const z = Math.random() * 20 - 10;
-      humanoidClone.position.set(x, this.earthquakeController.getFloorHeight(), z);
-      const humanoidGameObject = new ThreedGameObjectComponent(humanoidClone);
-      const humanoidPhysicBody = new CANNON.Body({ isTrigger: true });
-      humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
-      const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, physicBody: humanoidPhysicBody, handleVisuals: false });
-      const humanoidAnimator = new ThreedAnimatorComponent(humanoidGameObject, ...gltfHumanoid.animations);
-
-      humanoidAnimator.play("Armature|mixamo.com|Layer0");
-      this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
-      this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
-      this.simulationScene.add(humanoidGameObject, true)
-      this.simulationScene.add(humanoidRigidbody, true);
-      this.simulationScene.add(humanoidAnimator, true);
-    }
-
-
-
-
-    // DESK & SPHERE & PIR Sensor Range Collider
-    for (let index = 0; index < 8; index++) {
-      // DESK
-      const deskMesh = desk.clone();
-      deskMesh.position.set(index * 1.5, this.earthquakeController.getFloorHeight(), 0);
-      const deskGameObject = new ThreedGameObjectComponent(deskMesh);
-      const deskRigidbody = new ThreedRigidbodyComponent({
-        mesh: deskGameObject,
-        bodyOptions: { mass: 40, type: CANNON.BODY_TYPES.DYNAMIC, material: new CANNON.Material({ restitution: 0 }), linearDamping: 0.1, angularDamping: 0.1 },
-        handleVisuals: true,
-        autoDefineBody: { type: ShapeType.BOX }
-      });
-      this.simulationScene.add(deskGameObject, true);
-      this.simulationScene.add(deskRigidbody, true);
-
-
-      //SPHERE over the desk
-      const sphereMeshClone = sphereMesh.clone();
-      sphereMeshClone.position.set(deskMesh.position.x, deskMesh.position.y + 1, deskMesh.position.z);
-      const sphereMeshObject = new ThreedGameObjectComponent(sphereMeshClone);
-      const sphereMeshbody = new ThreedRigidbodyComponent({ mesh: sphereMeshObject, bodyOptions: { mass: 0.5 }, handleVisuals: true, autoDefineBody: { type: ShapeType.SPHERE } });
-      this.simulationScene.add(sphereMeshObject, true);
-      this.simulationScene.add(sphereMeshbody, true);
-
-
-      // PIR Sensor Range Collider
-      const height = 0.65;
-      const radius = 0.5;
-      const cylinderBody = new CANNON.Body({
-        mass: 1,
-        shape: new CANNON.Cylinder(0.01, radius, height, 20),
-        isTrigger: true
-      });
-      this.pirRangeId = cylinderBody.id;
-      const link = {
-        rigidbody: deskRigidbody,
-        offset: new CANNON.Vec3(-0.0726, height / 2, 0.458), // y = 0.309
-      }
-      this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
-    }
-
-*/
+        // PEOPLE
+        for (let i = 0; i < 10; i++) {
+          const humanoidClone = cloneGltf(gltfHumanoid).scene;
+          const x = Math.random() * 20 - 10;
+          const z = Math.random() * 20 - 10;
+          humanoidClone.position.set(x, this.earthquakeController.getFloorHeight(), z);
+          const humanoidGameObject = new ThreedGameObjectComponent(humanoidClone);
+          const humanoidPhysicBody = new CANNON.Body({ isTrigger: true });
+          humanoidPhysicBody.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.85, 0.15)), new CANNON.Vec3(0, 0.85, 0));
+          const humanoidRigidbody = new ThreedRigidbodyComponent({ mesh: humanoidGameObject, physicBody: humanoidPhysicBody, handleVisuals: false });
+          const humanoidAnimator = new ThreedAnimatorComponent(humanoidGameObject, ...gltfHumanoid.animations);
+    
+          humanoidAnimator.play("Armature|mixamo.com|Layer0");
+          this.subscriptions.push(humanoidRigidbody.onBeginCollision.subscribe(o => this.processCollisionEvent(o, 'begin')));
+          this.subscriptions.push(humanoidRigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(o, 'end')));
+          this.simulationScene.add(humanoidGameObject, true)
+          this.simulationScene.add(humanoidRigidbody, true);
+          this.simulationScene.add(humanoidAnimator, true);
+        }
+    
+    
+    
+    
+        // DESK & SPHERE & PIR Sensor Range Collider
+        for (let index = 0; index < 8; index++) {
+          // DESK
+          const deskMesh = desk.clone();
+          deskMesh.position.set(index * 1.5, this.earthquakeController.getFloorHeight(), 0);
+          const deskGameObject = new ThreedGameObjectComponent(deskMesh);
+          const deskRigidbody = new ThreedRigidbodyComponent({
+            mesh: deskGameObject,
+            bodyOptions: { mass: 40, type: CANNON.BODY_TYPES.DYNAMIC, material: new CANNON.Material({ restitution: 0 }), linearDamping: 0.1, angularDamping: 0.1 },
+            handleVisuals: true,
+            autoDefineBody: { type: ShapeType.BOX }
+          });
+          this.simulationScene.add(deskGameObject, true);
+          this.simulationScene.add(deskRigidbody, true);
+    
+    
+          //SPHERE over the desk
+          const sphereMeshClone = sphereMesh.clone();
+          sphereMeshClone.position.set(deskMesh.position.x, deskMesh.position.y + 1, deskMesh.position.z);
+          const sphereMeshObject = new ThreedGameObjectComponent(sphereMeshClone);
+          const sphereMeshbody = new ThreedRigidbodyComponent({ mesh: sphereMeshObject, bodyOptions: { mass: 0.5 }, handleVisuals: true, autoDefineBody: { type: ShapeType.SPHERE } });
+          this.simulationScene.add(sphereMeshObject, true);
+          this.simulationScene.add(sphereMeshbody, true);
+    
+    
+          // PIR Sensor Range Collider
+          const height = 0.65;
+          const radius = 0.5;
+          const cylinderBody = new CANNON.Body({
+            mass: 1,
+            shape: new CANNON.Cylinder(0.01, radius, height, 20),
+            isTrigger: true
+          });
+          this.pirRangeId = cylinderBody.id;
+          const link = {
+            rigidbody: deskRigidbody,
+            offset: new CANNON.Vec3(-0.0726, height / 2, 0.458), // y = 0.309
+          }
+          this.simulationScene.add(new ThreedRigidbodyComponent({ physicBody: cylinderBody, link }), true);
+        }
+    
+    */
 
     // OTHER CONFIGUATIONS
     this.simulationScene.physicManager.setVisualiseColliders(true);

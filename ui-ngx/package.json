@@ -83,6 +83,7 @@
     "ngx-sharebuttons": "^9.0.0",
     "ngx-translate-messageformat-compiler": "^4.11.0",
     "objectpath": "^2.0.0",
+    "pathfinding": "^0.4.18",
     "prettier": "^2.5.0",
     "prop-types": "^15.7.2",
     "qrcode": "^1.5.0",

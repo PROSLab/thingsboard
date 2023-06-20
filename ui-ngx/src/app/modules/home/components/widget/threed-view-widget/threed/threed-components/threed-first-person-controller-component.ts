@@ -118,6 +118,8 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
         }
 
         this.prevTime = time;
+
+        //console.log(this.controls.getObject().position);
     }
 
     onKeyDown(event: KeyboardEvent): void {
