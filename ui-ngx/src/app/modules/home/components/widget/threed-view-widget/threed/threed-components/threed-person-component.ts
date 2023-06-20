@@ -17,6 +17,7 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import * as PF from "pathfinding";
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import { ThreedBaseComponent } from "./threed-base-component";
 import { ThreedNavMeshComponent } from "./threed-nav-mesh-component";
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
@@ -36,6 +37,10 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     private alerted = false;
     private underDesk = false;
     private deskFound?: THREE.Object3D;
+
+    private tween: TWEEN.Tween;
+    // velocity in meters/seconds
+    private velocity = 0.5;
 
     public rigidbody: ThreedRigidbodyComponent;
     public animator: ThreedAnimatorComponent;
@@ -57,20 +62,17 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
     tick(): void {
         super.tick();
 
-        this.updatePosition();
+        this.walkToDesk();
+        this.updatePositionUnderDesk();
     }
 
-    private updatePosition() {
+    private walkToDesk() {
         if (!this.path || !this.deskFound || this.underDesk) return;
 
         if (this.path.length == 0 && this.deskFound) {
             this.underDesk = true;
             this.animator.stop();
             this.animator.play("Laying");
-            const deskPosition = this.deskFound.position.clone();
-            deskPosition.x += this.deskFound.userData.pirPosition[0];
-            deskPosition.z += this.deskFound.userData.pirPosition[2];
-            this.mesh.position.copy(deskPosition);
             return;
         }
 
@@ -78,11 +80,37 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent {
             this.animator.stop();
             this.animator.play("Walking");
         }
+        if (this.tween) return;
 
         const first = this.path.shift();
-        const pos = this.navMesh.getPostionFromGridCoords(first[0], first[1]);
-        this.mesh.lookAt(pos);
-        this.mesh.position.set(pos.x, 0, pos.z);
+        const targetPosition = this.navMesh.getPostionFromGridCoords(first[0], first[1]).multiply(new THREE.Vector3(1, 0, 1));
+        const time = this.velocity / this.navMesh.cellSize;
+        this.tween = new TWEEN.Tween(this.mesh.position)
+            .to(targetPosition, time)
+            .onComplete(() => {
+                this.tween = undefined;
+                this.walkToDesk();
+            })
+            .start();
+    }
+
+    private updatePositionUnderDesk() {
+        if (!this.underDesk || this.tween) return;
+
+        const deskPosition = this.deskFound.position.clone();
+        deskPosition.x += this.deskFound.userData.pirPosition[0];
+        deskPosition.z += this.deskFound.userData.pirPosition[2];
+
+        if (this.mesh.position.distanceTo(deskPosition) > 0.1) {
+            this.animator.play("Crawling");
+            this.tween = new TWEEN.Tween(this.mesh.position)
+                .to(deskPosition, 500)
+                .onComplete(() => {
+                    this.animator.stop("Crawling");
+                    this.tween = undefined;
+                })
+                .start();
+        }
     }
 
     private addModel() {
