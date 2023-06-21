@@ -13,6 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#blocker {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(155, 155, 155, 0.5);
+    z-index: 10;
+}
+
+#instructions {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+}
 
 ::ng-deep .label {
     color: #FFF;
@@ -72,10 +93,12 @@
 }
 
 .menu {
-    text-align:center;
+    text-align: center;
     background-color: rgba(230, 230, 230, .7);
     border-radius: 5px;
     margin: 10px;
 }
 
-::ng-deep .mat-menu-content {text-align: center;}
+::ng-deep .mat-menu-content {
+    text-align: center;
+}

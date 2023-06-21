@@ -45,7 +45,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
 
     private tween: TWEEN.Tween;
     // velocity in meters/seconds
-    private velocity = 0.5;
+    private velocity = THREE.MathUtils.randFloat(2, 4);
 
     public rigidbody: ThreedRigidbodyComponent;
     public animator: ThreedAnimatorComponent;
@@ -107,10 +107,10 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
 
         const first = this.clonedPath.shift();
         const targetPosition = this.navMesh.getPostionFromGridCoords(first[0], first[1]).multiply(new THREE.Vector3(1, 0, 1));
-        const time = this.velocity / this.navMesh.cellSize;
+        const time = this.navMesh.cellSize / this.velocity;
         this.mesh.lookAt(targetPosition);
         this.tween = new TWEEN.Tween(this.mesh.position)
-            .to(targetPosition, time)
+            .to(targetPosition, time * 1000)
             .onComplete(() => {
                 this.tween = undefined;
                 this.walkToDesk();
@@ -146,7 +146,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     }
 
     public earthquakeAlert(magnitude: number, desks: THREE.Object3D[]) {
-        if (this.alerted || magnitude == 0) return;
+        if (this.alerted || magnitude <= 0.5) return;
 
         const sortedDeskByDistance = desks.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
         //console.log(sortedDeskByDistance.map(o => o.name));

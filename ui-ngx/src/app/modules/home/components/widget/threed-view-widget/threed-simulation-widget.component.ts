@@ -75,6 +75,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
   time: number = 0;
   timeHandler: NodeJS.Timeout;
   running = false;
+  loading = true;
 
   constructor(
     protected store: Store<AppState>,
@@ -187,15 +188,14 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       this.subscriptions.push(person.rigidbody.onEndCollision.subscribe(o => this.processCollisionEvent(person, o, 'end')));
     }
 
-
-    // OTHER CONFIGUATIONS
-    this.simulationScene.physicManager.setVisualiseColliders(true);
-
     const clock = new THREE.Clock();
     this.subscriptions.push(this.simulationScene.onTick.subscribe(_ => {
       const delta = clock.getDelta();
       this.earthquakeController.update(delta);
     }));
+
+    this.loading = false;
+    this.cd.detectChanges();
   }
 
   private processCollisionEvent(person: ThreedPersonComponent, e: {
