@@ -210,6 +210,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       let overlaps = result.length > 0;
 
       console.log(overlaps ? "presence" : "no presence")
+      this.savePresence(overlaps ? 1 : 0);
       /*
       this.sensed = type == 'begin';
       this.cd.detectChanges();

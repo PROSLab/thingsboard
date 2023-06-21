@@ -263,6 +263,7 @@ import {
 import { ThreedSimpleOrbitWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-simple-orbit-widget-settings.component';
 import { ThreedComplexOrbitWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-complex-orbit-widget-settings.component';
 import { ThreedNavigationWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-navigation-widget-settings.component';
+import { ThreedSimulationWidgetSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-simulation-widget-settings.component';
 
 import { ThreedModelSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-model-settings.component';
 import { ThreedSceneSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-scene-settings.component';
@@ -275,7 +276,8 @@ import { ThreedObjectSettingsComponent } from '@home/components/widget/lib/setti
 import { ThreedEnvironmentSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-environment-settings.component';
 import { ThreedTooltipSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-tooltip-settings.component';
 import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-camera-settings.component';
-import { ThreedMarkerSettingsComponent } from './threed/threed-marker-settings.component';
+import { ThreedMarkerSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-marker-settings.component';
+import { ThreedScriptDialogComponent } from '@home/components/widget/lib/settings/threed/threed-script-dialog.component';
 
 
 @NgModule({
@@ -381,6 +383,7 @@ import { ThreedMarkerSettingsComponent } from './threed/threed-marker-settings.c
     ThreedSimpleOrbitWidgetSettingsComponent,
     ThreedComplexOrbitWidgetSettingsComponent,
     ThreedNavigationWidgetSettingsComponent,
+    ThreedSimulationWidgetSettingsComponent,
     ThreedModelSettingsComponent,
     ThreedSceneSettingsComponent,
     ThreedVectorSettingsComponent,
@@ -393,6 +396,7 @@ import { ThreedMarkerSettingsComponent } from './threed/threed-marker-settings.c
     ThreedTooltipSettingsComponent,
     ThreedCameraSettingsComponent,
     ThreedMarkerSettingsComponent,
+    ThreedScriptDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -500,6 +504,7 @@ import { ThreedMarkerSettingsComponent } from './threed/threed-marker-settings.c
     ThreedSimpleOrbitWidgetSettingsComponent,
     ThreedComplexOrbitWidgetSettingsComponent,
     ThreedNavigationWidgetSettingsComponent,
+    ThreedSimulationWidgetSettingsComponent,
     ThreedModelSettingsComponent,
     ThreedSceneSettingsComponent,
     ThreedVectorSettingsComponent,
@@ -511,6 +516,7 @@ import { ThreedMarkerSettingsComponent } from './threed/threed-marker-settings.c
     ThreedEnvironmentSettingsComponent,
     ThreedTooltipSettingsComponent,
     ThreedCameraSettingsComponent,
+    ThreedScriptDialogComponent,
   ]
 })
 export class WidgetSettingsModule {
@@ -582,4 +588,5 @@ export const widgetSettingsComponentsMap: { [key: string]: Type<IWidgetSettingsC
   'tb-threed-simple-orbit-widget-settings': ThreedSimpleOrbitWidgetSettingsComponent,
   'tb-threed-complex-orbit-widget-settings': ThreedComplexOrbitWidgetSettingsComponent,
   'tb-threed-navigation-widget-settings': ThreedNavigationWidgetSettingsComponent,
+  'tb-threed-simulation-widget-settings': ThreedSimulationWidgetSettingsComponent,
 };
