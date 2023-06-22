@@ -35,13 +35,15 @@ import { SimulationHelperComponent } from '@app/shared/components/simulation-hel
 export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsComponent implements OnInit, AfterViewInit, AfterContentChecked {
 
   @ViewChild("assetInput") assetInput: ThreedModelInputComponent;
-  @ViewChild("jsEditor") jsEditor: JsFuncComponent;
+  @ViewChild("jsEditor1") jsEditor1: JsFuncComponent;
+  @ViewChild("jsEditor2") jsEditor2: JsFuncComponent;
   @ViewChild('simulationHelper') simulationHelper: SimulationHelperComponent;
 
 
   threedSimulationWidgetSettingsForm: FormGroup;
   private isVisible: boolean = false;
   activeScript?: ScriptModel = undefined;
+  private currentJsEditor?: JsFuncComponent;
 
   constructor(
     protected store: Store<AppState>,
@@ -146,7 +148,8 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       }
     }
     this.activeScript = script;
-    this.jsEditor?.writeValue(script.body);
+    this.currentJsEditor = script.name == "onDataUpdate.js" ? this.jsEditor1 : this.jsEditor2;
+    this.currentJsEditor?.writeValue(script.body);
     this.threedSimulationWidgetSettingsForm.get('jsTextFunction').setValue(script.body);
   }
 

@@ -27,6 +27,7 @@ import { ThreedScenes } from '@app/modules/home/components/widget/threed-view-wi
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
+import { DatasourceData } from "@app/shared/public-api";
 
 
 @Component({
@@ -154,7 +155,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.simulationScene?.getComponent(ThreedFirstPersonControllerComponent)?.lockControls();
   }
 
-  stopSimulation() {
+  public stopSimulation() {
     clearInterval(this.timeHandler);
     this.simulationState = SimulationState.UNCOMPILED;
     this.time = 0;
@@ -173,7 +174,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.simulationScene = undefined;
   }
 
-  resetSimulation() {
+  public resetSimulation() {
     const resetScript = this.context.scripts["reset.js"];
     const functionRef = new Function('context', 'simulationScene', 'Threed', resetScript.body);
 
@@ -185,7 +186,19 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     }
   }
 
-  openOptionsMenu() {
+  public onDataUpdate(data: DatasourceData[]) {
+    const resetScript = this.context.scripts["onDataUpdate.js"];
+    const functionRef = new Function('context', 'simulationScene', 'Threed', 'datasources', resetScript.body);
+
+    try {
+      const result = functionRef(this.context, this.simulationScene, Threed, data);
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  public openOptionsMenu() {
     const html = this.settings.menuHtml;
     const css = this.settings.menuHtml;
     const jsBody = this.settings.menuJs;
@@ -196,7 +209,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     });
   }
 
-  createSimulationScene() {
+  public createSimulationScene() {
     this.simulationScene?.destroy();
     this.simulationScene = ThreedScenes.createSimulationScene();
     if (this.rendererContainer)

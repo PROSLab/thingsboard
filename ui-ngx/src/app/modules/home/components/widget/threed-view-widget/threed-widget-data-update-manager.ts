@@ -30,7 +30,6 @@ import { ThreedWidgetActionManager } from "./threed-widget-action-manager";
 import { ACTIONS, HTML_ELEMENT } from "./threed/threed-constants";
 import { IThreedSceneManager } from "./threed/threed-managers/ithreed-scene-manager";
 import { ThreedDevicesSettings, ThreedMarkerSettings, ThreedTooltipSettings } from "./threed/threed-models";
-import { VrUi } from "./threed/threed-extensions/vr-ui";
 
 
 export class ThreedWidgetDataUpdateManager {

@@ -52,6 +52,10 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     this.simulationHelper?.updateSettings(this.settings);
   }
 
+  public onDataUpdate(){
+    this.simulationHelper?.onDataUpdate(this.ctx.data);
+  }
+
   public onEditModeChanged() {
     this.simulationHelper?.onEditModeChanged(this.ctx.isEdit);
   }
