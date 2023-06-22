@@ -15,7 +15,7 @@
 ///
 
 import { AfterContentChecked, AfterViewInit, ChangeDetectorRef, Component, Inject, ElementRef, HostListener, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MatTable } from '@angular/material/table';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { JsFuncComponent } from '@app/shared/public-api';
@@ -54,11 +54,11 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
   simulationScene: ThreedGenericSceneManager;
   private isVisible: boolean = false;
 
-  models = [];
+  //models = [];
   displayedColumns: string[] = ['entity', 'model'];
   dataSource: EntityModelLink[] = [];
-  scripts: ScriptModel[] = [{ name: "main.js", body: "some javascript code..." }];
-  activeScript = undefined;
+  //scripts: ScriptModel[] = [{ name: "main.js", body: "(async function() { await new Promise(resolve => setTimeout(resolve, 1000)); console.log('hello'); })();" }];
+  activeScript?: ScriptModel = undefined;
 
 
   constructor(
@@ -78,6 +78,9 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
 
   protected override defaultSettings(): WidgetSettings {
     return {
+      models: [],
+      scripts: [{ name: "main.js", body: "(async function() { await new Promise(resolve => setTimeout(resolve, 1000)); console.log('hello'); })();" }],
+
       modelUrl: null,
       threedEntityAliasSettings: "",
       selectedModelForLink: "",
@@ -90,14 +93,20 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     const t_settings = settings as any;
 
     this.threedSimulationWidgetSettingsForm = this.fb.group({
+      models: [t_settings.models, []],
+      scripts: [t_settings.scripts, []],
+
       modelUrl: [t_settings.modelUrl, []],
       threedEntityAliasSettings: [t_settings.threedEntityAliasSettings, ""],
       selectedModelForLink: [t_settings.selectedModelForLink, ""],
       jsTextFunction: [t_settings.jsTextFunction, ""],
     });
 
-    this.selectScript(this.scripts[0]);
-    this.cd.detectChanges();
+    const script = (this.threedSimulationWidgetSettingsForm.get("models") as FormArray).value[0];
+    if (script) {
+      this.selectScript(script);
+      this.cd.detectChanges();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -120,8 +129,11 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     const modelName = this.modelInput.name;
     if (!model || !modelName) return;
 
-    if (!this.models.find(m => m.name == modelName))
-      this.models.push({ name: modelName, base64: model });
+    const modelsFormArray = this.threedSimulationWidgetSettingsForm.get("models") as FormArray;
+    const models = modelsFormArray.value;
+    if (!models.find(m => m.name == modelName)) {
+      modelsFormArray.value.push({ name: modelName, base64: model });
+    }
 
     this.modelInput.clearImage();
   }
@@ -130,8 +142,13 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     const modelName = this.modelInput.name;
     if (!modelName) return;
 
-    const i = this.models.findIndex(m => m.name == modelName);
-    if (i != -1) this.models.splice(i, 1);
+    const modelsFormArray = this.threedSimulationWidgetSettingsForm.get("models") as FormArray;
+    const models = modelsFormArray.value;
+    const i = models.findIndex(m => m.name == modelName);
+    if (i != -1) {
+      modelsFormArray.value.splice(i, 1);
+    }
+
     this.modelInput.clearImage();
   }
 
@@ -170,8 +187,19 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
   }
 
   selectScript(script: ScriptModel) {
+    if (this.activeScript) {
+      const scriptsFormArray = this.threedSimulationWidgetSettingsForm.get("scripts") as FormArray;
+      const scripts = scriptsFormArray.value;
+      const i = scripts.findIndex(o => o.name == this.activeScript.name);
+      if (i != -1) {
+        const jsBody = this.threedSimulationWidgetSettingsForm.get('jsTextFunction').value;
+        scriptsFormArray.value[i].body = jsBody;
+      }
+    }
     this.activeScript = script;
     this.jsEditor?.writeValue(script.body);
+    this.threedSimulationWidgetSettingsForm.get('jsTextFunction').setValue(script.body);
+    this.jsEditor?.validateOnSubmit();
   }
 
   addScript(fileName?: string) {
@@ -191,18 +219,20 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       if (!nameRegex.test(fileName)) return;
       if (fileName.length == 0) return;
 
+      const scriptsFormArray = this.threedSimulationWidgetSettingsForm.get("scripts") as FormArray;
+      const scripts = scriptsFormArray.value;
       if (editing) {
-        const i = this.scripts.findIndex(o => o.name == oldName + ".js");
+        const i = scripts.findIndex(o => o.name == oldName + ".js");
         if (i != -1) {
-          this.scripts[i].name = fileName + ".js";
-          this.activeScript = this.scripts[i];
+          scriptsFormArray.value[i].name = fileName + ".js";
+          this.activeScript = scripts[i];
         }
       } else {
-        const i = this.scripts.findIndex(o => o.name == fileName + ".js");
+        const i = scripts.findIndex(o => o.name == fileName + ".js");
         if (i == -1) {
-          this.scripts.push({
+          scriptsFormArray.value.push({
+            name: fileName + ".js",
             body: "",
-            name: fileName + ".js"
           });
         }
       }
@@ -221,9 +251,11 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
   deleteScript() {
     if (!this.activeScript || this.activeScript.name == "main.js") return;
 
-    const i = this.scripts.findIndex(o => o.name == this.activeScript.name);
+    const scriptsFormArray = this.threedSimulationWidgetSettingsForm.get("scripts") as FormArray;
+    const scripts = scriptsFormArray.value;
+    const i = scripts.findIndex(o => o.name == this.activeScript.name);
     if (i != -1) {
-      this.scripts.splice(i, 1);
+      scriptsFormArray.value.splice(i, 1);
       this.cd.detectChanges();
     }
   }

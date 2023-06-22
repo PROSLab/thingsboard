@@ -91,7 +91,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       .add(new ThreedVrControllerComponent());
     this.simulationScene = builder.build();
 
-    this.includeFeaturesToSimulationScene();
+    //this.includeFeaturesToSimulationScene();
   }
 
   private async includeFeaturesToSimulationScene() {
@@ -231,13 +231,17 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
         entityType: datasource.entityType,
         id: datasource.entityId
       }
+      //console.log(datasource);
     });
-    console.log(this.ctx);
+
+
+    //this.savePresence(1);
+    //console.log(this.ctx);
   }
 
   savePresence(presence?: number) {
     const saveData = [{
-      key: "presence",//this.datasource.dataKeys[0].name,
+      key: "presence_sim",//this.datasource.dataKeys[0].name,
       value: presence ?? Math.round((Math.random() * 10))
     }];
     this.attributeService.saveEntityTimeseries(this.entityId, LatestTelemetry.LATEST_TELEMETRY, saveData).subscribe(() => console.log("presence saved"));

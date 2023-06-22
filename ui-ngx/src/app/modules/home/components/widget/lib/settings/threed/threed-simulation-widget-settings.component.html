@@ -25,7 +25,7 @@
         <legend class="group-title">3D Models</legend>
 
         <mat-selection-list [multiple]="false">
-            <mat-list-option *ngFor="let model of models" [value]="model" (click)="visualiseModel(model)">
+            <mat-list-option *ngFor="let model of threedSimulationWidgetSettingsForm.get('models').value" [value]="model" (click)="visualiseModel(model)">
                 {{model.name}}
             </mat-list-option>
         </mat-selection-list>
@@ -42,6 +42,7 @@
     </fieldset>
 
 
+    <!-- TODO: remove... It is not important/usefull to link Entity<->3D model; the user will do it directly in the code! -->
     <!-- SOURCES -->
     <!-- table key- dropdown value (entity - 3d model name) -->
     <!-- + entity -->
@@ -71,7 +72,7 @@
             <mat-form-field appearance="fill">
                 <mat-label>Choose a 3D Model</mat-label>
                 <mat-select formControlName="selectedModelForLink">
-                    <mat-option *ngFor="let model of models" [value]="model.name">{{model.name}}</mat-option>
+                    <mat-option *ngFor="let model of threedSimulationWidgetSettingsForm.get('models').value" [value]="model.name">{{model.name}}</mat-option>
                 </mat-select>
             </mat-form-field>
         </div>
@@ -83,6 +84,7 @@
         </div>
     </fieldset>
 
+
     <!-- SCRIPT EDITOR (+ compile button)-->
     <!-- Tabs with file names -->
     <!-- Text editor -->
@@ -93,8 +95,8 @@
         <div fxLayout="row">
             <div fxFlex="80">
                 <nav mat-tab-nav-bar>
-                    <a mat-tab-link *ngFor="let script of scripts" (click)="selectScript(script)"
-                        [active]="activeScript.name == script.name">
+                    <a mat-tab-link *ngFor="let script of threedSimulationWidgetSettingsForm.get('scripts').value" (click)="selectScript(script)"
+                        [active]="activeScript?.name == script.name">
                         {{script.name}}
                     </a>
                 </nav>
