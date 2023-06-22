@@ -40,6 +40,10 @@ export class ThreedWebRenderer implements IThreedRenderer {
         this.renderer.setPixelRatio(window.devicePixelRatio);
     }
 
+    public detach(): void {
+        this.renderer.domElement.remove();
+    }
+
     public resize(width?: number, height?: number): void {
         this.renderer?.setSize(width, height, false);
     }

@@ -278,6 +278,7 @@ import { ThreedTooltipSettingsComponent } from '@home/components/widget/lib/sett
 import { ThreedCameraSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-camera-settings.component';
 import { ThreedMarkerSettingsComponent } from '@home/components/widget/lib/settings/threed/threed-marker-settings.component';
 import { ThreedScriptDialogComponent } from '@home/components/widget/lib/settings/threed/threed-script-dialog.component';
+import { ThreedDynamicMenuDialogComponent } from '@home/components/widget/lib/settings/threed/threed-dynamic-menu-dialog.component';
 
 
 @NgModule({
@@ -397,6 +398,7 @@ import { ThreedScriptDialogComponent } from '@home/components/widget/lib/setting
     ThreedCameraSettingsComponent,
     ThreedMarkerSettingsComponent,
     ThreedScriptDialogComponent,
+    ThreedDynamicMenuDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -517,6 +519,7 @@ import { ThreedScriptDialogComponent } from '@home/components/widget/lib/setting
     ThreedTooltipSettingsComponent,
     ThreedCameraSettingsComponent,
     ThreedScriptDialogComponent,
+    ThreedDynamicMenuDialogComponent,
   ]
 })
 export class WidgetSettingsModule {

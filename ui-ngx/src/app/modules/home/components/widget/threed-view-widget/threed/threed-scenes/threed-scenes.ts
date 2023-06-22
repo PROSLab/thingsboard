@@ -78,12 +78,11 @@ export class ThreedScenes {
 
     //* INFO: Simulation scene 
     public static createSimulationScene(): ThreedGenericSceneManager {
-        const builder = new ThreedSceneBuilder({ vr:true, shadow: true })
-            .add(new ThreedPerspectiveCameraComponent())
-            .add(new ThreedDefaultAmbientComponent(true))
+        const builder = new ThreedSceneBuilder({ vr: true, shadow: true })
+            .add(new ThreedPerspectiveCameraComponent(new THREE.Vector3(0, 1.7, 0)))
+            .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedFirstPersonControllerComponent())
             .add(new ThreedVrControllerComponent());
-
         return builder.build();
     }
 

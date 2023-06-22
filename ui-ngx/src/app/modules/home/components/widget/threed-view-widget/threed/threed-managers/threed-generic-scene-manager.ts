@@ -45,6 +45,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private components: IThreedComponent[] = [];
     private subscriptions: Subscription[] = [];
     private _center = new THREE.Vector2();
+    private destroying = false;
 
     public scene: Scene;
     public active: boolean;
@@ -138,6 +139,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.startRendering();
     }
 
+    public detach() {
+        
+    }
+
     public resize(width?: number, height?: number): void {
         const rect: DOMRect | undefined = this.rendererContainer?.nativeElement.getBoundingClientRect();
         this.screenWidth = width || rect.width;
@@ -209,6 +214,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     private animate() {
+        if(this.destroying) return;
+
         window.requestAnimationFrame(() => this.animate());
 
         this.loop();
@@ -361,6 +368,11 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
 
     public destroy(): void {
+        this.destroying = true;
+        if (this.configs.vr) 
+            this.getTRenderer(ThreedWebRenderer).getRenderer().setAnimationLoop(null);
+
+        this.threedRenderers.forEach(r => r.detach());
         this.components.forEach(c => c.onDestroy());
         this.subscriptions.forEach(s => s.unsubscribe());
         this.cssManager.onDestroy();

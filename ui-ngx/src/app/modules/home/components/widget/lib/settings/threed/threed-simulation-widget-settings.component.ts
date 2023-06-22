@@ -14,52 +14,34 @@
 /// limitations under the License.
 ///
 
-import { AfterContentChecked, AfterViewInit, ChangeDetectorRef, Component, Inject, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { OnInit, AfterContentChecked, AfterViewInit, ChangeDetectorRef, Component, HostListener, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { MatTable } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
+import { AssetModel, ScriptModel, ThreedSimulationWidgetSettings, defaultThreedSimulationWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { JsFuncComponent } from '@app/shared/public-api';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
-import { ThreedScenes } from '../../../threed-view-widget/threed/threed-scenes/threed-scenes';
-import { Threed } from '../../../threed-view-widget/threed/threed';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ThreedScriptDialogComponent } from './threed-script-dialog.component';
+import { SimulationHelperComponent } from '@app/shared/components/simulation-helper.component';
 
-interface EntityModelLink {
-  entity: string;
-  model: any;
-}
-interface ScriptModel {
-  name: string,
-  body: string
-}
 
 @Component({
   selector: 'tb-threed-simulation-widget-settings',
   templateUrl: './threed-simulation-widget-settings.component.html',
   styleUrls: ['./threed-simulation-widget-settings.component.scss', './../widget-settings.scss']
 })
-export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsComponent implements AfterViewInit, AfterContentChecked {
+export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsComponent implements OnInit, AfterViewInit, AfterContentChecked {
 
-  @ViewChild("modelInput") modelInput: ThreedModelInputComponent;
-  @ViewChild(MatTable) table: MatTable<EntityModelLink>;
+  @ViewChild("assetInput") assetInput: ThreedModelInputComponent;
   @ViewChild("jsEditor") jsEditor: JsFuncComponent;
-  @ViewChild('rendererContainer') rendererContainer?: ElementRef;
+  @ViewChild('simulationHelper') simulationHelper: SimulationHelperComponent;
 
 
   threedSimulationWidgetSettingsForm: FormGroup;
-  simulationScene: ThreedGenericSceneManager;
   private isVisible: boolean = false;
-
-  //models = [];
-  displayedColumns: string[] = ['entity', 'model'];
-  dataSource: EntityModelLink[] = [];
-  //scripts: ScriptModel[] = [{ name: "main.js", body: "(async function() { await new Promise(resolve => setTimeout(resolve, 1000)); console.log('hello'); })();" }];
   activeScript?: ScriptModel = undefined;
-
 
   constructor(
     protected store: Store<AppState>,
@@ -68,8 +50,10 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     public dialog: MatDialog,
   ) {
     super(store);
+  }
 
-    this.simulationScene = ThreedScenes.createSimulationScene();
+  ngOnInit() {
+
   }
 
   protected settingsForm(): FormGroup {
@@ -77,113 +61,78 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
   }
 
   protected override defaultSettings(): WidgetSettings {
-    return {
-      models: [],
-      scripts: [{ name: "main.js", body: "(async function() { await new Promise(resolve => setTimeout(resolve, 1000)); console.log('hello'); })();" }],
-
-      modelUrl: null,
-      threedEntityAliasSettings: "",
-      selectedModelForLink: "",
-      jsTextFunction: "",
-    };
+    return defaultThreedSimulationWidgetSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
-    // TODO: create SimulationSettings type
-    const t_settings = settings as any;
+    const t_settings = settings as ThreedSimulationWidgetSettings;
 
     this.threedSimulationWidgetSettingsForm = this.fb.group({
-      models: [t_settings.models, []],
+      assets: [t_settings.assets, []],
       scripts: [t_settings.scripts, []],
+      menuHtml: [t_settings.menuHtml, []],
+      menuCss: [t_settings.menuCss, []],
+      menuJs: [t_settings.menuJs, []],
 
-      modelUrl: [t_settings.modelUrl, []],
-      threedEntityAliasSettings: [t_settings.threedEntityAliasSettings, ""],
-      selectedModelForLink: [t_settings.selectedModelForLink, ""],
-      jsTextFunction: [t_settings.jsTextFunction, ""],
+      assetUrl: [t_settings.assetUrl, []],
+      jsTextFunction: [t_settings.jsTextFunction, []],
     });
 
-    const script = (this.threedSimulationWidgetSettingsForm.get("models") as FormArray).value[0];
+    const script = (this.threedSimulationWidgetSettingsForm.get("scripts") as FormArray).value[0];
     if (script) {
       this.selectScript(script);
       this.cd.detectChanges();
     }
-  }
-
-  ngAfterViewInit(): void {
-    this.simulationScene.attachToElement(this.rendererContainer);
+    this.threedSimulationWidgetSettingsForm.get("jsTextFunction").valueChanges.subscribe(v => this.activeScript.body = v);
+    this.threedSimulationWidgetSettingsForm.valueChanges.subscribe(v => this.simulationHelper?.updateSettings(v));
+    this.simulationHelper?.updateSettings(this.threedSimulationWidgetSettingsForm.value);
   }
 
   ngAfterContentChecked(): void {
-    if (this.isVisible == false && this.rendererContainer?.nativeElement.offsetParent != null) {
+    const rendererContainer = this.simulationHelper.rendererContainer;
+    if (this.isVisible == false && rendererContainer?.nativeElement.offsetParent != null) {
       this.isVisible = true;
       this.detectResize();
     }
-    else if (this.isVisible == true && this.rendererContainer?.nativeElement.offsetParent == null) {
+    else if (this.isVisible == true && rendererContainer?.nativeElement.offsetParent == null) {
       this.isVisible = false;
     }
   }
 
-
   addModel() {
-    const model = this.threedSimulationWidgetSettingsForm.get("modelUrl").value;
-    const modelName = this.modelInput.name;
-    if (!model || !modelName) return;
+    const asset = this.threedSimulationWidgetSettingsForm.get("assetUrl").value;
+    const assetFileName = this.assetInput.name;
+    if (!asset || !assetFileName) return;
 
-    const modelsFormArray = this.threedSimulationWidgetSettingsForm.get("models") as FormArray;
-    const models = modelsFormArray.value;
-    if (!models.find(m => m.name == modelName)) {
-      modelsFormArray.value.push({ name: modelName, base64: model });
+    const assetNameWithoutExtension = assetFileName.match(/^([^.]+)/)[1];
+    const assetsFormArray = this.threedSimulationWidgetSettingsForm.get("assets") as FormArray;
+    const assets = assetsFormArray.value;
+    if (!assets.find(m => m.name == assetNameWithoutExtension)) {
+      const newAsset: AssetModel = { name: assetNameWithoutExtension, fileName: assetFileName, base64: asset };
+      assetsFormArray.value.push(newAsset);
     }
 
-    this.modelInput.clearImage();
+    this.assetInput.clearImage();
   }
 
   deleteModel() {
-    const modelName = this.modelInput.name;
-    if (!modelName) return;
+    const assetFileName = this.assetInput.name;
+    if (!assetFileName) return;
 
-    const modelsFormArray = this.threedSimulationWidgetSettingsForm.get("models") as FormArray;
-    const models = modelsFormArray.value;
-    const i = models.findIndex(m => m.name == modelName);
+    const assetsFormArray = this.threedSimulationWidgetSettingsForm.get("assets") as FormArray;
+    const assets = assetsFormArray.value;
+    const i = assets.findIndex(m => m.fileName == assetFileName);
     if (i != -1) {
-      modelsFormArray.value.splice(i, 1);
+      assetsFormArray.value.splice(i, 1);
     }
 
-    this.modelInput.clearImage();
+    this.assetInput.clearImage();
   }
 
-  visualiseModel(model: any) {
-    this.modelInput.clearImage();
-    this.modelInput?.writeValue(model.base64, model.name);
+  visualiseModel(asset: any) {
+    this.assetInput.clearImage();
+    this.assetInput?.writeValue(asset.base64, asset.fileName);
     this.cd.detectChanges();
-  }
-
-  addLink() {
-    this.dataSource.push({
-      entity: this.threedSimulationWidgetSettingsForm.get('threedEntityAliasSettings').value.entityAlias,
-      model: this.threedSimulationWidgetSettingsForm.get('selectedModelForLink').value
-    });
-    this.table.renderRows();
-
-    this.threedSimulationWidgetSettingsForm.get('selectedModelForLink').setValue("");
-  }
-
-  visualiseLink(row: EntityModelLink) {
-    this.threedSimulationWidgetSettingsForm.get('threedEntityAliasSettings').setValue(row.entity);
-    this.threedSimulationWidgetSettingsForm.get('selectedModelForLink').setValue(row.model);
-  }
-
-  deleteLink() {
-    const entity = this.threedSimulationWidgetSettingsForm.get('threedEntityAliasSettings').value;
-    const model = this.threedSimulationWidgetSettingsForm.get('selectedModelForLink').value;
-    const i = this.dataSource.findIndex(o => o.entity == entity && o.model == model);
-    if (i != -1) {
-      this.dataSource.splice(i, 1);
-      this.table.renderRows();
-    }
-
-    this.threedSimulationWidgetSettingsForm.get('threedEntityAliasSettings').setValue(undefined);
-    this.threedSimulationWidgetSettingsForm.get('selectedModelForLink').setValue("");
   }
 
   selectScript(script: ScriptModel) {
@@ -199,7 +148,6 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     this.activeScript = script;
     this.jsEditor?.writeValue(script.body);
     this.threedSimulationWidgetSettingsForm.get('jsTextFunction').setValue(script.body);
-    this.jsEditor?.validateOnSubmit();
   }
 
   addScript(fileName?: string) {
@@ -230,10 +178,12 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       } else {
         const i = scripts.findIndex(o => o.name == fileName + ".js");
         if (i == -1) {
-          scriptsFormArray.value.push({
+          const newScript: ScriptModel = {
             name: fileName + ".js",
             body: "",
-          });
+            deletable: true,
+          };
+          scriptsFormArray.value.push(newScript);
         }
       }
 
@@ -242,14 +192,14 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
   }
 
   editScript() {
-    if (!this.activeScript || this.activeScript.name == "main.js") return;
+    if (!this.activeScript || !this.activeScript.deletable) return;
 
     const oldName = this.activeScript.name.replace(".js", "");
     this.addScript(oldName);
   }
 
   deleteScript() {
-    if (!this.activeScript || this.activeScript.name == "main.js") return;
+    if (!this.activeScript || !this.activeScript.deletable) return;
 
     const scriptsFormArray = this.threedSimulationWidgetSettingsForm.get("scripts") as FormArray;
     const scripts = scriptsFormArray.value;
@@ -260,23 +210,11 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     }
   }
 
-  compile() {
-    // TODO recompile scripts and restart simulation scene
-    const jsBody = this.threedSimulationWidgetSettingsForm.get('jsTextFunction').value;
-    const functionRef = new Function('simulationScene', 'Threed', jsBody);
-    try {
-      const result = functionRef(this.simulationScene, Threed);
-      console.log(result);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   @HostListener('window:resize')
   public detectResize(): void {
-    this.simulationScene?.resize();
+    this.simulationHelper.simulationScene?.resize();
     setTimeout(() => {
-      this.simulationScene?.resize();
+      this.simulationHelper.simulationScene?.resize();
     }, 1000);
   }
 }

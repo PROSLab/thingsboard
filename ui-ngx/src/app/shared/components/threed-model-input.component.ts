@@ -100,7 +100,6 @@ export class ThreedModelInputComponent extends PageComponent implements AfterVie
       if (event.type === 'fileAdded') {
         const file = (event.event[0] as flowjs.FlowFile).file;
         this.name = file.name;
-        console.log(file);
         if (this.maxSizeByte && this.maxSizeByte < file.size) {
           this.dialog.alert(
             this.translate.instant('dashboard.cannot-upload-file'),
@@ -112,8 +111,6 @@ export class ThreedModelInputComponent extends PageComponent implements AfterVie
         }
         const reader = new FileReader();
         reader.onload = (loadEvent) => {
-          console.log(loadEvent);
-          console.log(reader);
           if (typeof reader.result === 'string' && reader.result.startsWith('data:application/octet-stream')) {
             this.imageUrl = reader.result;
 

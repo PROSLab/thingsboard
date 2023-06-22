@@ -16,5 +16,11 @@
 
 -->
 
-<tb-simulation-helper style="width: 100%; height: 100%;" [editor]=false #simulationHelper [aliasController]="ctx.aliasController" [settings]="settings">
-</tb-simulation-helper>
+<h1 mat-dialog-title>Menu settings</h1>
+<div mat-dialog-content>
+  <div #container></div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">Cancel</button>
+  <button mat-button [mat-dialog-close]="data" cdkFocusInitial>Ok</button>
+</div>

@@ -18,23 +18,24 @@
 
 <section class="tb-widget-settings" [formGroup]="threedSimulationWidgetSettingsForm">
 
-    <!-- MODELS -->
+    <!-- ASSETS -->
     <!-- table key-value (name - 3d model) -->
-    <!-- 3D model loader -->
+    <!-- 3D model loader / Images? -->
     <fieldset class="fields-group">
         <legend class="group-title">3D Models</legend>
 
         <mat-selection-list [multiple]="false">
-            <mat-list-option *ngFor="let model of threedSimulationWidgetSettingsForm.get('models').value" [value]="model" (click)="visualiseModel(model)">
-                {{model.name}}
+            <mat-list-option *ngFor="let asset of threedSimulationWidgetSettingsForm.get('assets').value"
+                [value]="asset" (click)="visualiseModel(asset)">
+                {{asset.name}}
             </mat-list-option>
         </mat-selection-list>
 
         <div fxLayout="row" fxLayoutAlign="space-around center">
-            <tb-threed-model-input #modelInput label="3D model" formControlName="modelUrl">
+            <tb-threed-model-input #assetInput label="3D model" formControlName="assetUrl">
             </tb-threed-model-input>
 
-            <div fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" *ngIf="modelInput.name">
+            <div fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" *ngIf="assetInput.name">
                 <button mat-mini-fab (click)="addModel()"><mat-icon>add</mat-icon></button>
                 <button mat-mini-fab (click)="deleteModel()"><mat-icon>delete</mat-icon></button>
             </div>
@@ -42,46 +43,16 @@
     </fieldset>
 
 
-    <!-- TODO: remove... It is not important/usefull to link Entity<->3D model; the user will do it directly in the code! -->
-    <!-- SOURCES -->
-    <!-- table key- dropdown value (entity - 3d model name) -->
-    <!-- + entity -->
+    <!-- HTML EDITOR -->
     <fieldset class="fields-group">
-        <legend class="group-title">Entities and 3D Models</legend>
-
-        <div fxLayout="row" fxLayoutAlign="space-around center">
-            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-                <ng-container matColumnDef="entity">
-                    <th mat-header-cell *matHeaderCellDef>Entity Name</th>
-                    <td mat-cell *matCellDef="let element">{{element.entity}}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="model">
-                    <th mat-header-cell *matHeaderCellDef>3D Model</th>
-                    <td mat-cell *matCellDef="let element">{{element.model}}</td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="visualiseLink(row)"></tr>
-            </table>
-        </div>
-
-        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="center center" style="margin-top: 20px">
-            <tb-threed-entity-alias-settings [aliasController]="aliasController"
-                formControlName="threedEntityAliasSettings"></tb-threed-entity-alias-settings>
-            <mat-form-field appearance="fill">
-                <mat-label>Choose a 3D Model</mat-label>
-                <mat-select formControlName="selectedModelForLink">
-                    <mat-option *ngFor="let model of threedSimulationWidgetSettingsForm.get('models').value" [value]="model.name">{{model.name}}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="center center" style="margin-top: 10px"
-            *ngIf="threedSimulationWidgetSettingsForm.get('selectedModelForLink').value && threedSimulationWidgetSettingsForm.get('threedEntityAliasSettings').value">
-            <button mat-raised-button (click)="addLink()">Add link</button>
-            <button mat-mini-fab (click)="deleteLink()"><mat-icon>delete</mat-icon></button>
-        </div>
+        <legend class="group-title">Menu Editor</legend>
+        <tb-html formControlName="menuHtml">
+        </tb-html>
+        <tb-css formControlName="menuCss">
+        </tb-css>
+        <tb-js-func formControlName="menuJs" [globalVariables]="functionScopeVariables"
+            [functionArgs]="['context', 'simulationScene', 'Threed']">
+        </tb-js-func>
     </fieldset>
 
 
@@ -92,27 +63,27 @@
     <fieldset class="fields-group">
         <legend class="group-title">Script Editor</legend>
 
-        <div fxLayout="row">
-            <div fxFlex="80">
-                <nav mat-tab-nav-bar>
-                    <a mat-tab-link *ngFor="let script of threedSimulationWidgetSettingsForm.get('scripts').value" (click)="selectScript(script)"
-                        [active]="activeScript?.name == script.name">
-                        {{script.name}}
-                    </a>
-                </nav>
-            </div>
-            <div fxFlex="20" fxLayout="row" fxLayoutAlign="space-evenly center">
-                <button mat-mini-fab (click)="addScript()"><mat-icon>add</mat-icon></button>
-                <button mat-mini-fab *ngIf="activeScript?.name!='main.js'"
-                    (click)="editScript()"><mat-icon>edit</mat-icon></button>
-                <button mat-mini-fab *ngIf="activeScript?.name!='main.js'"
-                    (click)="deleteScript()"><mat-icon>delete</mat-icon></button>
-            </div>
+        <div fxLayout="row" fxLayoutAlign="center center">
+            <nav mat-tab-nav-bar fxFlex="80">
+                <a mat-tab-link *ngFor="let script of threedSimulationWidgetSettingsForm.get('scripts').value"
+                    (click)="selectScript(script)" [active]="activeScript?.name == script.name">
+                    {{script.name}}
+                </a>
+            </nav>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="5px"
+            style="margin-top: 10px; margin-bottom: 10px;">
+            <button mat-mini-fab (click)="addScript()"><mat-icon>add</mat-icon></button>
+            <button mat-mini-fab *ngIf="activeScript?.deletable"
+                (click)="editScript()"><mat-icon>edit</mat-icon></button>
+            <button mat-mini-fab *ngIf="activeScript?.deletable"
+                (click)="deleteScript()"><mat-icon>delete</mat-icon></button>
         </div>
 
         <div [hidden]="!activeScript">
             <tb-js-func #jsEditor formControlName="jsTextFunction" [globalVariables]="functionScopeVariables"
-                [functionArgs]="['simulationScene', 'Threed']">
+                [functionArgs]="['context', 'simulationScene', 'Threed']">
             </tb-js-func>
         </div>
     </fieldset>
@@ -121,16 +92,65 @@
     <fieldset class="fields-group">
         <legend class="group-title">Scene Preview</legend>
 
+        <tb-simulation-helper class="rendererContainer" #simulationHelper [aliasController]="aliasController" [editor]=true></tb-simulation-helper>
+        <!--
         <div class="rendererContainer" #rendererContainer>
-            <div class="position-absolute w-100 ontop">
-                <div fxLayout="row">
-                    <div fxFlex fxLayoutAlign="end center" (click)="$event.stopPropagation()">
-                        <button mat-icon-button (click)="compile()">
-                            <mat-icon>bug_report</mat-icon>
+            <div class="position-absolute w-100 ontop"
+                *ngIf="simulationState != SimulationState.UNCOMPILED && simulationState != SimulationState.COMPILING; else compileBlock">
+                <div fxLayout="row" (click)="$event.stopPropagation()">
+                    <div fxFlex="33" fxLayoutAlign="start">
+                        <button mat-icon-button (click)="startSimulation()"
+                            *ngIf="simulationState != SimulationState.STARTED" matTooltip="Start simulation">
+                            <mat-icon>play_arrow</mat-icon>
+                        </button>
+
+                        <button mat-icon-button (click)="stopSimulation()"
+                            *ngIf="simulationState == SimulationState.STARTED" matTooltip="Stop simulation">
+                            <mat-icon>stop</mat-icon>
+                        </button>
+
+                        <button mat-icon-button (click)="resetSimulation()"
+                            *ngIf="simulationState == SimulationState.STARTED" matTooltip="Reset simulation">
+                            <mat-icon>replay</mat-icon>
+                        </button>
+
+                        <button mat-icon-button (click)="lockCursor()" matTooltip="Lock">
+                            <mat-icon>lock</mat-icon>
+                        </button>
+                    </div>
+
+                    <div fxFlex="33" fxLayout="column" fxLayoutAlign="center center">
+                        <span style="font-size: 20px; font-weight: bold;"
+                            *ngIf="simulationState == SimulationState.STARTED">Time: {{time}}</span>
+                    </div>
+
+                    <div fxFlex="33" fxLayoutAlign="end">
+                        <button mat-icon-button (click)="openOptionsMenu()">
+                            <mat-icon>more_vert</mat-icon>
                         </button>
                     </div>
                 </div>
             </div>
+
+            <ng-template #compileBlock>
+
+                <div id="blocker">
+                    <div id="instructions">
+                        <button *ngIf="simulationState == SimulationState.UNCOMPILED; else compiling" mat-icon-button
+                            (click)="compile()" matTooltip="Compile">
+                            <mat-icon class="bigger-icon">bug_report</mat-icon>
+                        </button>
+
+                        <ng-template #compiling>
+                            <p style="font-size:36px">
+                                Loading Simulation...
+                            </p>
+                            <mat-spinner></mat-spinner>
+                        </ng-template>
+                    </div>
+                </div>
+            </ng-template>
         </div>
+    -->
     </fieldset>
 </section>
