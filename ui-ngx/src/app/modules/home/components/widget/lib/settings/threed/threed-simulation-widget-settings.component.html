@@ -22,22 +22,30 @@
     <!-- table key-value (name - 3d model) -->
     <!-- 3D model loader / Images? -->
     <fieldset class="fields-group">
-        <legend class="group-title">3D Models</legend>
+        <legend class="group-title">Assets</legend>
 
         <mat-selection-list [multiple]="false">
             <mat-list-option *ngFor="let asset of threedSimulationWidgetSettingsForm.get('assets').value"
-                [value]="asset" (click)="visualiseModel(asset)">
-                {{asset.name}}
+                [value]="asset" (click)="visualiseAsset(asset)" style="text-align: center;">
+                <span><b>{{asset.type}}</b> - <i>{{asset.name}}</i></span>
             </mat-list-option>
         </mat-selection-list>
 
         <div fxLayout="row" fxLayoutAlign="space-around center">
-            <tb-threed-model-input #assetInput label="3D model" formControlName="assetUrl">
+            <mat-slide-toggle formControlName="use3D" (click)="$event.stopPropagation()"
+                fxLayoutAlign="center">
+                3D Model
+            </mat-slide-toggle>
+
+            <tb-threed-model-input [fxShow]="threedSimulationWidgetSettingsForm.get('use3D').value" #modelInput label="3D model" formControlName="modelUrl">
             </tb-threed-model-input>
 
-            <div fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" *ngIf="assetInput.name">
-                <button mat-mini-fab (click)="addModel()"><mat-icon>add</mat-icon></button>
-                <button mat-mini-fab (click)="deleteModel()"><mat-icon>delete</mat-icon></button>
+            <tb-image-input [fxShow]="!threedSimulationWidgetSettingsForm.get('use3D').value" #imageInput label="Image" formControlName="imageUrl">
+            </tb-image-input>
+
+            <div fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" *ngIf="modelInput.name || imageInput.name">
+                <button mat-mini-fab (click)="addAsset()"><mat-icon>add</mat-icon></button>
+                <button mat-mini-fab (click)="deleteAsset()"><mat-icon>delete</mat-icon></button>
             </div>
         </div>
     </fieldset>
@@ -82,12 +90,13 @@
         </div>
 
         <div [hidden]="!activeScript">
-            <tb-js-func [hidden]="activeScript.name == 'onDataUpdate.js'" #jsEditor formControlName="jsTextFunction" [globalVariables]="functionScopeVariables"
-                [functionArgs]="['context', 'simulationScene', 'Threed']">
+            <tb-js-func [hidden]="activeScript.name == 'onDataUpdate.js'" #jsEditor formControlName="jsTextFunction"
+                [globalVariables]="functionScopeVariables" [functionArgs]="['context', 'simulationScene', 'Threed']">
             </tb-js-func>
-            <tb-js-func [hidden]="activeScript.name != 'onDataUpdate.js'" #jsEditor2 formControlName="jsTextFunction" [globalVariables]="functionScopeVariables"
-            [functionArgs]="['context', 'simulationScene', 'Threed', 'datasources']">
-        </tb-js-func>
+            <tb-js-func [hidden]="activeScript.name != 'onDataUpdate.js'" #jsEditor2 formControlName="jsTextFunction2"
+                [globalVariables]="functionScopeVariables"
+                [functionArgs]="['context', 'simulationScene', 'Threed', 'datasources']">
+            </tb-js-func>
         </div>
     </fieldset>
 
@@ -95,7 +104,8 @@
     <fieldset class="fields-group">
         <legend class="group-title">Scene Preview</legend>
 
-        <tb-simulation-helper class="rendererContainer" #simulationHelper [aliasController]="aliasController" [editor]=true></tb-simulation-helper>
+        <tb-simulation-helper class="rendererContainer" #simulationHelper [aliasController]="aliasController"
+            [editor]=true></tb-simulation-helper>
         <!--
         <div class="rendererContainer" #rendererContainer>
             <div class="position-absolute w-100 ontop"

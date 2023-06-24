@@ -27,7 +27,7 @@ import { ThreedScenes } from '@app/modules/home/components/widget/threed-view-wi
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
-import { DatasourceData } from "@app/shared/public-api";
+import { DatasourceData, EntityAlias, EntityAliases, EntityInfo, FormattedData } from "@app/shared/public-api";
 
 
 @Component({
@@ -104,7 +104,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     const a = this.settings.assets;
     const s = this.settings.scripts;
     const assets: { [key: string]: AssetModel } = this.toDictionary(a, i => i.name);
-    const entities = this.aliasController.getEntityAliases();
+    const entities = await this.getEntities();
     const scripts: { [key: string]: ScriptModel } = this.toDictionary(s, i => i.name);
     this.context = { assets, entities, scripts, userData: {}, menuData: this.menuData };
 
@@ -186,7 +186,9 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     }
   }
 
-  public onDataUpdate(data: DatasourceData[]) {
+  public onDataUpdate(data: FormattedData[]) {
+    if (!this.context || !this.context.scripts || !this.context.scripts["onDataUpdate.js"]) return;
+
     const resetScript = this.context.scripts["onDataUpdate.js"];
     const functionRef = new Function('context', 'simulationScene', 'Threed', 'datasources', resetScript.body);
 
@@ -214,6 +216,29 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.simulationScene = ThreedScenes.createSimulationScene();
     if (this.rendererContainer)
       this.simulationScene.attachToElement(this.rendererContainer);
+  }
+
+  private async getEntities() {
+    const entities: {
+      entityAliases: EntityAliases,
+      entityAliasesList: { alias: string, id: string }[],
+      entityInfos: EntityInfo[]
+    } = {
+      entityAliases: this.aliasController.getEntityAliases(),
+      entityAliasesList: [],
+      entityInfos: []
+    }
+    for (const aliasId of Object.keys(entities.entityAliases)) {
+      entities.entityAliasesList.push({
+        alias: entities.entityAliases[aliasId].alias,
+        id: aliasId
+      });
+      const entityInfo = await this.aliasController.resolveEntitiesInfo(aliasId).toPromise();
+      if(Array.isArray(entityInfo)) entityInfo.forEach(e => entities.entityInfos.push(e));
+      else entities.entityInfos.push(entityInfo);
+    }
+
+    return entities;
   }
 
   private toDictionary<T>(

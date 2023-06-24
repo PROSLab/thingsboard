@@ -25,6 +25,7 @@ import { Store } from '@ngrx/store';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
 import { ThreedScriptDialogComponent } from './threed-script-dialog.component';
 import { SimulationHelperComponent } from '@app/shared/components/simulation-helper.component';
+import { ImageInputComponent } from '@app/shared/components/image-input.component';
 
 
 @Component({
@@ -34,7 +35,8 @@ import { SimulationHelperComponent } from '@app/shared/components/simulation-hel
 })
 export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsComponent implements OnInit, AfterViewInit, AfterContentChecked {
 
-  @ViewChild("assetInput") assetInput: ThreedModelInputComponent;
+  @ViewChild("modelInput") modelInput: ThreedModelInputComponent;
+  @ViewChild("imageInput") imageInput: ImageInputComponent;
   @ViewChild("jsEditor1") jsEditor1: JsFuncComponent;
   @ViewChild("jsEditor2") jsEditor2: JsFuncComponent;
   @ViewChild('simulationHelper') simulationHelper: SimulationHelperComponent;
@@ -55,7 +57,6 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
   }
 
   ngOnInit() {
-
   }
 
   protected settingsForm(): FormGroup {
@@ -76,8 +77,11 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       menuCss: [t_settings.menuCss, []],
       menuJs: [t_settings.menuJs, []],
 
-      assetUrl: [t_settings.assetUrl, []],
+      modelUrl: [t_settings.modelUrl, []],
+      imageUrl: [t_settings.imageUrl, []],
+      use3D: [t_settings.use3D, []],
       jsTextFunction: [t_settings.jsTextFunction, []],
+      jsTextFunction2: [t_settings.jsTextFunction2, []],
     });
 
     const script = (this.threedSimulationWidgetSettingsForm.get("scripts") as FormArray).value[0];
@@ -85,8 +89,11 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       this.selectScript(script);
       this.cd.detectChanges();
     }
-    this.threedSimulationWidgetSettingsForm.get("jsTextFunction").valueChanges.subscribe(v => this.activeScript.body = v);
-    this.threedSimulationWidgetSettingsForm.valueChanges.subscribe(v => this.simulationHelper?.updateSettings(v));
+    this.threedSimulationWidgetSettingsForm.valueChanges.subscribe(_ => this.updateModel());
+    this.threedSimulationWidgetSettingsForm.get("use3D").valueChanges.subscribe(_ => {
+      this.modelInput?.clearImage();
+      this.imageInput?.clearImage();
+    });
     this.simulationHelper?.updateSettings(this.threedSimulationWidgetSettingsForm.value);
   }
 
@@ -101,24 +108,41 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     }
   }
 
-  addModel() {
-    const asset = this.threedSimulationWidgetSettingsForm.get("assetUrl").value;
-    const assetFileName = this.assetInput.name;
+  private updateModel() {
+    this.activeScript.body = this.threedSimulationWidgetSettingsForm.get(this.activeScript.name == "onDataUpdate.js" ? 'jsTextFunction2' : 'jsTextFunction').value;
+    this.simulationHelper?.updateSettings(this.threedSimulationWidgetSettingsForm.value);
+  }
+
+  addAsset() {
+    const use3D = this.threedSimulationWidgetSettingsForm.get("use3D").value;
+    let asset: string;
+    let assetFileName: string;
+    if (use3D) {
+      asset = this.threedSimulationWidgetSettingsForm.get("modelUrl").value;
+      assetFileName = this.modelInput.name;
+    } else {
+      asset = this.threedSimulationWidgetSettingsForm.get("imageUrl").value;
+      assetFileName = this.imageInput.name;
+    }
+
     if (!asset || !assetFileName) return;
 
     const assetNameWithoutExtension = assetFileName.match(/^([^.]+)/)[1];
     const assetsFormArray = this.threedSimulationWidgetSettingsForm.get("assets") as FormArray;
     const assets = assetsFormArray.value;
     if (!assets.find(m => m.name == assetNameWithoutExtension)) {
-      const newAsset: AssetModel = { name: assetNameWithoutExtension, fileName: assetFileName, base64: asset };
+      const newAsset: AssetModel = { name: assetNameWithoutExtension, fileName: assetFileName, base64: asset, type: use3D ? '3D' : '2D' };
       assetsFormArray.value.push(newAsset);
     }
 
-    this.assetInput.clearImage();
+    if (use3D) this.modelInput?.clearImage();
+    else this.imageInput?.clearImage();
   }
 
-  deleteModel() {
-    const assetFileName = this.assetInput.name;
+  deleteAsset() {
+    const use3D = this.threedSimulationWidgetSettingsForm.get("use3D").value;
+
+    const assetFileName = use3D ? this.modelInput.name : this.imageInput.name;
     if (!assetFileName) return;
 
     const assetsFormArray = this.threedSimulationWidgetSettingsForm.get("assets") as FormArray;
@@ -128,12 +152,21 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       assetsFormArray.value.splice(i, 1);
     }
 
-    this.assetInput.clearImage();
+    if (use3D) this.modelInput?.clearImage();
+    else this.imageInput?.clearImage();
   }
 
-  visualiseModel(asset: any) {
-    this.assetInput.clearImage();
-    this.assetInput?.writeValue(asset.base64, asset.fileName);
+  visualiseAsset(asset: AssetModel) {
+    const use3D = asset.type == '3D';
+    this.threedSimulationWidgetSettingsForm.get("use3D").setValue(use3D);
+    if (use3D) {
+      this.modelInput?.clearImage();
+      this.modelInput?.writeValue(asset.base64, asset.fileName);
+    } else {
+      this.imageInput?.clearImage();
+      this.imageInput?.writeValue(asset.base64, asset.fileName);
+    }
+
     this.cd.detectChanges();
   }
 
@@ -143,14 +176,14 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
       const scripts = scriptsFormArray.value;
       const i = scripts.findIndex(o => o.name == this.activeScript.name);
       if (i != -1) {
-        const jsBody = this.threedSimulationWidgetSettingsForm.get('jsTextFunction').value;
+        const jsBody = this.threedSimulationWidgetSettingsForm.get(this.activeScript.name == "onDataUpdate.js" ? 'jsTextFunction2' : 'jsTextFunction').value;
         scriptsFormArray.value[i].body = jsBody;
       }
     }
     this.activeScript = script;
     this.currentJsEditor = script.name == "onDataUpdate.js" ? this.jsEditor1 : this.jsEditor2;
     this.currentJsEditor?.writeValue(script.body);
-    this.threedSimulationWidgetSettingsForm.get('jsTextFunction').setValue(script.body);
+    this.threedSimulationWidgetSettingsForm.get(script.name == "onDataUpdate.js" ? 'jsTextFunction2' : 'jsTextFunction').setValue(script.body);
   }
 
   addScript(fileName?: string) {

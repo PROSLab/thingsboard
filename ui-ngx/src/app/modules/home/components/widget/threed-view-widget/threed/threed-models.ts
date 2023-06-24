@@ -210,8 +210,11 @@ export interface ThreedSimulationWidgetSettings {
     menuCss: string,
     menuJs: string,
 
-    assetUrl: string,
+    modelUrl: string,
+    imageUrl: string,
+    use3D: boolean,
     jsTextFunction: string,
+    jsTextFunction2: string,
 }
 
 export const defaultThreedSimulationWidgetSettings: ThreedSimulationWidgetSettings = {
@@ -227,8 +230,11 @@ export const defaultThreedSimulationWidgetSettings: ThreedSimulationWidgetSettin
     menuCss: '.card {\n font-weight: bold; \n}',
     menuJs: '',
 
-    assetUrl: null,
+    modelUrl: null,
+    imageUrl: null,
+    use3D: true,
     jsTextFunction: "",
+    jsTextFunction2: "",
 };
 
 export interface ScriptModel {
@@ -240,7 +246,7 @@ export interface ScriptModel {
 export interface AssetModel {
     name: string,
     fileName: string,
-    type?: string,
+    type: '2D' | '3D',
     base64: string
 }
 

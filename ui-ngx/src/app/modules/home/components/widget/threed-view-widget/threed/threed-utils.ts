@@ -56,8 +56,8 @@ export class ThreedUtils {
      * @param gltf the gltf to scale
      * @param scaleUnit the scale multiplier
      */
-    public static autoScaleModel(gltf: GLTF, scaleUnit = 1.0) {
-        var mroot = gltf.scene;
+    public static autoScaleModel(gltf: GLTF |THREE.Object3D, scaleUnit = 1.0) {
+        var mroot = gltf instanceof THREE.Object3D ? gltf : gltf.scene;
         var bbox = new THREE.Box3().setFromObject(mroot);
         var cent = bbox.getCenter(new THREE.Vector3());
         var size = bbox.getSize(new THREE.Vector3());

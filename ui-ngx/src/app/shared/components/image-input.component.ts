@@ -74,10 +74,11 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   @Input()
   inputId = this.utils.guid();
 
+  name?: string;
   imageUrl: string;
   safeImageUrl: SafeUrl;
 
-  @ViewChild('flow', {static: true})
+  @ViewChild('flow', { static: true })
   flow: FlowDirective;
 
   autoUploadSubscription: Subscription;
@@ -85,12 +86,12 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   private propagateChange = null;
 
   constructor(protected store: Store<AppState>,
-              private utils: UtilsService,
-              private sanitizer: DomSanitizer,
-              private dialog: DialogService,
-              private translate: TranslateService,
-              private fileSize: FileSizePipe,
-              private cd: ChangeDetectorRef) {
+    private utils: UtilsService,
+    private sanitizer: DomSanitizer,
+    private dialog: DialogService,
+    private translate: TranslateService,
+    private fileSize: FileSizePipe,
+    private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -98,10 +99,11 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
     this.autoUploadSubscription = this.flow.events$.subscribe(event => {
       if (event.type === 'fileAdded') {
         const file = (event.event[0] as flowjs.FlowFile).file;
+        this.name = file.name;
         if (this.maxSizeByte && this.maxSizeByte < file.size) {
           this.dialog.alert(
             this.translate.instant('dashboard.cannot-upload-file'),
-            this.translate.instant('dashboard.maximum-upload-file-size', {size: this.fileSize.transform(this.maxSizeByte)})
+            this.translate.instant('dashboard.maximum-upload-file-size', { size: this.fileSize.transform(this.maxSizeByte) })
           ).subscribe(
             () => { }
           );
@@ -135,8 +137,9 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
     this.disabled = isDisabled;
   }
 
-  writeValue(value: string): void {
+  writeValue(value: string, name?: string): void {
     this.imageUrl = value;
+    this.name = name;
     if (this.imageUrl) {
       this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
     } else {
@@ -150,6 +153,7 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   }
 
   clearImage() {
+    this.name = null;
     this.imageUrl = null;
     this.safeImageUrl = null;
     this.updateModel();

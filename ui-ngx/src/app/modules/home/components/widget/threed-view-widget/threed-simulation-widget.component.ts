@@ -21,7 +21,10 @@ import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
 import { ThreedSimulationWidgetSettings } from './threed/threed-models';
 import { SimulationHelperComponent } from '@app/shared/components/simulation-helper.component';
-
+import {
+  formattedDataFormDatasourceData,
+  mergeFormattedData
+} from '@core/utils';
 
 @Component({
   selector: 'tb-threed-simulation-widget',
@@ -52,8 +55,15 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     this.simulationHelper?.updateSettings(this.settings);
   }
 
-  public onDataUpdate(){
-    this.simulationHelper?.onDataUpdate(this.ctx.data);
+  public onDataUpdate() {
+    const data = this.ctx.data;
+    let formattedData = formattedDataFormDatasourceData(data);
+    if (this.ctx.latestData && this.ctx.latestData.length) {
+      const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
+      formattedData = mergeFormattedData(formattedData, formattedLatestData);
+    }
+    console.log("onDataUpdate", formattedData);
+    this.simulationHelper?.onDataUpdate(formattedData);
   }
 
   public onEditModeChanged() {

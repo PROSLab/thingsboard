@@ -27,8 +27,9 @@ export class ThreedGameObjectComponent extends ThreedBaseComponent implements IT
     protected clonedGLTF: { animations: THREE.AnimationClip[], scene: THREE.Group };
     protected mesh: THREE.Object3D;
     private addToScene: boolean;
+    private customId?: string;
 
-    constructor(mesh: THREE.Object3D | GLTF, addToScene: boolean = true) {
+    constructor(mesh: THREE.Object3D | GLTF, addToScene: boolean = true, customId?: string) {
         super();
         if (mesh instanceof THREE.Object3D) {
             this.mesh = mesh;
@@ -36,6 +37,7 @@ export class ThreedGameObjectComponent extends ThreedBaseComponent implements IT
             this.gltf = mesh;
             this.clonedGLTF = ThreedUtils.cloneGltf(mesh);
         }
+        this.customId = customId;
         this.addToScene = addToScene;
     }
 
@@ -46,6 +48,7 @@ export class ThreedGameObjectComponent extends ThreedBaseComponent implements IT
             if (!this.mesh) {
                 this.mesh = this.clonedGLTF.scene;
             }
+            this.sceneManager.modelManager.replaceModel(this.mesh, { id: this.customId });
             this.sceneManager.scene.add(this.mesh);
         }
     }

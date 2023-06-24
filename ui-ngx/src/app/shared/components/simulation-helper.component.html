@@ -16,7 +16,8 @@
 
 -->
 
-<div style="width:100%;height:100%" [ngClass]="editor ? 'renderContainerEditor' : 'renderContainerNormal'" #rendererContainer>
+<div style="width:100%;height:100%" [ngClass]="editor ? 'renderContainerEditor' : 'renderContainerNormal'"
+    #rendererContainer>
     <div class="position-absolute w-100 ontop"
         *ngIf="simulationState != SimulationState.UNCOMPILED && simulationState != SimulationState.COMPILING; else compileBlock">
         <div fxLayout="row" (click)="$event.stopPropagation()">
@@ -24,6 +25,11 @@
                 <button mat-icon-button (click)="startSimulation()" *ngIf="simulationState != SimulationState.STARTED"
                     matTooltip="Start simulation">
                     <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button (click)="stopSimulation()" *ngIf="simulationState != SimulationState.STARTED"
+                    matTooltip="Cancel simulation">
+                    <mat-icon>close</mat-icon>
                 </button>
 
                 <button mat-icon-button (click)="stopSimulation()" *ngIf="simulationState == SimulationState.STARTED"
@@ -64,6 +70,9 @@
                 </button>
 
                 <ng-template #compiling>
+                    <button mat-icon-button (click)="stopSimulation()" matTooltip="Cancel simulation">
+                        <mat-icon>close</mat-icon>
+                    </button>
                     <p style="font-size:36px">
                         Loading Simulation...
                     </p>

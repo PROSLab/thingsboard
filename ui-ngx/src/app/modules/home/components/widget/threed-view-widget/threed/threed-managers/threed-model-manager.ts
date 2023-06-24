@@ -24,8 +24,8 @@ import { IThreedSceneManager } from "./ithreed-scene-manager";
 
 export interface ModelData {
     id: string;
-    gltf: GLTF;
-    root: THREE.Group;
+    gltf: GLTF | THREE.Object3D;
+    root: THREE.Object3D;
     flatModel: THREE.Object3D[];
     explodedModel?: THREE.Group;
 }
@@ -52,13 +52,14 @@ export class ThreedModelManager {
         return this.flatModels;
     }
 
-    public replaceModel(model: GLTF, configs: ModelConfig = defaultModelConfig): void {
-        this.removeModel(configs?.id || model.scene.uuid);
+    public replaceModel(model: GLTF | THREE.Object3D, configs: ModelConfig = defaultModelConfig): void {
+        const uuid = model instanceof THREE.Object3D ? model.uuid : model.scene.uuid;
+        this.removeModel(configs?.id || uuid);
         this.addModel(model, configs);
     }
 
-    protected addModel(model: GLTF, configs: ModelConfig = defaultModelConfig): void {
-        const root = model.scene;
+    protected addModel(model: GLTF | THREE.Object3D, configs: ModelConfig = defaultModelConfig): void {
+        const root = model instanceof THREE.Object3D ? model : model.scene;
         const customId = configs.id || root.uuid
         model.userData[OBJECT_ID_TAG] = customId;
         model.userData[ROOT_TAG] = true;
@@ -69,7 +70,7 @@ export class ThreedModelManager {
             if (o instanceof THREE.Mesh)
                 flatModel.push(o);
         })
-        const modelData = { id: customId, gltf: model, root, flatModel };
+        const modelData: ModelData = { id: customId, gltf: model, root, flatModel };
         this.models.set(customId, modelData);
 
         if (configs.autoResize) {
