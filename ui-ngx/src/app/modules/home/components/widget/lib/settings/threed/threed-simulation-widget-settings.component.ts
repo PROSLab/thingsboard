@@ -198,7 +198,7 @@ export class ThreedSimulationWidgetSettingsComponent extends WidgetSettingsCompo
     dialogRef.afterClosed().subscribe((result?: string) => {
       if (!result) return;
 
-      const fileName = result.toLowerCase().trim();
+      const fileName = result.trim();
       const nameRegex = /^[a-zA-Z\s]+$/;
       if (!nameRegex.test(fileName)) return;
       if (fileName.length == 0) return;

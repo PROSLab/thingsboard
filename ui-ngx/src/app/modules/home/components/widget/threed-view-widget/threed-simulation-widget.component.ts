@@ -62,20 +62,19 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
       const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
       formattedData = mergeFormattedData(formattedData, formattedLatestData);
     }
-    console.log("onDataUpdate", formattedData);
+
     this.simulationHelper?.onDataUpdate(formattedData);
   }
 
   public onEditModeChanged() {
-    this.simulationHelper?.onEditModeChanged(this.ctx.isEdit);
+    this.simulationHelper?.onEditModeChanged(!this.ctx.isEdit);
   }
 
   public onResize(width: number, height: number): void {
     this.simulationHelper?.onResize(width, height);
   }
-
-  /*
   
+  /*
   savePresence(presence?: number) {
     const saveData = [{
       key: "presence_sim",//this.datasource.dataKeys[0].name,
@@ -83,8 +82,7 @@ export class ThreedSimulationWidgetComponent extends PageComponent implements On
     }];
     // TODO
     let entityId: EntityId;
-    this.attributeService.saveEntityTimeseries(entityId, LatestTelemetry.LATEST_TELEMETRY, saveData).subscribe(() => console.log("presence saved"));
-  }
-
-  */
+    const attributeService: AttributeService;
+    attributeService.saveEntityTimeseries(entityId, LatestTelemetry.LATEST_TELEMETRY, saveData).subscribe(() => console.log("presence saved"));
+  } */ 
 }

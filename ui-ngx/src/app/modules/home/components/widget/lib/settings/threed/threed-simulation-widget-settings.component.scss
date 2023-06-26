@@ -39,10 +39,6 @@
     border-radius: 4px;
 }
 
-.reduce-w {
-    max-width: 80%!important;
-}
-
 .rendererContainer {
     position: relative;
     margin-right: auto;
@@ -60,6 +56,10 @@
 ::ng-deep .zero-size {
     width: 0 !important;
     height: 0 !important;
+}
+
+::ng-deep .mat-tab-links {
+    max-width: 400px;
 }
 
 .position-absolute {

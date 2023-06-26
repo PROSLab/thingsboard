@@ -99,7 +99,7 @@ export class ThreedEarthquakeController {
         this.tween = new TWEEN.Tween(this.currentMagnitude)
             .to({ value: this.magnitude }, this.duration.timeToReachPeak * 1000)
             .easing(this.magnitudeCurve)
-            .onUpdate(v => console.log("timeToReachPeak"))
+            //.onUpdate(v => console.log("timeToReachPeak"))
             .onComplete(() => {
                 if (this.isInfinite) {
                     this.tween = undefined;
@@ -109,12 +109,12 @@ export class ThreedEarthquakeController {
                 this.tween = new TWEEN.Tween(this.currentMagnitude)
                     .to({ value: this.magnitude }, this.duration.peakTime * 1000)
                     .easing(this.magnitudeCurve)
-                    .onUpdate(v => console.log("peakTime"))
+                    //.onUpdate(v => console.log("peakTime"))
                     .onComplete(() => {
                         this.tween = new TWEEN.Tween(this.currentMagnitude)
                             .to({ value: 0 }, this.duration.timeToEnd * 1000)
                             .easing(this.magnitudeCurve)
-                            .onUpdate(v => console.log("timeToEnd"))
+                            //.onUpdate(v => console.log("timeToEnd"))
                             .onComplete(() => {
                                 this.tween = undefined;
                                 options.onComplete?.();

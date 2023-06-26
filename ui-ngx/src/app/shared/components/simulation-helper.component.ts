@@ -17,7 +17,7 @@
 import { ChangeDetectorRef, Input, AfterViewInit, OnDestroy, Component, ElementRef, OnInit, ViewChild, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { IAliasController } from '@app/core/public-api';
+import { AttributeService, IAliasController } from '@app/core/public-api';
 import { ThreedDynamicMenuDialogComponent } from '@app/modules/home/components/widget/lib/settings/threed/threed-dynamic-menu-dialog.component';
 import { Threed } from '@app/modules/home/components/widget/threed-view-widget/threed/threed';
 import { ThreedFirstPersonControllerComponent } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-components/threed-first-person-controller-component';
@@ -27,8 +27,12 @@ import { ThreedScenes } from '@app/modules/home/components/widget/threed-view-wi
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
-import { DatasourceData, EntityAlias, EntityAliases, EntityInfo, FormattedData } from "@app/shared/public-api";
+import { EntityAliases, EntityInfo, FormattedData } from "@app/shared/public-api";
 
+
+interface CompiledScriptModel extends ScriptModel {
+  executeFnc: Function;
+}
 
 @Component({
   selector: 'tb-simulation-helper',
@@ -67,7 +71,8 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
   constructor(
     protected store: Store<AppState>,
     private cd: ChangeDetectorRef,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private attributeService: AttributeService,
   ) {
     super(store);
   }
@@ -85,6 +90,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
   }
 
   public onEditModeChanged(isEdit: boolean) {
+    console.log("onEditModeChanged", isEdit, this.simulationScene);
     if (this.simulationScene)
       this.simulationScene.active = isEdit;
   }
@@ -105,15 +111,16 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     const s = this.settings.scripts;
     const assets: { [key: string]: AssetModel } = this.toDictionary(a, i => i.name);
     const entities = await this.getEntities();
-    const scripts: { [key: string]: ScriptModel } = this.toDictionary(s, i => i.name);
-    this.context = { assets, entities, scripts, userData: {}, menuData: this.menuData };
+    const scripts = this.getCompiledScripts(s);
+    const services = this.getServices();
+    this.context = { assets, entities, scripts, userData: {}, menuData: this.menuData, services };
 
-    const setupScript = scripts["setup.js"];
-    const functionRef = new Function('context', 'simulationScene', 'Threed', setupScript.body);
+    //const setupScript = scripts["setup.js"];
+    //const functionRef = new Function('context', 'simulationScene', 'Threed', setupScript.body);
 
     try {
       this.createSimulationScene();
-      const result = functionRef(this.context, this.simulationScene, Threed);
+      const result = scripts["setup.js"].executeFnc(this.context, this.simulationScene, Threed);
       if (result instanceof Promise)
         await result;
       this.simulationState = SimulationState.SETUP_DONE;
@@ -129,11 +136,9 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     if (this.simulationState == SimulationState.STARTED) return;
 
     await this.compile();
-    const startScript = this.context.scripts["start.js"];
-    const functionRef = new Function('context', 'simulationScene', 'Threed', startScript.body);
 
     try {
-      const result = functionRef(this.context, this.simulationScene, Threed);
+      const result = this.context.scripts["start.js"].executeFnc(this.context, this.simulationScene, Threed);
       this.simulationState = SimulationState.STARTED;
       console.log(result);
     } catch (error) {
@@ -160,11 +165,8 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.simulationState = SimulationState.UNCOMPILED;
     this.time = 0;
 
-    const stopScript = this.context.scripts["stop.js"];
-    const functionRef = new Function('context', 'simulationScene', 'Threed', stopScript.body);
-
     try {
-      const result = functionRef(this.context, this.simulationScene, Threed);
+      const result = this.context.scripts["stop.js"].executeFnc(this.context, this.simulationScene, Threed);
       console.log(result);
     } catch (error) {
       console.error(error);
@@ -175,11 +177,8 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
   }
 
   public resetSimulation() {
-    const resetScript = this.context.scripts["reset.js"];
-    const functionRef = new Function('context', 'simulationScene', 'Threed', resetScript.body);
-
     try {
-      const result = functionRef(this.context, this.simulationScene, Threed);
+      const result = this.context.scripts["reset.js"].executeFnc(this.context, this.simulationScene, Threed);
       console.log(result);
     } catch (error) {
       console.error(error);
@@ -187,13 +186,11 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
   }
 
   public onDataUpdate(data: FormattedData[]) {
+    if (this.simulationState != SimulationState.STARTED) return;
     if (!this.context || !this.context.scripts || !this.context.scripts["onDataUpdate.js"]) return;
 
-    const resetScript = this.context.scripts["onDataUpdate.js"];
-    const functionRef = new Function('context', 'simulationScene', 'Threed', 'datasources', resetScript.body);
-
     try {
-      const result = functionRef(this.context, this.simulationScene, Threed, data);
+      const result = this.context.scripts["onDataUpdate.js"].executeFnc(this.context, this.simulationScene, Threed, data);
       console.log(result);
     } catch (error) {
       console.error(error);
@@ -218,6 +215,29 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
       this.simulationScene.attachToElement(this.rendererContainer);
   }
 
+  private getServices() {
+    return {
+      attributeService: this.attributeService,
+      aliasController: this.aliasController
+    }
+  }
+
+  private getCompiledScripts(rawScripts: ScriptModel[]): { [key: string]: CompiledScriptModel } {
+    const scripts: { [key: string]: CompiledScriptModel } = {};
+    for (const script of rawScripts) {
+      const functionRef = script.name != "onDataUpdate.js" ?
+        new Function('context', 'simulationScene', 'Threed', script.body) :
+        new Function('context', 'simulationScene', 'Threed', 'datasources', script.body);
+      scripts[script.name] = {
+        body: script.body,
+        deletable: script.deletable,
+        name: script.name,
+        executeFnc: functionRef
+      }
+    }
+    return scripts;
+  }
+
   private async getEntities() {
     const entities: {
       entityAliases: EntityAliases,
@@ -234,7 +254,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
         id: aliasId
       });
       const entityInfo = await this.aliasController.resolveEntitiesInfo(aliasId).toPromise();
-      if(Array.isArray(entityInfo)) entityInfo.forEach(e => entities.entityInfos.push(e));
+      if (Array.isArray(entityInfo)) entityInfo.forEach(e => entities.entityInfos.push(e));
       else entities.entityInfos.push(entityInfo);
     }
 

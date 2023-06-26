@@ -71,8 +71,8 @@
     <fieldset class="fields-group">
         <legend class="group-title">Script Editor</legend>
 
-        <div class="reduce-w" fxLayout="row" fxLayoutAlign="center center">
-            <nav mat-tab-nav-bar fxFlex="80">
+        <div fxLayout="row" fxLayoutAlign="center center">
+            <nav mat-tab-nav-bar>
                 <a mat-tab-link *ngFor="let script of threedSimulationWidgetSettingsForm.get('scripts').value"
                     (click)="selectScript(script)" [active]="activeScript?.name == script.name">
                     {{script.name}}
