@@ -14,17 +14,17 @@
 /// limitations under the License.
 ///
 
-import { Component, AfterViewInit, Input, OnInit, ViewChild } from '@angular/core';
-import { AppState } from '@core/core.state';
-import { WidgetContext } from '@home/models/widget-component.models';
-import { Store } from '@ngrx/store';
-import { PageComponent } from '@shared/components/page.component';
-import { ThreedSimulationWidgetSettings } from './threed/threed-models';
+import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { SimulationHelperComponent } from '@app/shared/components/simulation-helper.component';
+import { AppState } from '@core/core.state';
 import {
   formattedDataFormDatasourceData,
   mergeFormattedData
 } from '@core/utils';
+import { WidgetContext } from '@home/models/widget-component.models';
+import { Store } from '@ngrx/store';
+import { PageComponent } from '@shared/components/page.component';
+import { ThreedSimulationWidgetSettings } from './threed/threed-models';
 
 @Component({
   selector: 'tb-threed-simulation-widget',

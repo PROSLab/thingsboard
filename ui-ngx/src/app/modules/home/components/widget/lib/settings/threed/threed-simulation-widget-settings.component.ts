@@ -14,18 +14,18 @@
 /// limitations under the License.
 ///
 
-import { OnInit, AfterContentChecked, AfterViewInit, ChangeDetectorRef, Component, HostListener, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, ChangeDetectorRef, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AssetModel, ScriptModel, ThreedSimulationWidgetSettings, defaultThreedSimulationWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
+import { ImageInputComponent } from '@app/shared/components/image-input.component';
+import { SimulationHelperComponent } from '@app/shared/components/simulation-helper.component';
 import { ThreedModelInputComponent } from '@app/shared/components/threed-model-input.component';
 import { JsFuncComponent } from '@app/shared/public-api';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
 import { ThreedScriptDialogComponent } from './threed-script-dialog.component';
-import { SimulationHelperComponent } from '@app/shared/components/simulation-helper.component';
-import { ImageInputComponent } from '@app/shared/components/image-input.component';
 
 
 @Component({

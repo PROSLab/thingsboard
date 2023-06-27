@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import { ChangeDetectorRef, Input, AfterViewInit, OnDestroy, Component, ElementRef, OnInit, ViewChild, forwardRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AttributeService, IAliasController } from '@app/core/public-api';
@@ -24,10 +24,10 @@ import { ThreedFirstPersonControllerComponent } from '@app/modules/home/componen
 import { ThreedGenericSceneManager } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { AssetModel, ScriptModel, SimulationState, ThreedSimulationWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { ThreedScenes } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-scenes/threed-scenes';
+import { EntityAliases, EntityInfo, FormattedData } from "@app/shared/public-api";
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
-import { EntityAliases, EntityInfo, FormattedData } from "@app/shared/public-api";
 
 
 interface CompiledScriptModel extends ScriptModel {
