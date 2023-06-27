@@ -103,7 +103,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.settings = settings;
   }
 
-  async compile() {
+  public async compile() {
     if (this.simulationState == SimulationState.SETUP_DONE || this.simulationState == SimulationState.STARTED) return;
 
     this.simulationState = SimulationState.COMPILING;
@@ -132,13 +132,15 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     }
   }
 
-  async startSimulation() {
+  public async startSimulation() {
     if (this.simulationState == SimulationState.STARTED) return;
 
     await this.compile();
 
     try {
       const result = this.context.scripts["start.js"].executeFnc(this.context, this.simulationScene, Threed);
+      if (result instanceof Promise)
+        await result;
       this.simulationState = SimulationState.STARTED;
       console.log(result);
     } catch (error) {
@@ -160,13 +162,15 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.simulationScene?.getComponent(ThreedFirstPersonControllerComponent)?.lockControls();
   }
 
-  public stopSimulation() {
+  public async stopSimulation() {
     clearInterval(this.timeHandler);
     this.simulationState = SimulationState.UNCOMPILED;
     this.time = 0;
 
     try {
       const result = this.context.scripts["stop.js"].executeFnc(this.context, this.simulationScene, Threed);
+      if (result instanceof Promise)
+        await result;
       console.log(result);
     } catch (error) {
       console.error(error);
@@ -176,9 +180,11 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     this.simulationScene = undefined;
   }
 
-  public resetSimulation() {
+  public async resetSimulation() {
     try {
       const result = this.context.scripts["reset.js"].executeFnc(this.context, this.simulationScene, Threed);
+      if (result instanceof Promise)
+        await result;
       console.log(result);
     } catch (error) {
       console.error(error);

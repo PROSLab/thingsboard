@@ -105,7 +105,7 @@ export class ThreedRigidbodyComponent extends ThreedBaseComponent implements ITh
         const wireframeMaterial = new THREE.MeshBasicMaterial({ color: this.debugColor, wireframe: true });
         this.debugColliderMesh = bodyToMesh(this.physicBody, wireframeMaterial);
         this.debugColliderMesh.visible = this.visualiseColliders;
-        this.debugColliderMesh.name = "Collider_" + this.mesh?.getMesh().name || "generic";
+        this.debugColliderMesh.name = "Collider_" + (this.mesh?.getMesh()?.name == undefined ? "generic" : this.mesh?.getMesh()?.name);
         this.sceneManager.scene.add(this.debugColliderMesh);
     }
 
