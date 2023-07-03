@@ -36,7 +36,10 @@ export class ThreedWebRenderer implements IThreedRenderer {
     }
 
     public attachToElement(rendererContainer: ElementRef) {
-        rendererContainer.nativeElement.appendChild(this.renderer.domElement);
+        const canvas = this.renderer.domElement;
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        rendererContainer.nativeElement.appendChild(canvas);
         this.renderer.setPixelRatio(window.devicePixelRatio);
     }
 
