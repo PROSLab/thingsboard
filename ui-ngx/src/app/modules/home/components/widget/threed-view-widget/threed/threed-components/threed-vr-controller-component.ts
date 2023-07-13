@@ -21,8 +21,9 @@ import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedBaseComponent } from "./threed-base-component";
 import { EventEmitter } from '@angular/core';
 import { VrUi } from '../threed-extensions/vr-ui';
+import { IThreedMesh } from './ithreed-mesh';
 
-export class ThreedVrControllerComponent extends ThreedBaseComponent {
+export class ThreedVrControllerComponent extends ThreedBaseComponent implements IThreedMesh {
 
     private readonly gravity = 9.8;
     private readonly mass = 80;
@@ -190,6 +191,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
             }
         }
 
+
         this.prevTime = time;
     }
 
@@ -251,5 +253,9 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
             return false;
         }
         return typeof obj[Symbol.iterator] === "function";
+    }
+
+    getMesh(): THREE.Object3D {
+        return this.sceneManager.camera.parent;
     }
 }
