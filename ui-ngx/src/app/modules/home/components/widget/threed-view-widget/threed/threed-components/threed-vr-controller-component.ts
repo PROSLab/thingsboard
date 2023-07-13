@@ -39,10 +39,12 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     private tempMatrix = new THREE.Matrix4();
     private textHelper: THREE.Group;
 
-    private canJump = false;
+    private positionMode: 'standing' | 'crouch' | 'laying' = 'standing';
+    private height = 1.7;
 
     private prevTime = performance.now();
     private lastBPressed = performance.now();
+    private lastAPressed = performance.now();
 
     public line: THREE.Line;
     public canMove = true;
@@ -131,7 +133,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     }
 
     private createVRControllerInputTextHelper() {
-        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br><br>Open/Close Commands: B", {textSize:.25, margin:.5});
+        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br><br>Open/Close Commands: B", {textSize:.25, margin:.5});
         this.textHelper.position.set(0, -1, -2);
         this.sceneManager.scene.add(this.textHelper);
         this.displayVRControllerInputTextHelper(false);
@@ -168,14 +170,19 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
             if (onObject === true) {
                 this.velocity.y = Math.max(0, this.velocity.y);
-                this.canJump = true;
             }
 
             if (this.canMove) {
                 const cameraDolly = this.sceneManager.camera.parent;
                 const quaternion = cameraDolly.quaternion.clone();
                 this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
-                const y = cameraDolly.position.y;
+                let y = cameraDolly.position.y;
+                if(y == 0) this.height = this.sceneManager.camera.position.y;
+
+                if (this.positionMode == 'standing') y = 0;
+                else if(this.positionMode == 'crouch') y = -this.height/2;
+                else if(this.positionMode == 'laying') y = -this.height/4*3;
+
                 cameraDolly.translateZ(-this.velocity.z * delta);
                 cameraDolly.translateX(-this.velocity.x * delta);
                 cameraDolly.position.setY(y);
@@ -210,6 +217,19 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                         this.direction.z = data.axes[1];
                     }
                     if (data.buttons.length >= 6) {
+                        // A button pressed
+                        const buttonA = data.buttons[4];
+                        if (buttonA >= 1 && performance.now() - this.lastAPressed >= 500) {
+                            if (this.positionMode == 'standing') {
+                                this.positionMode = 'crouch';
+                            } else if (this.positionMode == 'crouch') {
+                                this.positionMode = 'laying';
+                            } else {
+                                this.positionMode = 'standing';
+                            }
+                            this.lastAPressed = performance.now();
+                        }
+
                         // B button pressed
                         const buttonB = data.buttons[5];
                         if (buttonB >= 1 && performance.now() - this.lastBPressed >= 500) {
