@@ -100,7 +100,7 @@ export class ThreedWidgetDataUpdateManager {
     private updateTooltip(settings: ThreedTooltipSettings, fd: FormattedData, scene: IThreedSceneManager) {
         try {
             const pattern = settings.tooltipPattern;
-            const tooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
+            const tooltipText = pattern;//parseWithTranslation.prepareProcessPattern(pattern);
             const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
             const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
 

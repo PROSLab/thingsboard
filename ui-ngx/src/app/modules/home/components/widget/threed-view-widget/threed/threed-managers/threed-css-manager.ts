@@ -215,6 +215,22 @@ export class ThreedCssManager {
         return imgElement;
     }
 
+    private createVRImage(cssDataAndLayer: {
+        data: CssData;
+        layer: number;
+        id: string;
+    }, content: { url: string, size: number }) {
+        const cssData = cssDataAndLayer.data;
+
+        cssData.vrMesh?.remove();
+        const panel = VrUi.createImg(content.url, content.size / 200, content.size / 200);    
+        panel.position.copy(cssData.cssObject.position);
+        panel.visible = false;
+        //@ts-ignore
+        cssData.vrMesh = panel;
+        this.sceneManager.scene.add(panel);
+    }
+
     /*
     public removeLabel(id: string): void {
         this.cssObjects.delete(id);
@@ -232,6 +248,8 @@ export class ThreedCssManager {
      * @returns 
      */
     public updateLabel(ids: string[], content: string): CssData | undefined {
+        console.log("this.updateLabel", ids, content);
+
         const cssDataAndLayer = this.findFirstElement(ids, 'label');
         const cssData = cssDataAndLayer?.data;
         if (!cssData) return;
@@ -244,8 +262,11 @@ export class ThreedCssManager {
     }
 
     public updateImage(ids: string[], content: { url: string, size: number }): CssData | undefined {
-        const cssData = this.findFirstElement(ids, 'image')?.data
+        const cssDataAndLayer = this.findFirstElement(ids, 'image');
+        const cssData = cssDataAndLayer?.data;
         if (!cssData) return;
+
+        this.createVRImage(cssDataAndLayer, content);
 
         const image = cssData!.htmlElement as HTMLImageElement;
         image.src = content.url;
@@ -260,12 +281,13 @@ export class ThreedCssManager {
     }
 
     private updateObjectVisibility() {
+        const vrActive = this.sceneManager.vrActive;
         this.cssObjects.forEach((v: CssObject, k: string) => {
             v.data.forEach(e => {
                 if (e.vrMesh) {
-                    e.vrMesh.visible = this.sceneManager.vrActive ? e.vrMesh.userData[LAST_VISIBILITY] || false : false;
+                    e.vrMesh.visible = vrActive ? e.vrMesh.userData[LAST_VISIBILITY] || (e.type=="image") : false;
                 }
-                e.cssObject.visible = !this.sceneManager.vrActive;
+                e.cssObject.visible = !vrActive;
             })
         })
     }

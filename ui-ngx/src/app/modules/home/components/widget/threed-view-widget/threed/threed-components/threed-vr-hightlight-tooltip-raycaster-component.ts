@@ -20,7 +20,7 @@ import { IThreedSceneManager } from '../threed-managers/ithreed-scene-manager';
 import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedHightlightTooltipRaycasterComponent } from './threed-hightlight-tooltip-raycaster-component';
 import { ThreedVrControllerComponent } from './threed-vr-controller-component';
-import { CssObject } from '../threed-managers/threed-css-manager';
+import { CssData, CssObject } from '../threed-managers/threed-css-manager';
 
 export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightlightTooltipRaycasterComponent {
 
@@ -102,7 +102,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
             const cssObject = super.getTooltip(object);
             let hasVrTooltip = false;
             cssObject?.data.forEach(d => {
-                if (d.vrMesh) {
+                if (d.type == "label" && d.vrMesh) {
                     hasVrTooltip = true;
                     return;
                 }
@@ -117,9 +117,9 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
             const vrMeshes = [];
             cssObject.data.forEach(d => {
                 if (d.vrMesh) {
-                    d.vrMesh.visible = true;
-                    d.vrMesh.userData[LAST_VISIBILITY] = true;
-                    vrMeshes.push(d.vrMesh);
+                    d.vrMesh.visible = d.type == "label";
+                    d.vrMesh.userData[LAST_VISIBILITY] = d.type == "label";
+                    vrMeshes.push(d);
                 }
             })
             object.userData[VR_MESHES] = vrMeshes;
@@ -131,9 +131,9 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
 
     protected onDisableTooltip(object: THREE.Group): void {
         if (this.sceneManager.vrActive) {
-            object.userData[VR_MESHES]?.forEach(m => {
-                m.visible = false
-                m.userData[LAST_VISIBILITY] = false;
+            object.userData[VR_MESHES]?.forEach((m: CssData) => {
+                m.vrMesh.visible = m.type == "image";
+                m.vrMesh.userData[LAST_VISIBILITY] = m.type == "image";
             });
             object.userData[VR_MESHES] = undefined;
 

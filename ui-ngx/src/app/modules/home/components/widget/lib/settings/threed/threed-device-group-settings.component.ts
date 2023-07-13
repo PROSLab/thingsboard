@@ -75,11 +75,11 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
   @Input()
   public set forceExpand(id: string | undefined) {
-    if(id == undefined){
+    if (id == undefined) {
       this.expanded = false;
       return;
     }
-    
+
     this.expanded = true;
     const formArray = this.objectsFormArray();
     for (let i = 0; i < formArray.controls.length; i++) {
@@ -91,7 +91,7 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
       }
     }
   }
-  
+
 
   @ViewChild("entityKeySettings")
   entityKeySettings?: ThreedEntityKeySettingsComponent;
@@ -288,12 +288,16 @@ export class ThreedDeviceGroupSettingsComponent extends PageComponent implements
 
     this.entityAlias = threedEntityAliasSettings.entityAlias;
     this.aliasController.resolveEntitiesInfo(entityAliasId).subscribe(eis => {
-      eis.forEach(e => this.addObjectIfNotExists(e))
+      if (eis instanceof Array) {
+        eis.forEach(e => this.addObjectIfNotExists(e))
+      } else {
+        this.addObjectIfNotExists(eis);
+      }
     });
   }
 
   public refreshDeviceGroup() {
-    if(this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value)
+    if (this.threedDeviceGroupFormGroup.get('threedEntityAliasSettings').value)
       this.loadEntities();
   }
 }
