@@ -27,9 +27,11 @@ import {
 import { parseWithTranslation } from '../lib/maps/common-maps-utils';
 import { MarkerImageInfo } from "../lib/maps/map-models";
 import { ThreedWidgetActionManager } from "./threed-widget-action-manager";
-import { ACTIONS, HTML_ELEMENT } from "./threed/threed-constants";
+import { ACTIONS } from "./threed/threed-constants";
 import { IThreedSceneManager } from "./threed/threed-managers/ithreed-scene-manager";
 import { ThreedDevicesSettings, ThreedMarkerSettings, ThreedTooltipSettings } from "./threed/threed-models";
+import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 
 
 export class ThreedWidgetDataUpdateManager {
@@ -100,7 +102,18 @@ export class ThreedWidgetDataUpdateManager {
     private updateTooltip(settings: ThreedTooltipSettings, fd: FormattedData, scene: IThreedSceneManager) {
         try {
             const pattern = settings.tooltipPattern;
-            const tooltipText = pattern;//parseWithTranslation.prepareProcessPattern(pattern);
+
+            if(!parseWithTranslation.translateFn){
+                const translate = (key: string, defaultTranslation?: string): string => {
+                    if (key) {
+                      return (this.ctx.$injector.get(UtilsService).customTranslation(key, defaultTranslation || key)
+                        || this.ctx.$injector.get(TranslateService).instant(key));
+                    }
+                    return '';
+                  }
+                parseWithTranslation.setTranslate(translate);
+            }
+            const tooltipText = parseWithTranslation.prepareProcessPattern(pattern);
             const replaceInfoTooltipMarker = processDataPattern(tooltipText, fd);
             const content = fillDataPattern(tooltipText, replaceInfoTooltipMarker, fd);
 
