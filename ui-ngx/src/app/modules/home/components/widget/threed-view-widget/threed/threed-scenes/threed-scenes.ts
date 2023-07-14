@@ -82,7 +82,7 @@ export class ThreedScenes {
             .add(new ThreedPerspectiveCameraComponent(new THREE.Vector3(0, 1.7, 0)))
             .add(new ThreedDefaultAmbientComponent(false))
             .add(new ThreedFirstPersonControllerComponent())
-            .add(new ThreedVrControllerComponent());
+            .add(new ThreedVrControllerComponent("Start/Stop: Grip<br>"));
         return builder.build();
     }
 

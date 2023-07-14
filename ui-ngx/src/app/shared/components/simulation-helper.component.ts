@@ -21,13 +21,17 @@ import { AttributeService, IAliasController } from '@app/core/public-api';
 import { ThreedDynamicMenuDialogComponent } from '@app/modules/home/components/widget/lib/settings/threed/threed-dynamic-menu-dialog.component';
 import { Threed } from '@app/modules/home/components/widget/threed-view-widget/threed/threed';
 import { ThreedFirstPersonControllerComponent } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-components/threed-first-person-controller-component';
+import { ThreedVrControllerComponent } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-components/threed-vr-controller-component';
 import { ThreedGenericSceneManager } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
+import { ThreedWebRenderer } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-managers/threed-web-renderer';
 import { AssetModel, ScriptModel, SimulationState, ThreedSimulationWidgetSettings } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-models';
 import { ThreedScenes } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-scenes/threed-scenes';
 import { EntityAliases, EntityInfo, FormattedData } from "@app/shared/public-api";
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { PageComponent } from '@shared/components/page.component';
+import { Subscription } from 'rxjs';
+import * as THREE from 'three';
 
 
 interface CompiledScriptModel extends ScriptModel {
@@ -150,10 +154,14 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
 
 
     const millis = 200;
+    const timeUUID = "my-time-mesh-uuid"
     this.time = 0;
     this.timeHandler = setInterval(() => {
       this.time += millis / 1000;
       this.time = Number(this.time.toFixed(2));
+
+      this.simulationScene.cssManager.createOrUpdateVRText("Time: " + this.time, new THREE.Vector3(0, .8, -1), false, '#000', .1, timeUUID);
+
       this.cd.detectChanges();
     }, millis);
   }
@@ -214,9 +222,24 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
     });
   }
 
+  private previousVRGripSub?: Subscription;
+
   public createSimulationScene() {
     this.simulationScene?.destroy();
     this.simulationScene = ThreedScenes.createSimulationScene();
+    this.previousVRGripSub?.unsubscribe();
+    this.previousVRGripSub = this.simulationScene.getComponent(ThreedVrControllerComponent).onGripPressed.subscribe(_ => {
+
+      if (this.simulationState != SimulationState.STARTED) {
+        this.startSimulation();
+        this.simulationScene.cssManager.createVRText("Simulation started", new THREE.Vector3(0, 0, -1), true, '', .25, 3);
+      }
+      else {
+        this.simulationScene.getTRenderer(ThreedWebRenderer).getRenderer().xr.getSession().end();
+        this.stopSimulation();
+        this.cd.detectChanges();
+      }
+    });
     if (this.rendererContainer)
       this.simulationScene.attachToElement(this.rendererContainer);
   }

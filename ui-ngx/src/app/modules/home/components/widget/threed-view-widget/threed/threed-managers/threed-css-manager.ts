@@ -21,6 +21,8 @@ import * as THREE from 'three';
 import { Subscription } from "rxjs";
 import { VrUi } from "../threed-extensions/vr-ui";
 import { ThreedWebRenderer } from "./threed-web-renderer";
+import { createText } from 'three/examples/jsm/webxr/Text2D';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 
 export type CssObjectType = 'label' | 'image';
 
@@ -51,6 +53,7 @@ export class ThreedCssManager {
     private static lastCssObjectId = 1;
 
     public cssObjects: Map<string, CssObject> = new Map();
+    public vrUiObjects: ({ mesh: THREE.Group | THREE.Object3D, offset: THREE.Vector3 })[] = [];
     private sceneManager: IThreedSceneManager;
 
     public readonly markersLayerIndex = 4;
@@ -166,6 +169,11 @@ export class ThreedCssManager {
                     }
                 })
             });
+
+            /*this.vrUiObjects.forEach(o => {
+                o.mesh.position.set(cameraPosition.x + o.offset.x, cameraPosition.y + o.offset.y, cameraPosition.z + o.offset.z);
+                o.mesh.lookAt(cameraPosition);
+            })*/
         }
     }
 
@@ -183,9 +191,11 @@ export class ThreedCssManager {
         id: string;
     }, content: string) {
         const cssData = cssDataAndLayer.data;
+        const wasVisible = cssData.vrMesh?.visible ?? false;
 
-        cssData.vrMesh?.remove();
-        const panel = VrUi.createPanelFromHtml(content, {textSize:.08, margin:.5});
+        if (cssData.vrMesh) this.sceneManager.scene.remove(cssData.vrMesh);
+        //cssData.vrMesh?.remove();
+        const panel = VrUi.createPanelFromHtml(content, { textSize: .08, margin: .5 });
         panel.position.copy(cssData.cssObject.position);
         panel.layers.set(cssDataAndLayer.layer);
         panel.renderOrder = 10;
@@ -203,7 +213,7 @@ export class ThreedCssManager {
         const pivot = new THREE.Group();
         pivot.add(panel);
         pivot.position.copy(cssData.cssObject.position);
-        pivot.visible = false;
+        pivot.visible = wasVisible;
         cssData.vrMesh = pivot
         this.sceneManager.scene.add(pivot);
     }
@@ -221,11 +231,12 @@ export class ThreedCssManager {
         id: string;
     }, content: { url: string, size: number }) {
         const cssData = cssDataAndLayer.data;
+        const wasVisible = cssData.vrMesh?.visible ?? false;
 
-        cssData.vrMesh?.remove();
-        const panel = VrUi.createImg(content.url, content.size / 200, content.size / 200);    
+        if (cssData.vrMesh) this.sceneManager.scene.remove(cssData.vrMesh);
+        const panel = VrUi.createImg(content.url, content.size / 200, content.size / 200);
         panel.position.copy(cssData.cssObject.position);
-        panel.visible = false;
+        panel.visible = wasVisible;
         //@ts-ignore
         cssData.vrMesh = panel;
         this.sceneManager.scene.add(panel);
@@ -285,11 +296,16 @@ export class ThreedCssManager {
         this.cssObjects.forEach((v: CssObject, k: string) => {
             v.data.forEach(e => {
                 if (e.vrMesh) {
-                    e.vrMesh.visible = vrActive ? e.vrMesh.userData[LAST_VISIBILITY] || (e.type=="image") : false;
+                    e.vrMesh.visible = vrActive ? e.vrMesh.userData[LAST_VISIBILITY] || (e.type == "image") : false;
                 }
                 e.cssObject.visible = !vrActive;
             })
         })
+
+        this.vrUiObjects.forEach(o => {
+            o.mesh.parent = vrActive ? this.sceneManager.camera : null;
+            o.mesh.visible = vrActive;
+        });
     }
 
     private findFirst(ids: string[], type: CssObjectType): { mapId: string, arrayId: number, layer: number, id: string } | undefined {
@@ -328,5 +344,43 @@ export class ThreedCssManager {
 
     public onDestroy() {
         this.subscriptions.forEach(s => s.unsubscribe());
+    }
+
+    public createVRText(text: string, offset: THREE.Vector3, panel: boolean = false, color: string = '#ffffff', height:number= .25, destroyAfterSeconds?: number): { mesh: THREE.Object3D | THREE.Group, offset: THREE.Vector3 } {
+        const mesh = panel ? VrUi.createPanelFromHtml(text, { textSize: height, margin: .5 }) : VrUi.createText(text, height, color);
+
+        if (destroyAfterSeconds) {
+            setTimeout(() => {
+                const index = this.vrUiObjects.findIndex(o => o.mesh.uuid == mesh.uuid);
+                //console.log("remove mesh...", index, mesh, this.vrUiObjects);
+                if (index != -1) {
+                    if (mesh.parent) mesh.parent.remove(mesh);
+                    this.sceneManager.scene.remove(mesh);
+                    this.vrUiObjects.splice(index, 1);
+                }
+            }, destroyAfterSeconds * 1000);
+        }
+
+        mesh.visible = this.sceneManager.vrActive;
+        mesh.position.copy(offset);
+        this.sceneManager.scene.add(mesh);
+        mesh.parent = this.sceneManager.vrActive ? this.sceneManager.camera : null;
+
+        const obj = { mesh, offset };
+        this.vrUiObjects.push(obj);
+        return obj;
+    }
+
+    public createOrUpdateVRText(text: string, offset: THREE.Vector3, panel: boolean = false, color: string = '#ffffff', height:number= .25, uuid?: string): { mesh: THREE.Object3D | THREE.Group, offset: THREE.Vector3 } {
+        const index = this.vrUiObjects.findIndex(o => o.mesh.uuid == uuid); 
+        if (index != -1) {
+            const mesh = this.vrUiObjects[index].mesh;
+            if (mesh.parent) mesh.parent.remove(mesh);
+            this.sceneManager.scene.remove(mesh);
+            this.vrUiObjects.splice(index, 1);
+        }
+        const obj = this.createVRText(text, offset, panel, color, height);
+        if(uuid) obj.mesh.uuid = uuid;
+        return obj;
     }
 }

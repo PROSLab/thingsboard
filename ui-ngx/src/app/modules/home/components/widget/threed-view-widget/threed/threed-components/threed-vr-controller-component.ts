@@ -42,15 +42,23 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
 
     private positionMode: 'standing' | 'crouch' | 'laying' = 'standing';
     private height = 1.7;
+    private gripText: string;
 
     private prevTime = performance.now();
     private lastBPressed = performance.now();
     private lastAPressed = performance.now();
+    private lastGripPressed = performance.now();
 
     public line: THREE.Line;
     public canMove = true;
     public onSelectStartEvent = new EventEmitter();
     public onSelectEndEvent = new EventEmitter();
+    public onGripPressed = new EventEmitter();
+
+    constructor(gripText: string = ""){
+        super();
+        this.gripText = gripText;
+    }
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
@@ -134,7 +142,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
     }
 
     private createVRControllerInputTextHelper() {
-        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br><br>Open/Close Commands: B", {textSize:.25, margin:.5});
+        this.textHelper = VrUi.createPanelFromHtml(`RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br>${this.gripText}<br>Open/Close Commands: B`, {textSize:.25, margin:.5});
         this.textHelper.position.set(0, -1, -2);
         this.sceneManager.scene.add(this.textHelper);
         this.displayVRControllerInputTextHelper(false);
@@ -219,6 +227,14 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
                         this.direction.z = data.axes[1];
                     }
                     if (data.buttons.length >= 6) {
+                        
+                        // GRIP button pressed
+                        const grip = data.buttons[1];
+                        if (grip >= 1 && performance.now() - this.lastGripPressed >= 500) {
+                            this.onGripPressed.emit();
+                            this.lastGripPressed = performance.now();
+                        }
+
                         // A button pressed
                         const buttonA = data.buttons[4];
                         if (buttonA >= 1 && performance.now() - this.lastAPressed >= 500) {
