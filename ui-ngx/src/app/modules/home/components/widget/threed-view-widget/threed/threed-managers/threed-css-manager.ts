@@ -231,7 +231,7 @@ export class ThreedCssManager {
         id: string;
     }, content: { url: string, size: number }) {
         const cssData = cssDataAndLayer.data;
-        const wasVisible = cssData.vrMesh?.visible ?? false;
+        const wasVisible = cssData.vrMesh?.visible ?? this.sceneManager.vrActive;
 
         if (cssData.vrMesh) this.sceneManager.scene.remove(cssData.vrMesh);
         const panel = VrUi.createImg(content.url, content.size / 200, content.size / 200);

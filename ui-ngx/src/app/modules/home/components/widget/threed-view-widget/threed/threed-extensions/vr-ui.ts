@@ -16,7 +16,7 @@
 
 import * as THREE from 'three';
 import { createText } from 'three/examples/jsm/webxr/Text2D';
-import { A_TAG, HTML_ELEMENT, ROOT_TAG } from '../threed-constants';
+import { A_TAG, HTML_ELEMENT, ROOT_TAG, VR_IMAGE } from '../threed-constants';
 
 
 export class VrUi {
@@ -147,6 +147,7 @@ export class VrUi {
             alphaTest: 0.5
         });
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.userData[VR_IMAGE] = true;
         return mesh;
     }
 

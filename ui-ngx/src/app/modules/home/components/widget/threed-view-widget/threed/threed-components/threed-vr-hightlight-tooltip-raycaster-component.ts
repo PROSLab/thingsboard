@@ -15,7 +15,7 @@
 ///
 
 import * as THREE from 'three';
-import { A_TAG, LAST_VISIBILITY, VR_MESHES } from '../threed-constants';
+import { A_TAG, LAST_VISIBILITY, VR_IMAGE, VR_MESHES } from '../threed-constants';
 import { IThreedSceneManager } from '../threed-managers/ithreed-scene-manager';
 import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedHightlightTooltipRaycasterComponent } from './threed-hightlight-tooltip-raycaster-component';
@@ -143,7 +143,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
     }
 
     protected getIntersectedObjectFilter(o: THREE.Intersection) {
-        return super.getIntersectedObjectFilter(o) && o.object.name != "controller";
+        return super.getIntersectedObjectFilter(o) && o.object.name != "controller" && o.object.userData[VR_IMAGE] != true;
     }
     /*
     protected getCamera(): THREE.Camera {
