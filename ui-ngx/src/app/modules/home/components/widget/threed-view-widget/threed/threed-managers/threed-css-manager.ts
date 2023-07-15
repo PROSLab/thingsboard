@@ -53,7 +53,7 @@ export class ThreedCssManager {
     private static lastCssObjectId = 1;
 
     public cssObjects: Map<string, CssObject> = new Map();
-    public vrUiObjects: ({ mesh: THREE.Group | THREE.Object3D, offset: THREE.Vector3 })[] = [];
+    public vrUiObjects: ({ mesh: THREE.Group | THREE.Object3D, offset: THREE.Vector3, timeout: NodeJS.Timeout | undefined })[] = [];
     private sceneManager: IThreedSceneManager;
 
     public readonly markersLayerIndex = 4;
@@ -346,11 +346,11 @@ export class ThreedCssManager {
         this.subscriptions.forEach(s => s.unsubscribe());
     }
 
-    public createVRText(text: string, offset: THREE.Vector3, panel: boolean = false, color: string = '#ffffff', height:number= .25, destroyAfterSeconds?: number): { mesh: THREE.Object3D | THREE.Group, offset: THREE.Vector3 } {
+    public createVRText(text: string, offset: THREE.Vector3, panel: boolean = false, color: string = '#ffffff', height: number = .25, destroyAfterSeconds?: number): { mesh: THREE.Object3D | THREE.Group, offset: THREE.Vector3 } {
         const mesh = panel ? VrUi.createPanelFromHtml(text, { textSize: height, margin: .5 }) : VrUi.createText(text, height, color);
-
+        let timeout: NodeJS.Timeout | undefined = undefined;
         if (destroyAfterSeconds) {
-            setTimeout(() => {
+            timeout = setTimeout(() => {
                 const index = this.vrUiObjects.findIndex(o => o.mesh.uuid == mesh.uuid);
                 //console.log("remove mesh...", index, mesh, this.vrUiObjects);
                 if (index != -1) {
@@ -366,21 +366,24 @@ export class ThreedCssManager {
         this.sceneManager.scene.add(mesh);
         mesh.parent = this.sceneManager.vrActive ? this.sceneManager.camera : null;
 
-        const obj = { mesh, offset };
+        const obj = { mesh, offset, timeout };
         this.vrUiObjects.push(obj);
         return obj;
     }
 
-    public createOrUpdateVRText(text: string, offset: THREE.Vector3, panel: boolean = false, color: string = '#ffffff', height:number= .25, uuid?: string): { mesh: THREE.Object3D | THREE.Group, offset: THREE.Vector3 } {
-        const index = this.vrUiObjects.findIndex(o => o.mesh.uuid == uuid); 
+    public createOrUpdateVRText(text: string, offset: THREE.Vector3, panel: boolean = false, color: string = '#ffffff', height: number = .25, uuid?: string, destroyAfterSeconds?: number): { mesh: THREE.Object3D | THREE.Group, offset: THREE.Vector3 } {
+        const index = this.vrUiObjects.findIndex(o => o.mesh.uuid == uuid);
         if (index != -1) {
             const mesh = this.vrUiObjects[index].mesh;
+            const timeout = this.vrUiObjects[index].timeout;
+            
+            if (timeout) clearTimeout(timeout);
             if (mesh.parent) mesh.parent.remove(mesh);
             this.sceneManager.scene.remove(mesh);
             this.vrUiObjects.splice(index, 1);
         }
-        const obj = this.createVRText(text, offset, panel, color, height);
-        if(uuid) obj.mesh.uuid = uuid;
+        const obj = this.createVRText(text, offset, panel, color, height, destroyAfterSeconds);
+        if (uuid) obj.mesh.uuid = uuid;
         return obj;
     }
 }

@@ -55,7 +55,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
     public onSelectEndEvent = new EventEmitter();
     public onGripPressed = new EventEmitter();
 
-    constructor(gripText: string = ""){
+    constructor(gripText: string = "") {
         super();
         this.gripText = gripText;
     }
@@ -85,6 +85,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
         this.subscriptions.push(s);
 
         this.createVRControllerInputTextHelper();
+        this.displayVRControllerInputTextHelper(false);
     }
 
     private onSelectStart(event: THREE.Event & { type: "selectstart"; } & { target: THREE.XRTargetRaySpace; }) {
@@ -142,10 +143,27 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
     }
 
     private createVRControllerInputTextHelper() {
-        this.textHelper = VrUi.createPanelFromHtml(`RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br>${this.gripText}<br>Open/Close Commands: B`, {textSize:.25, margin:.5});
-        this.textHelper.position.set(0, -1, -2);
+        if (this.textHelper) {
+            if (this.textHelper.parent) this.textHelper.parent.remove(this.textHelper);
+            this.sceneManager.scene.remove(this.textHelper);
+        }
+        this.textHelper = VrUi.createPanelFromHtml(`RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br>${this.gripText}<br>Open/Close Commands: B`, { textSize: .2, margin: .5 });
+        this.textHelper.position.set(-0.75, -1, -2);
+
+        const imgHelper = VrUi.createImg("/assets/help/images/vr_buttons.png", 1, 1);
+        //imgHelper.position.set(0.75, 1.5, -2);
+        imgHelper.position.set(1.75, 1, 0.5);
+        this.textHelper.add(imgHelper);
+
         this.sceneManager.scene.add(this.textHelper);
-        this.displayVRControllerInputTextHelper(false);
+    }
+
+    public setGripText(gripText: string) {
+        if (gripText) {
+            this.gripText = gripText;
+            this.createVRControllerInputTextHelper();
+            this.displayVRControllerInputTextHelper(this.sceneManager.vrActive);
+        }
     }
 
     private displayVRControllerInputTextHelper(visible: boolean) {
@@ -186,11 +204,11 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
                 const quaternion = cameraDolly.quaternion.clone();
                 this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
                 let y = cameraDolly.position.y;
-                if(y == 0) this.height = this.sceneManager.camera.position.y;
+                if (y == 0) this.height = this.sceneManager.camera.position.y;
 
                 if (this.positionMode == 'standing') y = 0;
-                else if(this.positionMode == 'crouch') y = -this.height/2;
-                else if(this.positionMode == 'laying') y = -this.height/4*3;
+                else if (this.positionMode == 'crouch') y = -this.height / 2;
+                else if (this.positionMode == 'laying') y = -this.height / 4 * 3;
 
                 cameraDolly.translateZ(-this.velocity.z * delta);
                 cameraDolly.translateX(-this.velocity.x * delta);
@@ -227,7 +245,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
                         this.direction.z = data.axes[1];
                     }
                     if (data.buttons.length >= 6) {
-                        
+
                         // GRIP button pressed
                         const grip = data.buttons[1];
                         if (grip >= 1 && performance.now() - this.lastGripPressed >= 500) {

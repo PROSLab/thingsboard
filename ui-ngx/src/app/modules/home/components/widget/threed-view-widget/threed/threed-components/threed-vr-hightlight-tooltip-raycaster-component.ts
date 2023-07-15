@@ -27,6 +27,17 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
     private vrController: ThreedVrControllerComponent;
     private updateCounterIndex = 0;
 
+    private highlightedMaterial = new THREE.MeshStandardMaterial({
+        color: 0x0000ff,
+        opacity: 0.5,
+        transparent: true,
+        wireframe: true,
+    });
+    private lastHighlightedObject?: THREE.Object3D;
+    private highlightObjects = false;
+    private lastUpdateRaycaster = -1;
+
+
     constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'single', raycastOrigin?: THREE.Vector2) {
         super(raycastUpdate, resolveRaycastObject, raycastOrigin);
     }
@@ -35,9 +46,11 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         super.initialize(sceneManager)
 
         this.vrController = this.sceneManager.getComponent(ThreedVrControllerComponent);
+        this.vrController.setGripText("Toggle Highlight Mode: Grip<br>");
 
+        this.subscriptions.push(this.vrController.onGripPressed.subscribe(_ => this.onGripPressed()));
         this.subscriptions.push(this.vrController.onSelectStartEvent.subscribe(_ => this.onVrSelectPressed()));
-        this.subscriptions.push(this.sceneManager.onVRChange.subscribe(_ => this.onVrChanged()))
+        this.subscriptions.push(this.sceneManager.onVRChange.subscribe(_ => this.onVrChanged()));
     }
 
     private onVrChanged() {
@@ -52,12 +65,48 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         this.checkClick(this.intersectedObjects?.[0]?.object)
     }
 
+    private onGripPressed() {
+        this.highlightObjects = !this.highlightObjects;
+        this.sceneManager.cssManager.createOrUpdateVRText(`Highlight Mode ${this.highlightObjects ? 'Enabled' : 'Disabled'}`, new THREE.Vector3(0, .5, -1), false, "#f00", 0.1, "highlight-mode-text-uuid", 3);
+        if (!this.highlightObjects) {
+            if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
+            this.lastHighlightedObject = undefined;
+        }
+    }
+
     public tick() {
         super.tick();
 
-        if (!this.sceneManager.vrActive || this.updateCounterIndex++ % 2 == 0 || this.raycastUpdate == 'click') return;
+        if (!this.sceneManager.vrActive || this.updateCounterIndex++ % 2 == 0) return;
 
-        this.updateRaycaster();
+        if (this.raycastUpdate == 'hover')
+            this.updateRaycaster();
+
+        if (this.highlightObjects && this.updateCounterIndex % 4 == 0)
+            this.highlightIntersectingObject();
+    }
+
+
+    private highlightIntersectingObject() {
+
+        // UPDATE RAYCASTER
+        this.setRaycaster();
+
+        // GET THE FIRST OBJECT AND HIGHTLIGHT
+        const objs = this.raycaster.intersectObjects(this.getIntersectionObjects());
+        const intersection = this.intersectedObjects = objs.filter(o => this.getIntersectedObjectFilter(o));
+
+        if (intersection.length > 0) {
+            const intersectedObject = intersection[0].object;
+
+            if (this.lastHighlightedObject != intersectedObject) {
+                if (intersectedObject) this.toggleHightlightGLTF(intersectedObject, true, this.highlightedMaterial);
+                if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
+            }
+            this.lastHighlightedObject = intersectedObject;
+        } else {
+            if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
+        }
     }
 
     private checkClick(object: THREE.Group) {
@@ -74,6 +123,8 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
     }
 
     protected setRaycaster() {
+
+        if (this.lastUpdateRaycaster == this.updateCounterIndex) return;
 
         if (!this.sceneManager.vrActive) {
             super.setRaycaster();
@@ -95,6 +146,8 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         tempMatrix.identity().extractRotation(this.vrController.controller.matrixWorld);
         this.raycaster.ray.origin.setFromMatrixPosition(this.vrController.controller.matrixWorld);
         this.raycaster.ray.direction.set(direction.x, direction.y, direction.z).applyMatrix4(tempMatrix);
+
+        this.lastUpdateRaycaster = this.updateCounterIndex;
     }
 
     protected canSelectObject(object: any): boolean {

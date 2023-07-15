@@ -40,7 +40,6 @@ export class ThreedHightlightTooltipRaycasterComponent extends ThreedHightlightR
         if (!super.updateRaycaster()) return false;
 
         const intersects = this.cssRaycaster.intersectObjects(this.sceneManager.scene.children, "a");
-        console.log(intersects)
         // Trigger click event on <a> element
         if (intersects.length > 0) {
             intersects[0].dispatchEvent(new PointerEvent('pointerdown'));
