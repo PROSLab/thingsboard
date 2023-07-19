@@ -160,7 +160,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
       this.time += millis / 1000;
       this.time = Number(this.time.toFixed(2));
 
-      this.simulationScene.cssManager.createOrUpdateVRText("Time: " + this.time, new THREE.Vector3(0, .8, -1), false, '#000', .1, timeUUID);
+      this.simulationScene.cssManager.createOrUpdateVRText("Time: " + this.time, new THREE.Vector3(0, .8, -2), false, '#000', .1, timeUUID);
 
       this.cd.detectChanges();
     }, millis);
@@ -232,7 +232,7 @@ export class SimulationHelperComponent extends PageComponent implements OnInit, 
 
       if (this.simulationState != SimulationState.STARTED) {
         this.startSimulation();
-        this.simulationScene.cssManager.createVRText("Simulation started", new THREE.Vector3(0, 0, -1), true, '', .25, 3);
+        this.simulationScene.cssManager.createVRText("Simulation started", new THREE.Vector3(0, 0, -2), true, '', .2, 2);
       }
       else {
         this.simulationScene.getTRenderer(ThreedWebRenderer).getRenderer().xr.getSession().end();

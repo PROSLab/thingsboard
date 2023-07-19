@@ -147,12 +147,11 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent implements 
             if (this.textHelper.parent) this.textHelper.parent.remove(this.textHelper);
             this.sceneManager.scene.remove(this.textHelper);
         }
-        this.textHelper = VrUi.createPanelFromHtml(`RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br>${this.gripText}<br>Open/Close Commands: B`, { textSize: .2, margin: .5 });
-        this.textHelper.position.set(-0.75, -1, -2);
+        this.textHelper = VrUi.createPanelFromHtml(`RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br>${this.gripText}<br>Open/Close Commands: B`, { textSize: .15, margin: .5 });
+        this.textHelper.position.set(-0.5, -0.5, -2.5);
 
-        const imgHelper = VrUi.createImg("/assets/help/images/vr_buttons.png", 1, 1);
-        //imgHelper.position.set(0.75, 1.5, -2);
-        imgHelper.position.set(1.75, 1, 0.5);
+        const imgHelper = VrUi.createImg("/assets/help/images/vr_buttons.png", .75, .75);
+        imgHelper.position.set(1.5, 0.5, 0.5);
         this.textHelper.add(imgHelper);
 
         this.sceneManager.scene.add(this.textHelper);

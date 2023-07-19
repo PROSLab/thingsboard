@@ -67,7 +67,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
 
     private onGripPressed() {
         this.highlightObjects = !this.highlightObjects;
-        this.sceneManager.cssManager.createOrUpdateVRText(`Highlight Mode ${this.highlightObjects ? 'Enabled' : 'Disabled'}`, new THREE.Vector3(0, .5, -1), false, "#f00", 0.1, "highlight-mode-text-uuid", 3);
+        this.sceneManager.cssManager.createOrUpdateVRText(`Highlight Mode ${this.highlightObjects ? 'Enabled' : 'Disabled'}`, new THREE.Vector3(0, .5, -2), false, "#f00", 0.1, "highlight-mode-text-uuid", 3);
         if (!this.highlightObjects) {
             if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
             this.lastHighlightedObject = undefined;
