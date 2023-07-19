@@ -40,7 +40,7 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
         this.setHoveringColor();
     }
 
-    public setHoveringColor(hoveringColor: string = "rgba(0,0,255,0.5)") {
+    public setHoveringColor(hoveringColor: string = "rgba(0,0,255,0.5)", wireframe = false) {
         if(!hoveringColor) return;
 
         this.hoveringColor = ThreedUtils.getAlphaAndColorFromString(hoveringColor);
@@ -48,7 +48,7 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
             color: this.hoveringColor.color,
             opacity: this.hoveringColor.alpha,
             transparent: true,
-            //wireframe: true,
+            wireframe,
         });
     }
 
@@ -68,12 +68,12 @@ export class ThreedHightlightRaycasterComponent extends ThreedAbstractRaycasterC
         this.toggleHightlightGLTF(object, false);
     }
 
-    private toggleHightlightGLTF(root: THREE.Group, enable: boolean) {
+    protected toggleHightlightGLTF(root: THREE.Group | THREE.Object3D, enable: boolean, material?: THREE.MeshStandardMaterial) {
         root.traverse(o => {
             if (o instanceof THREE.Mesh) {
                 if (enable) {
                     o.userData.currentMaterial = o.material;
-                    o.material = this.hoveringMaterial;
+                    o.material = material ?? this.hoveringMaterial;
                 } else {
                     o.material = o.userData.currentMaterial;
                 }

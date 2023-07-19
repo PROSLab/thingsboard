@@ -19,6 +19,7 @@ export const ROOT_TAG = "rootObject";
 export const A_TAG = "aTag";
 export const HTML_ELEMENT = "htmlElement";
 export const VR_MESHES = "vrMeshes";
+export const VR_IMAGE ="vrImage";
 export const LAST_VISIBILITY = "lastVisibility"
 
 export const CAMERA_ID = "CameraRig"

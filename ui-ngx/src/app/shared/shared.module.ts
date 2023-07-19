@@ -171,6 +171,7 @@ import { CustomPaginatorIntl } from '@shared/services/custom-paginator-intl';
 import { TbScriptLangComponent } from '@shared/components/script-lang.component';
 
 import { ThreedModelInputComponent } from '@shared/components/threed-model-input.component';
+import { SimulationHelperComponent } from '@shared/components/simulation-helper.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -299,7 +300,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     PhoneInputComponent,
     TbScriptLangComponent,
     
-    ThreedModelInputComponent
+    ThreedModelInputComponent,
+    SimulationHelperComponent
   ],
   imports: [
     CommonModule,
@@ -506,7 +508,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     PhoneInputComponent,
     TbScriptLangComponent,
     
-    ThreedModelInputComponent
+    ThreedModelInputComponent,
+    SimulationHelperComponent
   ],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })

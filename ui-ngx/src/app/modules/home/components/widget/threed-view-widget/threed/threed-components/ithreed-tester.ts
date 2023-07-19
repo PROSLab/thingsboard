@@ -15,8 +15,11 @@
 ///
 
 import { IThreedListener } from "./ithreed-listener";
+import { IThreedMesh } from "./ithreed-mesh";
 import { IThreedObjectSelector } from "./ithreed-object-selector";
 import { IThreedOrbitController } from "./ithreed-orbit-controller";
+import { IThreedPerson } from "./ithreed-person";
+import { IThreedPhysic } from "./ithreed-physic";
 import { IThreedProgress } from "./ithreed-progress";
 import { IThreedUpdatable } from "./ithreed-updatable";
 
@@ -46,4 +49,17 @@ export class IThreedTester {
             && 'deselectObject' in obj && typeof obj['deselectObject'] === 'function';
     }
 
+    public static isIThreedMesh = function (obj: any): obj is IThreedMesh {
+        return 'getMesh' in obj && typeof obj['getMesh'] === 'function';
+    }
+
+    public static isIThreedPhysic = function (obj: any): obj is IThreedPhysic {
+        return 'updatePhysics' in obj && typeof obj['updatePhysics'] === 'function'
+            && 'updateVisuals' in obj && typeof obj['updateVisuals'] === 'function';
+    }
+
+    public static isIThreedPerson = function (obj: any): obj is IThreedPerson {
+        return 'reset' in obj && typeof obj['reset'] === 'function'
+            && 'setDebugMode' in obj && typeof obj['setDebugMode'] === 'function';
+    }
 }

@@ -14,6 +14,7 @@
 /// limitations under the License.
 ///
 
+import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
@@ -37,6 +38,14 @@ export class ThreedUtils {
         return false;
     }
 
+    public static threeToCannon(vector3: THREE.Vector3): CANNON.Vec3 {
+        return new CANNON.Vec3(vector3.x, vector3.y, vector3.z);
+    }
+
+    public static cannonToThree(vector3: CANNON.Vec3): THREE.Vector3 {
+        return new THREE.Vector3(vector3.x, vector3.y, vector3.z);
+    }
+
     /**
      * This method takes a node and finds its size and centerpoint, 
      * then rescales it so the max extent is 1 and its centered at 0,0,0, 
@@ -47,8 +56,8 @@ export class ThreedUtils {
      * @param gltf the gltf to scale
      * @param scaleUnit the scale multiplier
      */
-    public static autoScaleModel(gltf: GLTF, scaleUnit = 1.0) {
-        var mroot = gltf.scene;
+    public static autoScaleModel(gltf: GLTF |THREE.Object3D, scaleUnit = 1.0) {
+        var mroot = gltf instanceof THREE.Object3D ? gltf : gltf.scene;
         var bbox = new THREE.Box3().setFromObject(mroot);
         var cent = bbox.getCenter(new THREE.Vector3());
         var size = bbox.getSize(new THREE.Vector3());
@@ -132,5 +141,55 @@ export class ThreedUtils {
         if (child.visible == false) return false;
         else if (child.parent != null) return ThreedUtils.isVisible(child.parent);
         else return true;
+    }
+
+    public static cloneGltf(gltf: GLTF): { animations: THREE.AnimationClip[], scene: THREE.Group } {
+        const clone = {
+            animations: gltf.animations,
+            scene: gltf.scene.clone(true)
+        };
+
+        const skinnedMeshes = {};
+
+        gltf.scene.traverse(node => {
+            //@ts-ignore
+            if (node.isSkinnedMesh) {
+                skinnedMeshes[node.name] = node;
+            }
+        });
+
+        const cloneBones = {};
+        const cloneSkinnedMeshes = {};
+
+        clone.scene.traverse(node => {
+            //@ts-ignore
+            if (node.isBone) {
+                cloneBones[node.name] = node;
+            }
+            
+            //@ts-ignore
+            if (node.isSkinnedMesh) {
+                cloneSkinnedMeshes[node.name] = node;
+            }
+        });
+
+        for (let name in skinnedMeshes) {
+            const skinnedMesh = skinnedMeshes[name];
+            const skeleton = skinnedMesh.skeleton;
+            const cloneSkinnedMesh = cloneSkinnedMeshes[name];
+
+            const orderedCloneBones = [];
+
+            for (let i = 0; i < skeleton.bones.length; ++i) {
+                const cloneBone = cloneBones[skeleton.bones[i].name];
+                orderedCloneBones.push(cloneBone);
+            }
+
+            cloneSkinnedMesh.bind(
+                new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses),
+                cloneSkinnedMesh.matrixWorld);
+        }
+
+        return clone;
     }
 }

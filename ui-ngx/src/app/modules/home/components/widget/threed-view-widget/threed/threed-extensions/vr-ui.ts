@@ -16,7 +16,7 @@
 
 import * as THREE from 'three';
 import { createText } from 'three/examples/jsm/webxr/Text2D';
-import { A_TAG, HTML_ELEMENT, ROOT_TAG } from '../threed-constants';
+import { A_TAG, HTML_ELEMENT, ROOT_TAG, VR_IMAGE } from '../threed-constants';
 
 
 export class VrUi {
@@ -25,6 +25,12 @@ export class VrUi {
         const parser = new DOMParser();
         const doc = parser.parseFromString(line, 'text/html');
         return doc.getElementsByTagName('a')?.[0];
+    }
+
+    public static getImgTag(line: string): HTMLImageElement | undefined {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(line, 'text/html');
+        return doc.getElementsByTagName('img')?.[0];
     }
 
     public static createPanelFromHtml(
@@ -54,21 +60,49 @@ export class VrUi {
         for (let index = 0; index < lines.length; index++) {
             const line = lines[index];
 
-            let element: THREE.Mesh;
+            let element: THREE.Mesh[] = [];
             const a = VrUi.getATag(line);
             if (a) {
                 const text = a.innerText.replace(regex, '');
-                element = VrUi.createTagA(text, height, a)
-            }
-            else {
-                const text = line.replace(regex, '');
-                element = createText(text, height);
+                element.push(VrUi.createTagA(text, height, a));
+            } else {
+
+                // if the line has the following structure, then it will display the image alt and the span content:
+                // <div ..>
+                //      <div>
+                //          <img><span>
+                //      </div>
+                // </div>
+                // Create a DOM element from the HTML string
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(line, "text/html");
+                // Get all the div elements containing the images and spans
+                const divs = doc.querySelectorAll("div > div");
+                if (divs && divs.length > 0) {
+                    // Iterate over each div element and extract the data
+                    let text = "";
+                    divs.forEach((div) => {
+                        const img = div.querySelector("img");
+                        const span = div.querySelector("span");
+                        if (img && span) {
+                            const alt = img.getAttribute("alt") ?? "Alt";
+                            const value = span.textContent;
+                            text += `${alt}: ${value}\n\n`;
+                        }
+                    });
+                    element.push(createText(text, height));
+                } else {
+                    const text = line.replace(regex, '');
+                    element.push(createText(text, height));
+                }
             }
 
-            element.userData[ROOT_TAG] = true
-            element.position.set(0, (lines.length - index) * height, 0);
-            element.renderOrder = 1
-            group.add(element);
+            element.forEach(e => {
+                e.userData[ROOT_TAG] = true;
+                e.position.set(0, (lines.length - index) * height, 0);
+                e.renderOrder = 1;
+                group.add(e);
+            })
         }
 
         var bbox = new THREE.Box3().setFromObject(group);
@@ -93,6 +127,7 @@ export class VrUi {
 
         group.renderOrder = 2;
         backgroundMesh.renderOrder = 0;
+        console.log(group);
         return group;
         //this.sceneManager.scene.add(group);
 
@@ -101,6 +136,19 @@ export class VrUi {
         box.renderOrder = 3;
         this.sceneManager.scene.add(box);
         */
+    }
+
+    public static createImg(base64: string, width: number = 1, height: number = 1) {
+        const texture = new THREE.TextureLoader().load(base64);
+        const geometry = new THREE.PlaneGeometry(width, height);
+        const material = new THREE.MeshBasicMaterial({ 
+            map: texture,
+            transparent: true,
+            alphaTest: 0.5
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.userData[VR_IMAGE] = true;
+        return mesh;
     }
 
     public static createTagA(message: string, height: number, a: HTMLAnchorElement) {
@@ -113,14 +161,14 @@ export class VrUi {
         metrics = context.measureText(message);
         const textWidth = metrics.width;
         canvas.width = textWidth;
-        canvas.height = textHeight+2;
+        canvas.height = textHeight + 2;
         context.font = 'normal ' + textHeight + 'px Arial';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillStyle = '#0000ff';
         context.fillText(message, textWidth / 2, textHeight / 2);
         // underline text
-        context.fillRect(0, textHeight, textWidth*2, 2);
+        context.fillRect(0, textHeight, textWidth * 2, 2);
 
         const texture = new THREE.Texture(canvas);
         texture.needsUpdate = true;
@@ -140,4 +188,39 @@ export class VrUi {
         return plane;
     }
 
+    /* Copy-paste from threejs Text2D.js */
+    public static createText( message: string, height: number, color: string = '#ffffff'): THREE.Object3D {
+
+        const canvas = document.createElement( 'canvas' );
+        const context = canvas.getContext( '2d' );
+        let metrics = null;
+        const textHeight = 100;
+        context.font = 'normal ' + textHeight + 'px Arial';
+        metrics = context.measureText( message );
+        const textWidth = metrics.width;
+        canvas.width = textWidth;
+        canvas.height = textHeight;
+        context.font = 'normal ' + textHeight + 'px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillStyle = color;
+        context.fillText( message, textWidth / 2, textHeight / 2 );
+    
+        const texture = new THREE.Texture( canvas );
+        texture.needsUpdate = true;
+    
+        const material = new THREE.MeshBasicMaterial( {
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            map: texture,
+            transparent: true,
+        } );
+        const geometry = new THREE.PlaneGeometry(
+            ( height * textWidth ) / textHeight,
+            height
+        );
+        const plane = new THREE.Mesh( geometry, material );
+        return plane;
+    
+    }
 }

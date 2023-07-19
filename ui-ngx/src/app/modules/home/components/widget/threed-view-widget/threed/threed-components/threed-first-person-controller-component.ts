@@ -20,8 +20,9 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { IThreedListener } from './ithreed-listener';
 import { ThreedBaseComponent } from "./threed-base-component";
+import { IThreedMesh } from './ithreed-mesh';
 
-export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent implements IThreedListener {
+export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent implements IThreedListener, IThreedMesh {
 
     private readonly gravity = 9.8;
     private readonly mass = 80;
@@ -38,7 +39,7 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     private moveLeft = false;
     private moveRight = false;
     private canJump = false;
-    private crouch = false;
+    private positionMode: 'standing' | 'crouch' | 'laying' = 'standing';
     private pointerLocked = false;
 
     private height = 1.7;
@@ -105,9 +106,9 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
 
             this.controls.getObject().position.y += (this.velocity.y * delta); // new behavior
 
-            if (this.crouch && this.controls.getObject().position.y <= this.height) {
+            if (this.positionMode != 'standing' && this.controls.getObject().position.y <= this.height) {
                 this.velocity.y = 0;
-                this.controls.getObject().position.y = this.height / 2;
+                this.controls.getObject().position.y = this.positionMode == 'crouch' ? this.height / 2 : this.height / 4;
                 this.canJump = false;
             } else if (this.controls.getObject().position.y < this.height) {
                 this.velocity.y = 0;
@@ -117,10 +118,11 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
         }
 
         this.prevTime = time;
+
+        //console.log(this.controls.getObject().position);
     }
 
     onKeyDown(event: KeyboardEvent): void {
-        console.log(event.code);
         switch (event.code) {
             case 'ArrowUp':
             case 'KeyW':
@@ -147,8 +149,8 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
                 this.canJump = false;
                 break;
 
-            case 'ShiftLeft':
-                this.crouch = true;
+            case 'KeyP':
+                console.log(this.controls.getObject().position);
                 break;
         }
     }
@@ -175,7 +177,13 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
                 break;
 
             case 'ShiftLeft':
-                this.crouch = false;
+                if (this.positionMode == 'standing') {
+                    this.positionMode = 'crouch';
+                } else if (this.positionMode == 'crouch') {
+                    this.positionMode = 'laying';
+                } else {
+                    this.positionMode = 'standing';
+                }
                 break;
         }
     }
@@ -185,5 +193,9 @@ export class ThreedFirstPersonControllerComponent extends ThreedBaseComponent im
     public lockControls(): void {
         this.controls?.lock();
         this.sceneManager.mouse.set(0, 0);
+    }
+
+    getMesh(): THREE.Object3D {
+        return this.controls.getObject();
     }
 }

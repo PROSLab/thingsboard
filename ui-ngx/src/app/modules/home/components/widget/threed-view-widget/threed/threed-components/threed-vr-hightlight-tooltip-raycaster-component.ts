@@ -15,17 +15,28 @@
 ///
 
 import * as THREE from 'three';
-import { A_TAG, LAST_VISIBILITY, VR_MESHES } from '../threed-constants';
+import { A_TAG, LAST_VISIBILITY, VR_IMAGE, VR_MESHES } from '../threed-constants';
 import { IThreedSceneManager } from '../threed-managers/ithreed-scene-manager';
 import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedHightlightTooltipRaycasterComponent } from './threed-hightlight-tooltip-raycaster-component';
 import { ThreedVrControllerComponent } from './threed-vr-controller-component';
-import { CssObject } from '../threed-managers/threed-css-manager';
+import { CssData, CssObject } from '../threed-managers/threed-css-manager';
 
 export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightlightTooltipRaycasterComponent {
 
     private vrController: ThreedVrControllerComponent;
     private updateCounterIndex = 0;
+
+    private highlightedMaterial = new THREE.MeshStandardMaterial({
+        color: 0x0000ff,
+        opacity: 0.5,
+        transparent: true,
+        wireframe: true,
+    });
+    private lastHighlightedObject?: THREE.Object3D;
+    private highlightObjects = false;
+    private lastUpdateRaycaster = -1;
+
 
     constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'single', raycastOrigin?: THREE.Vector2) {
         super(raycastUpdate, resolveRaycastObject, raycastOrigin);
@@ -35,9 +46,11 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         super.initialize(sceneManager)
 
         this.vrController = this.sceneManager.getComponent(ThreedVrControllerComponent);
+        this.vrController.setGripText("Toggle Highlight Mode: Grip<br>");
 
+        this.subscriptions.push(this.vrController.onGripPressed.subscribe(_ => this.onGripPressed()));
         this.subscriptions.push(this.vrController.onSelectStartEvent.subscribe(_ => this.onVrSelectPressed()));
-        this.subscriptions.push(this.sceneManager.onVRChange.subscribe(_ => this.onVrChanged()))
+        this.subscriptions.push(this.sceneManager.onVRChange.subscribe(_ => this.onVrChanged()));
     }
 
     private onVrChanged() {
@@ -52,12 +65,48 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         this.checkClick(this.intersectedObjects?.[0]?.object)
     }
 
+    private onGripPressed() {
+        this.highlightObjects = !this.highlightObjects;
+        this.sceneManager.cssManager.createOrUpdateVRText(`Highlight Mode ${this.highlightObjects ? 'Enabled' : 'Disabled'}`, new THREE.Vector3(0, .5, -2), false, "#f00", 0.1, "highlight-mode-text-uuid", 3);
+        if (!this.highlightObjects) {
+            if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
+            this.lastHighlightedObject = undefined;
+        }
+    }
+
     public tick() {
         super.tick();
 
-        if (!this.sceneManager.vrActive || this.updateCounterIndex++ % 2 == 0 || this.raycastUpdate == 'click') return;
+        if (!this.sceneManager.vrActive || this.updateCounterIndex++ % 2 == 0) return;
 
-        this.updateRaycaster();
+        if (this.raycastUpdate == 'hover')
+            this.updateRaycaster();
+
+        if (this.highlightObjects && this.updateCounterIndex % 4 == 0)
+            this.highlightIntersectingObject();
+    }
+
+
+    private highlightIntersectingObject() {
+
+        // UPDATE RAYCASTER
+        this.setRaycaster();
+
+        // GET THE FIRST OBJECT AND HIGHTLIGHT
+        const objs = this.raycaster.intersectObjects(this.getIntersectionObjects());
+        const intersection = this.intersectedObjects = objs.filter(o => this.getIntersectedObjectFilter(o));
+
+        if (intersection.length > 0) {
+            const intersectedObject = intersection[0].object;
+
+            if (this.lastHighlightedObject != intersectedObject) {
+                if (intersectedObject) this.toggleHightlightGLTF(intersectedObject, true, this.highlightedMaterial);
+                if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
+            }
+            this.lastHighlightedObject = intersectedObject;
+        } else {
+            if (this.lastHighlightedObject) this.toggleHightlightGLTF(this.lastHighlightedObject, false);
+        }
     }
 
     private checkClick(object: THREE.Group) {
@@ -74,6 +123,8 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
     }
 
     protected setRaycaster() {
+
+        if (this.lastUpdateRaycaster == this.updateCounterIndex) return;
 
         if (!this.sceneManager.vrActive) {
             super.setRaycaster();
@@ -95,6 +146,8 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
         tempMatrix.identity().extractRotation(this.vrController.controller.matrixWorld);
         this.raycaster.ray.origin.setFromMatrixPosition(this.vrController.controller.matrixWorld);
         this.raycaster.ray.direction.set(direction.x, direction.y, direction.z).applyMatrix4(tempMatrix);
+
+        this.lastUpdateRaycaster = this.updateCounterIndex;
     }
 
     protected canSelectObject(object: any): boolean {
@@ -102,7 +155,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
             const cssObject = super.getTooltip(object);
             let hasVrTooltip = false;
             cssObject?.data.forEach(d => {
-                if (d.vrMesh) {
+                if (d.type == "label" && d.vrMesh) {
                     hasVrTooltip = true;
                     return;
                 }
@@ -117,9 +170,9 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
             const vrMeshes = [];
             cssObject.data.forEach(d => {
                 if (d.vrMesh) {
-                    d.vrMesh.visible = true;
-                    d.vrMesh.userData[LAST_VISIBILITY] = true;
-                    vrMeshes.push(d.vrMesh);
+                    d.vrMesh.visible = d.type == "label";
+                    d.vrMesh.userData[LAST_VISIBILITY] = d.type == "label";
+                    vrMeshes.push(d);
                 }
             })
             object.userData[VR_MESHES] = vrMeshes;
@@ -131,9 +184,9 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
 
     protected onDisableTooltip(object: THREE.Group): void {
         if (this.sceneManager.vrActive) {
-            object.userData[VR_MESHES]?.forEach(m => {
-                m.visible = false
-                m.userData[LAST_VISIBILITY] = false;
+            object.userData[VR_MESHES]?.forEach((m: CssData) => {
+                m.vrMesh.visible = m.type == "image";
+                m.vrMesh.userData[LAST_VISIBILITY] = m.type == "image";
             });
             object.userData[VR_MESHES] = undefined;
 
@@ -143,7 +196,7 @@ export class ThreedVrHightlightTooltipRaycasterComponent extends ThreedHightligh
     }
 
     protected getIntersectedObjectFilter(o: THREE.Intersection) {
-        return super.getIntersectedObjectFilter(o) && o.object.name != "controller";
+        return super.getIntersectedObjectFilter(o) && o.object.name != "controller" && o.object.userData[VR_IMAGE] != true;
     }
     /*
     protected getCamera(): THREE.Camera {

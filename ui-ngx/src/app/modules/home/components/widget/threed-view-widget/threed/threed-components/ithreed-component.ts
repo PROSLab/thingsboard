@@ -21,5 +21,5 @@ export interface IThreedComponent {
     tick(): void;
     render(): void;
     resize(): void;
-    onDestory(): void;
+    onDestroy(): void;
 }

@@ -19,6 +19,7 @@ import { IThreedSceneManager } from "../threed-managers/ithreed-scene-manager";
 import { ThreedWebRenderer } from "../threed-managers/threed-web-renderer";
 import { ThreedBaseComponent } from "./threed-base-component";
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { IThreedMesh } from './ithreed-mesh';
 
 export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
 
@@ -26,6 +27,7 @@ export class ThreedDefaultAmbientComponent extends ThreedBaseComponent {
     private createDefaultCube: boolean;
     private pmremGenerator: THREE.PMREMGenerator;
     private neutralEnvironment: THREE.Texture;
+    private plane: THREE.Object3D;
 
     constructor(createGridHelper: boolean, createDefaultCube: boolean = false) {
         super();

@@ -24,8 +24,8 @@ export class ThreedTransformRaycasterComponent extends ThreedAbstractRaycasterCo
     private updateRaycast = true;
     private updateRaycastLastFrame = true;
 
-    constructor(raycastUpdate: 'click' | 'hover' = 'click', transformController: ThreedTransformControllerComponent) {
-        super(raycastUpdate);
+    constructor(raycastUpdate: 'click' | 'hover' = 'click', resolveRaycastObject: 'single' | 'root' = 'root', transformController: ThreedTransformControllerComponent) {
+        super(raycastUpdate, resolveRaycastObject);
         this.transformController = transformController;
     }
 

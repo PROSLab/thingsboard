@@ -22,6 +22,7 @@ import { ThreedCssManager } from './threed-css-manager';
 import { ThreedModelManager } from './threed-model-manager';
 import { ElementRef, EventEmitter } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { ThreedPhysicManager } from './threed-physic-manager';
 
 export interface IThreedSceneManager {
     scene: Scene;
@@ -32,6 +33,7 @@ export interface IThreedSceneManager {
     get configs(): ThreedSceneConfig;
     get modelManager(): ThreedModelManager;
     get cssManager(): ThreedCssManager;
+    get physicManager(): ThreedPhysicManager;
     get screenWidth(): number;
     get screenHeight(): number;
     get currentValues(): any;
@@ -43,6 +45,7 @@ export interface IThreedSceneManager {
     onMainCameraChange: EventEmitter<Camera>;
     onVRChange: EventEmitter<boolean>;
 
+    add(component: IThreedComponent, initInstantly: boolean): void;
     initialize(): void;
     getTRenderer<T extends IThreedRenderer>(type: new () => T): T | undefined;
     isActive(): boolean;

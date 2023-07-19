@@ -43,6 +43,10 @@ export class ThreedCssRenderer implements IThreedRenderer {
         this.cssRenderer.setSize(rect.width, rect.height);
     }
 
+    public detach() {
+        this.cssRenderer.domElement.remove();
+    }
+
     public resize(width?: number, height?: number): void {
         this.cssRenderer?.setSize(width, height);
     }

@@ -21,8 +21,9 @@ import { ThreedWebRenderer } from '../threed-managers/threed-web-renderer';
 import { ThreedBaseComponent } from "./threed-base-component";
 import { EventEmitter } from '@angular/core';
 import { VrUi } from '../threed-extensions/vr-ui';
+import { IThreedMesh } from './ithreed-mesh';
 
-export class ThreedVrControllerComponent extends ThreedBaseComponent {
+export class ThreedVrControllerComponent extends ThreedBaseComponent implements IThreedMesh {
 
     private readonly gravity = 9.8;
     private readonly mass = 80;
@@ -39,15 +40,25 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     private tempMatrix = new THREE.Matrix4();
     private textHelper: THREE.Group;
 
-    private canJump = false;
+    private positionMode: 'standing' | 'crouch' | 'laying' = 'standing';
+    private height = 1.7;
+    private gripText: string;
 
     private prevTime = performance.now();
     private lastBPressed = performance.now();
+    private lastAPressed = performance.now();
+    private lastGripPressed = performance.now();
 
     public line: THREE.Line;
     public canMove = true;
     public onSelectStartEvent = new EventEmitter();
     public onSelectEndEvent = new EventEmitter();
+    public onGripPressed = new EventEmitter();
+
+    constructor(gripText: string = "") {
+        super();
+        this.gripText = gripText;
+    }
 
     initialize(sceneManager: IThreedSceneManager): void {
         super.initialize(sceneManager);
@@ -74,6 +85,7 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
         this.subscriptions.push(s);
 
         this.createVRControllerInputTextHelper();
+        this.displayVRControllerInputTextHelper(false);
     }
 
     private onSelectStart(event: THREE.Event & { type: "selectstart"; } & { target: THREE.XRTargetRaySpace; }) {
@@ -131,10 +143,26 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
     }
 
     private createVRControllerInputTextHelper() {
-        this.textHelper = VrUi.createPanelFromHtml("RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br><br>Open/Close Commands: B", {textSize:.25, margin:.5});
-        this.textHelper.position.set(0, -1, -2);
+        if (this.textHelper) {
+            if (this.textHelper.parent) this.textHelper.parent.remove(this.textHelper);
+            this.sceneManager.scene.remove(this.textHelper);
+        }
+        this.textHelper = VrUi.createPanelFromHtml(`RIGHT CONTROLLER<br><br>Move: Joystick<br>Interact: Trigger<br>Crouch/Stand up: A<br>${this.gripText}<br>Open/Close Commands: B`, { textSize: .15, margin: .5 });
+        this.textHelper.position.set(-0.5, -0.5, -2.5);
+
+        const imgHelper = VrUi.createImg("/assets/help/images/vr_buttons.png", .75, .75);
+        imgHelper.position.set(1.5, 0.5, 0.5);
+        this.textHelper.add(imgHelper);
+
         this.sceneManager.scene.add(this.textHelper);
-        this.displayVRControllerInputTextHelper(false);
+    }
+
+    public setGripText(gripText: string) {
+        if (gripText) {
+            this.gripText = gripText;
+            this.createVRControllerInputTextHelper();
+            this.displayVRControllerInputTextHelper(this.sceneManager.vrActive);
+        }
     }
 
     private displayVRControllerInputTextHelper(visible: boolean) {
@@ -168,20 +196,26 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
 
             if (onObject === true) {
                 this.velocity.y = Math.max(0, this.velocity.y);
-                this.canJump = true;
             }
 
             if (this.canMove) {
                 const cameraDolly = this.sceneManager.camera.parent;
                 const quaternion = cameraDolly.quaternion.clone();
                 this.sceneManager.camera.getWorldQuaternion(cameraDolly.quaternion);
-                const y = cameraDolly.position.y;
+                let y = cameraDolly.position.y;
+                if (y == 0) this.height = this.sceneManager.camera.position.y;
+
+                if (this.positionMode == 'standing') y = 0;
+                else if (this.positionMode == 'crouch') y = -this.height / 2;
+                else if (this.positionMode == 'laying') y = -this.height / 4 * 3;
+
                 cameraDolly.translateZ(-this.velocity.z * delta);
                 cameraDolly.translateX(-this.velocity.x * delta);
                 cameraDolly.position.setY(y);
                 cameraDolly.quaternion.copy(quaternion);
             }
         }
+
 
         this.prevTime = time;
     }
@@ -210,6 +244,27 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
                         this.direction.z = data.axes[1];
                     }
                     if (data.buttons.length >= 6) {
+
+                        // GRIP button pressed
+                        const grip = data.buttons[1];
+                        if (grip >= 1 && performance.now() - this.lastGripPressed >= 500) {
+                            this.onGripPressed.emit();
+                            this.lastGripPressed = performance.now();
+                        }
+
+                        // A button pressed
+                        const buttonA = data.buttons[4];
+                        if (buttonA >= 1 && performance.now() - this.lastAPressed >= 500) {
+                            if (this.positionMode == 'standing') {
+                                this.positionMode = 'crouch';
+                            } else if (this.positionMode == 'crouch') {
+                                this.positionMode = 'laying';
+                            } else {
+                                this.positionMode = 'standing';
+                            }
+                            this.lastAPressed = performance.now();
+                        }
+
                         // B button pressed
                         const buttonB = data.buttons[5];
                         if (buttonB >= 1 && performance.now() - this.lastBPressed >= 500) {
@@ -231,5 +286,9 @@ export class ThreedVrControllerComponent extends ThreedBaseComponent {
             return false;
         }
         return typeof obj[Symbol.iterator] === "function";
+    }
+
+    getMesh(): THREE.Object3D {
+        return this.sceneManager.camera.parent;
     }
 }

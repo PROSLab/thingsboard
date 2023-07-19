@@ -27,6 +27,7 @@ import { IThreedSceneManager } from "./ithreed-scene-manager";
 import { ThreedCssManager } from "./threed-css-manager";
 import { ThreedCssRenderer } from "./threed-css-renderer";
 import { ThreedModelManager } from "./threed-model-manager";
+import { ThreedPhysicManager } from "./threed-physic-manager";
 import { ThreedWebRenderer } from "./threed-web-renderer";
 import { Subscription } from "rxjs";
 import { ThreedEventManager } from "./threed-event-manager";
@@ -44,6 +45,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     private components: IThreedComponent[] = [];
     private subscriptions: Subscription[] = [];
     private _center = new THREE.Vector2();
+    private destroying = false;
 
     public scene: Scene;
     public active: boolean;
@@ -53,6 +55,7 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public configs: ThreedSceneConfig;
     public modelManager: ThreedModelManager;
     public cssManager: ThreedCssManager;
+    public physicManager: ThreedPhysicManager;
     public screenWidth = window.innerWidth;
     public screenHeight = window.innerHeight;
     public currentValues: any;
@@ -72,6 +75,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     public onRendererContainerChange = new EventEmitter<ElementRef>();
     public onMainCameraChange = new EventEmitter<Camera>();
     public onVRChange = new EventEmitter<boolean>();
+    public onTick = new EventEmitter();
+    public onRender = new EventEmitter();
 
     constructor(configs: ThreedSceneConfig) {
         this.configs = configs;
@@ -93,11 +98,13 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.subscriptions.push(s);
 
         this.cssManager = new ThreedCssManager(this);
+        this.physicManager = new ThreedPhysicManager(this);
         this.components.forEach(c => c.initialize(this));
     }
 
-    public add(component: IThreedComponent): void {
+    public add(component: IThreedComponent, initInstantly: boolean = false): void {
         this.components.push(component);
+        if (initInstantly) component.initialize(this);
     }
 
     public addSubscription(subscription: Subscription): void {
@@ -132,6 +139,10 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.startRendering();
     }
 
+    public detach() {
+        
+    }
+
     public resize(width?: number, height?: number): void {
         const rect: DOMRect | undefined = this.rendererContainer?.nativeElement.getBoundingClientRect();
         this.screenWidth = width || rect.width;
@@ -145,8 +156,12 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         return this.active && ThreedGenericSceneManager.activeSceneManagers.get(this.sceneId) == true;
     }
 
-    public getComponent<T extends IThreedComponent>(type: new () => T): T | undefined {
+    public getComponent<T extends IThreedComponent>(type: new (...args: any[]) => T): T | undefined {
         return this.components.find(c => c instanceof type) as T | undefined;
+    }
+
+    public getComponents<T extends IThreedComponent>(type: new (...args: any[]) => T): T[] {
+        return this.components.filter(c => c instanceof type) as T[];
     }
 
     public findComponentsByTester<T>(tester: (obj: any) => obj is T): T[] {
@@ -199,6 +214,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
     }
 
     private animate() {
+        if(this.destroying) return;
+
         window.requestAnimationFrame(() => this.animate());
 
         this.loop();
@@ -206,6 +223,8 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
     private loop() {
         this.tick();
+        this.physicManager.updatePhysics();
+        this.physicManager.updateVisuals();
         TWEEN.update();
         this.render();
     }
@@ -214,11 +233,13 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
         this.cssManager.tick();
         this.components.forEach(c => c.tick());
         this.threedRenderers.forEach(r => r.tick(this));
+        this.onTick.emit();
     }
 
     private render(): void {
         this.threedRenderers.forEach(r => r.render(this));
         this.components.forEach(c => c.render());
+        this.onRender.emit();
     }
     /*============================ END OF UNDATE & RENDERING ============================*/
 
@@ -347,10 +368,15 @@ export class ThreedGenericSceneManager implements IThreedSceneManager {
 
 
     public destroy(): void {
-        this.components.forEach(c => c.onDestory());
+        this.destroying = true;
+        if (this.configs.vr) 
+            this.getTRenderer(ThreedWebRenderer).getRenderer().setAnimationLoop(null);
+
+        this.threedRenderers.forEach(r => r.detach());
+        this.components.forEach(c => c.onDestroy());
         this.subscriptions.forEach(s => s.unsubscribe());
-        this.cssManager.onDestory();
-        this.modelManager.onDestory();
+        this.cssManager.onDestroy();
+        this.modelManager.onDestroy();
         ThreedGenericSceneManager.activeSceneManagers.delete(this.sceneId);
     }
 }

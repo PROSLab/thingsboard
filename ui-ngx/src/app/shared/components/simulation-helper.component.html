@@ -1,0 +1,86 @@
+<!--
+
+    Copyright © 2016-2023 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div style="width:100%;height:100%" [ngClass]="editor ? 'renderContainerEditor' : 'renderContainerNormal'"
+    #rendererContainer>
+    <div class="position-absolute w-100 ontop"
+        *ngIf="simulationState != SimulationState.UNCOMPILED && simulationState != SimulationState.COMPILING; else compileBlock">
+        <div fxLayout="row" (click)="$event.stopPropagation()">
+            <div fxFlex="33" fxLayoutAlign="start">
+                <button mat-icon-button (click)="startSimulation()" *ngIf="simulationState != SimulationState.STARTED"
+                    matTooltip="Start simulation">
+                    <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button (click)="stopSimulation()" *ngIf="simulationState != SimulationState.STARTED"
+                    matTooltip="Cancel simulation">
+                    <mat-icon>close</mat-icon>
+                </button>
+
+                <button mat-icon-button (click)="stopSimulation()" *ngIf="simulationState == SimulationState.STARTED"
+                    matTooltip="Stop simulation">
+                    <mat-icon>stop</mat-icon>
+                </button>
+
+                <!--
+                <button mat-icon-button (click)="resetSimulation()" *ngIf="simulationState == SimulationState.STARTED"
+                    matTooltip="Reset simulation">
+                    <mat-icon>replay</mat-icon>
+                </button>
+                -->
+
+                <button mat-icon-button (click)="lockCursor()" matTooltip="Lock">
+                    <mat-icon>lock</mat-icon>
+                </button>
+            </div>
+
+            <div fxFlex="33" fxLayout="column" fxLayoutAlign="center center">
+                <span style="font-size: 20px; font-weight: bold;"
+                    *ngIf="simulationState == SimulationState.STARTED">Time: {{time}}</span>
+            </div>
+
+            <div fxFlex="33" fxLayoutAlign="end">
+                <button mat-icon-button (click)="openOptionsMenu()">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <ng-template #compileBlock>
+
+        <div id="blocker">
+            <div id="instructions">
+                <button *ngIf="simulationState == SimulationState.UNCOMPILED; else compiling" mat-icon-button
+                    (click)="compile()" matTooltip="Compile">
+                    <mat-icon class="bigger-icon">bug_report</mat-icon>
+                </button>
+
+                <ng-template #compiling>
+                    <button mat-icon-button (click)="stopSimulation()" matTooltip="Cancel simulation">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    <p style="font-size:36px">
+                        Loading Simulation...
+                    </p>
+                    <mat-spinner></mat-spinner>
+                </ng-template>
+            </div>
+        </div>
+    </ng-template>
+</div>

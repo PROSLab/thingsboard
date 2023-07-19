@@ -76,6 +76,16 @@ export class ThreedScenes {
         return builder.build();
     }
 
+    //* INFO: Simulation scene 
+    public static createSimulationScene(): ThreedGenericSceneManager {
+        const builder = new ThreedSceneBuilder({ vr: true, shadow: true })
+            .add(new ThreedPerspectiveCameraComponent(new THREE.Vector3(0, 1.7, 0)))
+            .add(new ThreedDefaultAmbientComponent(false))
+            .add(new ThreedFirstPersonControllerComponent())
+            .add(new ThreedVrControllerComponent("Start/Stop: Grip<br>"));
+        return builder.build();
+    }
+
     //* INFO: Editor scene for FPS
     public static createEditorSceneWithCameraDebug(): ThreedGenericSceneManager {
         const transformControllercomponent = new ThreedTransformControllerComponent(true);
@@ -85,7 +95,7 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedOrbitControllerComponent())
             .add(transformControllercomponent)
-            .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
+            .add(new ThreedTransformRaycasterComponent('click', 'root', transformControllercomponent))
             .add(cameraPreviewComponent)
             .add(new ThreedUpdateSceneSettingsComponent(cameraPreviewComponent))
             .add(new ThreedProgressBarComponent())
@@ -107,7 +117,7 @@ export class ThreedScenes {
             .add(new ThreedDefaultAmbientComponent(true))
             .add(new ThreedOrbitControllerComponent())
             .add(transformControllercomponent)
-            .add(new ThreedTransformRaycasterComponent('click', transformControllercomponent))
+            .add(new ThreedTransformRaycasterComponent('click', 'root', transformControllercomponent))
             .add(new ThreedUpdateSceneSettingsComponent())
             .add(new ThreedProgressBarComponent());
 
