@@ -10,6 +10,41 @@ ThingsBoard is an open-source IoT platform for data collection, processing, visu
 
 ThingsBoard documentation is hosted on [thingsboard.io](https://thingsboard.io/docs).
 
+## Extension
+
+The extension of the ThingsBoard platform has been improved with the development of new widgets that address two missing characteristics of Digital Twins: Visualization and Simulation. 
+These widgets play a crucial role in visually representing real-world objects in detail and creating virtual simulation environments for understanding system responses in specific scenarios.
+
+The extension can be found in the `ui-ngx/src/app/modules/home/components/widget/threed-view-widget` folder, where four widgets have been developed:
+
+<br>
+<center>
+<img src="./img/widgets.png?raw=true" width="500">
+</center>
+<br>
+
+- **Simple 3D Orbit**: The 3D Simple Orbit Widget offers a straightforward and intuitive 3D visualization of a single object. It allows users to rotate, zoom in/out, and visualize the exploded view of the object. With the simple orbit controls, users can easily manipulate the object's orientation and gain a comprehensive understanding of its spatial features.
+<center>
+<img src="./img/3d_simple_orbit_view.png?raw=true" width="400">
+</center>
+
+- **Complex 3D Orbit**: The 3D Complex Orbit Widget takes 3D visualization capabilities to a higher level, providing advanced features for displaying and interacting with multiple objects. This widget offers a versatile and customizable visualization environment where users can manipulate various objects simultaneously. Users can rotate, zoom in/out, and explore the exploded view of the objects, gaining insights into their spatial relationships and configurations.
+<center>
+<img src="./img/3d_complex_orbit_view.png?raw=true" width="400">
+</center>
+
+- **Immersive Navigation**: the 3D Immersive Navigation Widget provides a captivating and immersive 3D experience, enabling users to navigate through a virtual environment using either a VR headset or keyboard input. It could be considered a different view respect the 3D Complex Orbit Widget.
+<center>
+<img src="./img/3d_immersive_navigation_view.png?raw=true" width="300">
+<img src="./img/3d_immersive_navigation_view2.png?raw=true" width="300">
+</center>
+
+- **3D Simulation**: the 3D Simulation Widget allows users to simulate real-world scenarios and analyze the behavior of IoT systems in a virtual environment. This widget alone is not enough, but it relies on the Rule Engine to define the behavior of individual entities. The user then is able to define the 3D environment and code the actual simulation scenario.
+<center>
+<img src="./img/3d_simulation_view.png?raw=true" width="400">
+</center>
+
+
 ## IoT use cases
 
 [**Smart energy**](https://thingsboard.io/smart-energy/)
