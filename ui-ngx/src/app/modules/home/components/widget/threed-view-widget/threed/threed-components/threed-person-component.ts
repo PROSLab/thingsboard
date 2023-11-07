@@ -28,6 +28,7 @@ import { ThreedRigidbodyComponent } from "./threed-rigidbody-component";
 import { ThreedAnimatorComponent } from "./threed-animator-component";
 import { IThreedPhysicObject } from "./ithreed-physic-object";
 import { IThreedPerson } from "./ithreed-person";
+import {Pir} from "@home/components/widget/lib/settings/threed/threed-scene-settings.component";
 
 const OCCUPIED_BY = "occupiedBy";
 
@@ -40,8 +41,8 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     private clonedPath: number[][];
     private previousPath?: THREE.Object3D;
     private alerted = false;
-    private underDesk = false;
-    private deskFound?: THREE.Object3D;
+    private pirUnderDesk = false;
+    private deskPirFound?: Pir;
 
     private tween: TWEEN.Tween;
     // velocity in meters/seconds
@@ -60,11 +61,11 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     public reset(position: THREE.Vector3) {
         this.path = undefined;
         this.alerted = false;
-        this.underDesk = false;
-        if (this.deskFound) {
-            this.deskFound.userData[OCCUPIED_BY] = undefined;
+        this.pirUnderDesk = false;
+        if (this.deskPirFound.isOccupied) {
+            this.deskPirFound.isOccupied = false;
         }
-        this.deskFound = undefined;
+        this.deskPirFound = undefined;
 
         this.tween?.stop();
         this.tween = undefined;
@@ -90,10 +91,10 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     }
 
     private walkToDesk() {
-        if (!this.clonedPath || !this.deskFound || this.underDesk) return;
+        if (!this.clonedPath || !this.deskPirFound || this.pirUnderDesk) return;
 
-        if (this.clonedPath.length == 0 && this.deskFound) {
-            this.underDesk = true;
+        if (this.clonedPath.length == 0 && this.deskPirFound) {
+            this.pirUnderDesk = true;
             this.animator.stop();
             this.animator.play("Laying");
             return;
@@ -119,11 +120,11 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     }
 
     private updatePositionUnderDesk() {
-        if (!this.underDesk || this.tween) return;
+        if (!this.pirUnderDesk || this.tween) return;
 
-        const deskPosition = this.deskFound.position.clone();
-        deskPosition.x += this.deskFound.userData.pirPosition[0];
-        deskPosition.z += this.deskFound.userData.pirPosition[2];
+        const deskPosition = this.deskPirFound.pirPosition.clone();
+        //deskPosition.x += this.deskPirFound.pirPosition.x;
+        deskPosition.y -= this.deskPirFound.pirPosition.y;
 
         if (this.mesh.position.distanceTo(deskPosition) > 0.1) {
             this.animator.play("Crawling");
@@ -145,24 +146,25 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
         this.animator.play("Idle");
     }
 
-    public earthquakeAlert(magnitude: number, desks: THREE.Object3D[]) {
-        if (this.alerted || magnitude <= 0.5) return;
+    public earthquakeAlert(magnitude: number, deskPirs: Pir[]) {
+    if (this.alerted || magnitude <= 0.5) return;
 
-        const sortedDeskByDistance = desks.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
-        //console.log(sortedDeskByDistance.map(o => o.name));
-        for (const desk of sortedDeskByDistance) {
-            if (desk.userData[OCCUPIED_BY] != undefined) continue;
-            const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.position);
-            const { x, y } = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
-            if (this.findPathToDesk(this.mesh.position, { x, y })) {
-                this.deskFound = desk;
-                desk.userData.occupiedBy = this;
-                break;
-            }
+    const sortedDeskByDistance = deskPirs.sort((a, b) => a.pirPosition.distanceTo(this.mesh.position) - b.pirPosition.distanceTo(this.mesh.position));
+    
+    for (const desk of sortedDeskByDistance) {
+        if (desk.isOccupied == true) continue;
+        const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.pirPosition);
+        const { x, y } = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
+        if (this.findPathToDesk(this.mesh.position, { x, y })) {
+            this.deskPirFound = desk;
+            desk.isOccupied = true;
+            break;
         }
-
-        this.alerted = true;
     }
+
+    this.alerted = true;
+}
+
 
     public findPathToDesk(start: THREE.Vector3 | { x: number, y: number }, end: THREE.Vector3 | { x: number, y: number }): boolean {
 
