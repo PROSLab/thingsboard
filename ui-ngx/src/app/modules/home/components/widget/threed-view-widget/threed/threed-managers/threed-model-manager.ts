@@ -63,8 +63,14 @@ export class ThreedModelManager {
         const customId = configs.id || root.uuid
         model.userData[OBJECT_ID_TAG] = customId;
         model.userData[ROOT_TAG] = true;
-        root.userData[OBJECT_ID_TAG] = customId;
-        root.userData[ROOT_TAG] = true;
+
+        //Insert the user data of the model into the root object
+        for (const key in model.userData) {
+          if (model.userData.hasOwnProperty(key)) {
+            root.userData[key] = model.userData[key];
+          }
+        }
+
         let flatModel: THREE.Object3D[] = [];
         root.traverse(o => {
             if (o instanceof THREE.Mesh)

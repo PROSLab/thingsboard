@@ -17,8 +17,24 @@
 -->
 
 <section class="tb-widget-settings" [formGroup]="threedSceneSettingsFormGroup">
-    <fieldset class="fields-group">
-        <legend class="group-title">Scene settings</legend>
+  <fieldset class="fields-group">
+    <legend class="group-title">Scene settings</legend>
+
+<!--          <div fxLayout="row" (click)="$event.stopPropagation()">-->
+<!--            <button mat-icon-button (click)="exportScene()">-->
+<!--              <mat-icon>save</mat-icon> &lt;!&ndash; You can replace 'save' with the desired icon &ndash;&gt;-->
+<!--            </button>-->
+<!--          </div>-->
+
+    <div fxLayout="row" (click)="$event.stopPropagation()">
+      <button mat-icon-button (click)="exportScene()">
+        <mat-icon>save</mat-icon> <!-- Export button -->
+      </button>
+      <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none">
+      <button mat-icon-button (click)="fileInput.click()">
+        <mat-icon>attach_file</mat-icon> <!-- New button to select a file -->
+      </button>
+    </div>
 
         <div class="tb-container"  style="color:white">
             <div class="rendererContainer" #rendererContainer>
@@ -62,29 +78,29 @@
                                 <mat-icon>pan_tool</mat-icon>
                             </button>
                         -->
-                        
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <tb-threed-environment-settings 
-            [sceneEditor]="sceneEditor" 
+        <tb-threed-environment-settings
+            [sceneEditor]="sceneEditor"
             [aliasController]="aliasController"
             formControlName="threedEnvironmentSettings"
             #threedEnvironmentSettings>
         </tb-threed-environment-settings>
 
-        <tb-threed-camera-settings 
+        <tb-threed-camera-settings
             *ngIf="hasCamera()"
-            [sceneEditor]="sceneEditor" 
+            [sceneEditor]="sceneEditor"
             formControlName="threedCameraSettings"
             #threedCameraSettings>
         </tb-threed-camera-settings>
 
-        <tb-threed-devices-settings 
-            [sceneEditor]="sceneEditor" 
+        <tb-threed-devices-settings
+            [sceneEditor]="sceneEditor"
             [aliasController]="aliasController"
             formControlName="threedDevicesSettings"
             #threedDevicesSettings>

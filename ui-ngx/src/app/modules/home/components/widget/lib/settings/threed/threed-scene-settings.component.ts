@@ -26,7 +26,7 @@ import {
   Validator
 } from '@angular/forms';
 import { IAliasController } from '@app/core/public-api';
-import { ENVIRONMENT_ID, ThreedSceneControllerType } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
+import { ENVIRONMENT_ID, PIR_NAME, ThreedSceneControllerType } from '@app/modules/home/components/widget/threed-view-widget/threed/threed-constants';
 import {
   ThreedDeviceGroupSettings,
   ThreedDevicesSettings,
@@ -38,11 +38,19 @@ import { EntityAliasAttribute, ModelUrl, ThreedModelLoaderService, ThreedUnivers
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ThreedOrbitControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-orbit-controller-component';
 import { ThreedTransformControllerComponent } from '../../../threed-view-widget/threed/threed-components/threed-transform-controller-component';
 import { ThreedGenericSceneManager } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import { ThreedScenes } from '../../../threed-view-widget/threed/threed-scenes/threed-scenes';
 import { IThreedExpandable } from './ithreed-expandable';
+import * as THREE from 'three';
+
+export interface Pir{
+  pirPosition : THREE.Vector3,
+  isOccupied: boolean
+}
 
 @Component({
   selector: 'tb-threed-scene-settings',
@@ -146,9 +154,22 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   private loadModel(config: ThreedUniversalModelLoaderConfig, id?: string) {
     if (!config.entityLoader) return;
 
-    this.threedModelLoader.loadModelAsGLTF(config, { updateProgress: p => this.loadingProgress = p * 100 }).subscribe(res => {
-      this.sceneEditor.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
-    });
+    const entityLoader = config.entityLoader;
+
+    // Check if the label is "pir"
+    if (entityLoader.entity.label.toLowerCase() === 'pir') {
+      this.threedModelLoader.loadModelAsGLTF(config, { updateProgress: p => this.loadingProgress = p * 100 })
+        .subscribe(res => {
+          // Set the custom userData property in res.model
+          res.model.userData[PIR_NAME] = entityLoader.entity.name;
+          this.sceneEditor.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
+        });
+    } else {
+      this.threedModelLoader.loadModelAsGLTF(config, { updateProgress: p => this.loadingProgress = p * 100 })
+        .subscribe(res => {
+          this.sceneEditor.modelManager.replaceModel(res.model, { id: id ? id : res.entityId });
+        });
+    }
   }
 
   ngAfterContentChecked(): void {
@@ -293,7 +314,7 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   }
 
   public focusOnObject() {
-    // TODO: pass the selected object or compute it inside 
+    // TODO: pass the selected object or compute it inside
     this.sceneEditor?.getComponent(ThreedOrbitControllerComponent).focusOnObject();
     //this.threedSceneEditor?.focusOnObject();
   }
@@ -323,5 +344,115 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     this.threedEnvironmentSettings?.forceExpand(id);
     this.threedCameraSettings?.forceExpand(id);
     this.threedDevicesSettings?.forceExpand(id);
+  }
+
+  public exportScene(): void {
+    const exportManager = new GLTFExporter();
+
+// Access the scene from your scene editor
+    const scene = this.sceneEditor.scene;
+    const roomScene = scene.children.find(child => child.userData.customId === 'Environment');
+
+    console.log("Room scene: ", roomScene);
+
+    for(const child of roomScene.children){
+      if(child.name.toLowerCase().includes('desks')){
+        delete child.userData.pirPosition;
+        console.log("Desk:", child);
+      }
+    }
+
+    // Iterate through your models map and add the root property to the export array
+    for (const pirChild of scene.children) {
+      // Check if it's a PIR component
+      if (pirChild.userData.pirName) {
+        const pirPosition = pirChild.position;
+        let closestDesk = null;
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        // Iterate through scene children to find the closest desk
+        for (const roomChild of roomScene.children) {
+          if (roomChild.name.toLowerCase().includes('desks')) {
+            // Check if the child is a desk component
+              const deskPosition = roomChild.position;
+
+              // Calculate the distance based on position.x
+              const distance = Math.abs(pirPosition.x - deskPosition.x);
+
+              // Update closest desk if it's closer than the previous one
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                closestDesk = roomChild;
+              }
+          }
+        }
+        // Add the PIR position to the closest desk's pirPosition
+        if (closestDesk) {
+          if (!closestDesk.userData.pir) {
+            closestDesk.userData.pir = [];
+          }
+          const newPir: Pir = {
+            pirPosition: pirPosition,
+            isOccupied: false
+          }
+          closestDesk.userData.pir.push(newPir);
+        }
+      }
+    }
+
+// Define export options
+    const exportOptions = {
+      binary: true, // Export as binary .glb
+      animations: [], // An empty array if you don't have animations
+    };
+
+// Perform the export with options
+    exportManager.parse(
+      [scene], // Combine the scene and Object3D components in an array
+      (result: ArrayBuffer) => {
+// Specify the expected type as ArrayBuffer
+        const blob = new Blob([result], { type: "model/gltf-binary" });
+        const url = URL.createObjectURL(blob);
+
+// Create a link to download the .glb file
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "exported-scene.glb";
+        a.click();
+
+// Clean up the URL object
+        URL.revokeObjectURL(url);
+      },
+      (error: ErrorEvent) => {
+        console.error("Export Error:", error);
+      },
+      exportOptions // Pass the export options here
+    );
+  }
+
+  @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement>;
+  public importScene(file: File): void {
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const arrayBuffer = event.target.result as ArrayBuffer;
+      const loader = new GLTFLoader();
+      loader.parse(arrayBuffer, '', (gltf) => {
+        // Inspect the gltf object here to check for userData
+        console.log("Parsed GLTF Object: ", gltf);
+      });
+    };
+
+    reader.readAsArrayBuffer(file);
+    console.log("SCENE OF FILE", this.sceneEditor.scene);
+  }
+
+  public onFileSelected(event: Event): void {
+    const inputElement = this.fileInput.nativeElement;
+    const selectedFile = inputElement.files[0];
+
+    if (selectedFile) {
+      this.importScene(selectedFile);
+    }
   }
 }
