@@ -15,7 +15,8 @@
 ///
 
 export const OBJECT_ID_TAG = "customId";
-export const PIR_NAME = "pirName";
+export const IOT_DEVICE = "IoTDevice";
+export const PIR_SENSORS = "PIR Sensors";
 export const ROOT_TAG = "rootObject";
 export const A_TAG = "aTag";
 export const HTML_ELEMENT = "htmlElement";

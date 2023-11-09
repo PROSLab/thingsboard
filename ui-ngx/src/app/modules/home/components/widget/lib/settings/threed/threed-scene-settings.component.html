@@ -20,20 +20,18 @@
   <fieldset class="fields-group">
     <legend class="group-title">Scene settings</legend>
 
-<!--          <div fxLayout="row" (click)="$event.stopPropagation()">-->
-<!--            <button mat-icon-button (click)="exportScene()">-->
-<!--              <mat-icon>save</mat-icon> &lt;!&ndash; You can replace 'save' with the desired icon &ndash;&gt;-->
-<!--            </button>-->
-<!--          </div>-->
-
     <div fxLayout="row" (click)="$event.stopPropagation()">
-      <button mat-icon-button (click)="exportScene()">
-        <mat-icon>save</mat-icon> <!-- Export button -->
+      <button mat-icon-button (click)="exportScene()" aria-label="Export">
+        <mat-icon>save</mat-icon>
       </button>
-      <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none">
-      <button mat-icon-button (click)="fileInput.click()">
-        <mat-icon>attach_file</mat-icon> <!-- New button to select a file -->
-      </button>
+
+      <!-- Label for file input -->
+      <label for="fileInput" mat-icon-button aria-label="Attach File">
+        <mat-icon>attach_file</mat-icon>
+      </label>
+
+      <!-- Hidden file input -->
+      <input id="fileInput" type="file" #fileInput (change)="onFileSelected($event)" style="display: none">
     </div>
 
         <div class="tb-container"  style="color:white">
