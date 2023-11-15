@@ -131,9 +131,9 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
       return;
     }
 
-    const pirPosition = this.iotPir.pirPosition.clone();
-    //pirPosition.x += this.iotPir.pirPosition.x;
-    pirPosition.y -= this.iotPir.pirPosition.y;
+    const pirPosition = this.iotPir.position.clone();
+    //pirPosition.x += this.iotPir.position.x;
+    pirPosition.y -= this.iotPir.position.y;
 
     if (this.mesh.position.distanceTo(pirPosition) <= 0.1) {
       return;
@@ -162,12 +162,12 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
       return;
     }
 
-    const sortedDeskByDistance = pirs.sort((a, b) => a.pirPosition.distanceTo(this.mesh.position) - b.pirPosition.distanceTo(this.mesh.position));
+    const sortedDeskByDistance = pirs.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
 
     for (const desk of sortedDeskByDistance) {
       if (desk.isOccupied) continue;
 
-      const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.pirPosition);
+      const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.position);
       const {x, y} = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
       if (this.findPathToDesk(this.mesh.position, {x, y})) {
         this.iotPir = desk;
