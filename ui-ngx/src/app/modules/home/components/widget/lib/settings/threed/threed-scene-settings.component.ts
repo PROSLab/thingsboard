@@ -38,7 +38,7 @@ import {
 } from '@angular/forms';
 import {IAliasController} from '@app/core/public-api';
 import {
-  ENVIRONMENT_ID,
+  ENVIRONMENT_ID, GATEWAY,
   IOT_DEVICE,
   PIR_SENSORS,
   ThreedSceneControllerType
@@ -75,18 +75,19 @@ import {IThreedExpandable} from './ithreed-expandable';
 import * as THREE from 'three';
 
 export interface IOT_Pir extends IOT_Device {
-  pirPosition: THREE.Vector3,
   isOccupied: boolean,
 }
 
 export interface IOT_Device {
   name: string,
-  type: DeviceTypes
+  type: DeviceTypes,
+  position: THREE.Vector3,
 }
 
 enum DeviceTypes {
   PIR = "Pir",
   GATEWAY = "Gateway",
+  UNKNOWN = "Unknown",
 }
 
 @Component({
@@ -202,16 +203,36 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     const {entityLoader} = config;
     this.threedModelLoader.loadModelAsGLTF(config, {updateProgress: p => this.loadingProgress = p * 100})
       .subscribe(({model, entityId}) => {
+        console.log("ENTITY:", entityLoader);
         // Check if the entity is a Pir
-        if ("entityAlias" in entityLoader && entityLoader.entityAlias === PIR_SENSORS) {
+        if ("entityAlias" in entityLoader && entityLoader.entity && entityLoader.entity.entityType === "DEVICE") {
+          let deviceData;
+          switch (entityLoader.entityAlias) {
+            case PIR_SENSORS:
+              // Set up IoT device data for the type of device
+              deviceData = {
+                name: entityLoader.entity.name,
+                type: DeviceTypes.PIR,
+                position: null,
+                isOccupied: false,
+              } as IOT_Pir;
+              break;
 
-          // Set up IoT device data for Pir sensor
-          const deviceData: IOT_Pir = {
-            name: entityLoader.entity.name,
-            type: DeviceTypes.PIR,
-            pirPosition: null,
-            isOccupied: false,
-          };
+            case GATEWAY:
+              deviceData = {
+                name: entityLoader.entity.name,
+                type: DeviceTypes.GATEWAY,
+                position: null,
+              } as IOT_Device;
+              break;
+
+            default:
+              deviceData = {
+                name: entityLoader.entity.name,
+                type: DeviceTypes.UNKNOWN,
+                position: null,
+              } as IOT_Device;
+          }
 
           // Assign IoT device data to the loaded model's userData
           model.userData[IOT_DEVICE] = deviceData;
@@ -416,8 +437,8 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     //Find the IOT devices
     for (const child of scene.children) {
       // Check if it's a PIR component, in that case insert its position for later use in the threed-person class
-      if (child.userData[IOT_DEVICE] && child.userData[IOT_DEVICE].type === DeviceTypes.PIR) {
-        child.userData[IOT_DEVICE].pirPosition = child.position;
+      if (child.userData[IOT_DEVICE]) {
+        child.userData[IOT_DEVICE].position = child.position;
       }
     }
 
