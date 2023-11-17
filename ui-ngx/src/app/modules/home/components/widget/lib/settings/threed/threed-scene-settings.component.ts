@@ -24,7 +24,7 @@ import {
   OnInit,
   Renderer2,
   ViewChild,
-  forwardRef
+  forwardRef, Injector
 } from '@angular/core';
 import {
   AbstractControl,
@@ -60,7 +60,6 @@ import {Store} from '@ngrx/store';
 import {TranslateService} from '@ngx-translate/core';
 import {PageComponent} from '@shared/components/page.component';
 import {GLTFExporter} from "three/examples/jsm/exporters/GLTFExporter";
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
 import {
   ThreedOrbitControllerComponent
 } from '../../../threed-view-widget/threed/threed-components/threed-orbit-controller-component';
@@ -72,7 +71,7 @@ import {
 } from '../../../threed-view-widget/threed/threed-managers/threed-generic-scene-manager';
 import {ThreedScenes} from '../../../threed-view-widget/threed/threed-scenes/threed-scenes';
 import {IThreedExpandable} from './ithreed-expandable';
-import * as THREE from 'three';
+import { ChangeDetectorRef } from '@angular/core';
 
 export interface IOT_Pir extends IOT_Device {
   isOccupied: boolean,
@@ -81,7 +80,6 @@ export interface IOT_Pir extends IOT_Device {
 export interface IOT_Device {
   name: string,
   type: DeviceTypes,
-  position: THREE.Vector3,
 }
 
 enum DeviceTypes {
@@ -135,16 +133,25 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
   fullscreen: boolean = false;
   loadingProgress = 100;
 
+  //Variables used for the animations during the export action
+  exporting: boolean = false;
+  private cdr: ChangeDetectorRef;
+
   private lastEntityLoaders: Map<string, ModelUrl | EntityAliasAttribute> = new Map();
 
-  constructor(protected store: Store<AppState>,
-              private translate: TranslateService,
-              private fb: FormBuilder,
-              private threedModelLoader: ThreedModelLoaderService,
-              private renderer2: Renderer2) {
+  constructor(
+    protected store: Store<AppState>,
+    private translate: TranslateService,
+    private fb: FormBuilder,
+    private threedModelLoader: ThreedModelLoaderService,
+    private renderer2: Renderer2,
+    private injector: Injector
+  ) {
     super(store);
-
+    // Use Injector to get ChangeDetectorRef
+    this.cdr = injector.get(ChangeDetectorRef);
   }
+
 
   ngOnInit(): void {
     /*this.threedSceneEditor = new ThreedSceneEditor(undefined, {
@@ -203,7 +210,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     const {entityLoader} = config;
     this.threedModelLoader.loadModelAsGLTF(config, {updateProgress: p => this.loadingProgress = p * 100})
       .subscribe(({model, entityId}) => {
-        console.log("ENTITY:", entityLoader);
         // Check if the entity is a Pir
         if ("entityAlias" in entityLoader && entityLoader.entity && entityLoader.entity.entityType === "DEVICE") {
           let deviceData;
@@ -213,7 +219,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
               deviceData = {
                 name: entityLoader.entity.name,
                 type: DeviceTypes.PIR,
-                position: null,
                 isOccupied: false,
               } as IOT_Pir;
               break;
@@ -222,7 +227,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
               deviceData = {
                 name: entityLoader.entity.name,
                 type: DeviceTypes.GATEWAY,
-                position: null,
               } as IOT_Device;
               break;
 
@@ -230,7 +234,6 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
               deviceData = {
                 name: entityLoader.entity.name,
                 type: DeviceTypes.UNKNOWN,
-                position: null,
               } as IOT_Device;
           }
 
@@ -422,6 +425,9 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
    * @remarks Ensure the scene has been set up in the scene editor before calling this function.
    */
   public exportScene(): void {
+    //starts the export animation
+    this.exporting = true;
+
     const exportManager = new GLTFExporter();
 
     // Access the scene from the scene editor
@@ -430,16 +436,13 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
     //Select the scene that represents the room, usually named as Environment
     const roomScene = scene.children.find(child => child.userData.customId === 'Environment');
     if (!roomScene) {
-      console.error("Room scene not found");
-      return;
-    }
+      console.error("Room scene not found")
 
-    //Find the IOT devices
-    for (const child of scene.children) {
-      // Check if it's a PIR component, in that case insert its position for later use in the threed-person class
-      if (child.userData[IOT_DEVICE]) {
-        child.userData[IOT_DEVICE].position = child.position;
-      }
+      //ends the export animation
+      this.exporting = false;
+      //propagates the changes to the UI, otherwise a click of the user is needed
+      this.cdr.detectChanges();
+      return;
     }
 
     // Define export options
@@ -463,39 +466,20 @@ export class ThreedSceneSettingsComponent extends PageComponent implements OnIni
 
         // Clean up the URL object
         URL.revokeObjectURL(url);
+
+        //ends the export animation
+        this.exporting = false;
+        //propagates the changes to the UI, otherwise a click of the user is needed
+        this.cdr.detectChanges();
       },
       (error: ErrorEvent) => {
         console.error("Export Error:", error);
+        //ends the export animation
+        this.exporting = false;
+        //propagates the changes to the UI, otherwise a click of the user is needed
+        this.cdr.detectChanges();
       },
       exportOptions
     );
-  }
-
-
-  @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement>;
-
-  public importScene(file: File): void {
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const arrayBuffer = event.target.result as ArrayBuffer;
-      const loader = new GLTFLoader();
-      loader.parse(arrayBuffer, '', (gltf) => {
-        // Inspect the gltf object here to check for userData
-        console.log("Parsed GLTF Object: ", gltf);
-      });
-    };
-
-    reader.readAsArrayBuffer(file);
-    console.log("SCENE OF FILE", this.sceneEditor.scene);
-  }
-
-  public onFileSelected(event: Event): void {
-    const inputElement = this.fileInput.nativeElement;
-    const selectedFile = inputElement.files[0];
-
-    if (selectedFile) {
-      this.importScene(selectedFile);
-    }
   }
 }

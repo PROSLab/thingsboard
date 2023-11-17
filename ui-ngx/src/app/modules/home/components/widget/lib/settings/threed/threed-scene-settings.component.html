@@ -20,18 +20,18 @@
   <fieldset class="fields-group">
     <legend class="group-title">Scene settings</legend>
 
+    <!-- Container that displays the button used to export the 3D scenes -->
     <div fxLayout="row" (click)="$event.stopPropagation()">
-      <button mat-icon-button (click)="exportScene()" aria-label="Export">
-        <mat-icon>save</mat-icon>
+      <button mat-flat-button color="primary" (click)="exportScene()" aria-label="Export" style="background-color: steelblue; color: white;">
+        <div fxLayout="row" fxLayoutAlign="start center">
+          <!-- Text to display when not exporting -->
+          <span *ngIf="!exporting">Export Scene</span>
+          <!-- Text to display when exporting -->
+          <span *ngIf="exporting" style="margin-right: 8px;">Exporting...</span>
+          <!-- Angular Material spinner to indicate loading when exporting -->
+          <mat-spinner *ngIf="exporting" diameter="20"></mat-spinner>
+        </div>
       </button>
-
-      <!-- Label for file input -->
-      <label for="fileInput" mat-icon-button aria-label="Attach File">
-        <mat-icon>attach_file</mat-icon>
-      </label>
-
-      <!-- Hidden file input -->
-      <input id="fileInput" type="file" #fileInput (change)="onFileSelected($event)" style="display: none">
     </div>
 
         <div class="tb-container"  style="color:white">
