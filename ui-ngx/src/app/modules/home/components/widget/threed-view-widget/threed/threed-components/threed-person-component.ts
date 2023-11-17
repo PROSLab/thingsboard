@@ -18,19 +18,14 @@ import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import * as PF from "pathfinding";
 import {TWEEN} from 'three/examples/jsm/libs/tween.module.min.js';
-import {ThreedBaseComponent} from "./threed-base-component";
 import {ThreedNavMeshComponent} from "./threed-nav-mesh-component";
 import {IThreedSceneManager} from "../threed-managers/ithreed-scene-manager";
 import {GLTF} from "three/examples/jsm/loaders/GLTFLoader";
-import {ThreedUtils} from "../threed-utils";
 import {ThreedGameObjectComponent} from "./threed-gameobject-component";
 import {ThreedRigidbodyComponent} from "./threed-rigidbody-component";
 import {ThreedAnimatorComponent} from "./threed-animator-component";
-import {IThreedPhysicObject} from "./ithreed-physic-object";
 import {IThreedPerson} from "./ithreed-person";
-import {IOT_Pir} from "@home/components/widget/lib/settings/threed/threed-scene-settings.component";
-
-const OCCUPIED_BY = "occupiedBy";
+import {IOT_DEVICE} from "@home/components/widget/threed-view-widget/threed/threed-constants";
 
 export class ThreedPersonComponent extends ThreedGameObjectComponent implements IThreedPerson {
 
@@ -43,7 +38,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
   private previousPath?: THREE.Object3D;
   private alerted = false;
   private pirFound = false;
-  private iotPir?: IOT_Pir;
+  private occupiedPir?: THREE.Object3D;
 
   private tween: TWEEN.Tween;
   // velocity in meters/seconds
@@ -63,10 +58,10 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     this.path = undefined;
     this.alerted = false;
     this.pirFound = false;
-    if (this.iotPir.isOccupied) {
-      this.iotPir.isOccupied = false;
+    if (this.occupiedPir.userData[IOT_DEVICE].isOccupied) {
+      this.occupiedPir.userData[IOT_DEVICE].isOccupied = false;
     }
-    this.iotPir = undefined;
+    this.occupiedPir = undefined;
 
     this.tween?.stop();
     this.tween = undefined;
@@ -87,16 +82,16 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
   tick(): void {
     super.tick();
 
-    this.walkToDesk();
-    this.updatePositionUnderDesk();
+    this.walkToPir();
+    this.updatePositionUnderPir();
   }
 
-  private walkToDesk() {
-    if (!this.clonedPath || !this.iotPir || this.pirFound) {
+  private walkToPir() {
+    if (!this.clonedPath || !this.occupiedPir || this.pirFound) {
       return;
     }
 
-    if (this.clonedPath.length === 0 && this.iotPir) {
+    if (this.clonedPath.length === 0 && this.occupiedPir) {
       this.pirFound = true;
       this.animator.stop();
       this.animator.play("Laying");
@@ -121,19 +116,19 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
       .to(targetPosition, time * 1000)
       .onComplete(() => {
         this.tween = undefined;
-        this.walkToDesk();
+        this.walkToPir();
       })
       .start();
   }
 
-  private updatePositionUnderDesk() {
+  private updatePositionUnderPir() {
     if (!this.pirFound || this.tween) {
       return;
     }
 
-    const pirPosition = this.iotPir.position.clone();
-    //pirPosition.x += this.iotPir.position.x;
-    pirPosition.y -= this.iotPir.position.y;
+    const pirPosition = this.occupiedPir.position.clone();
+    //pirPosition.x -= this.occupiedPir.position.x;
+    pirPosition.y -= this.occupiedPir.position.y;
 
     if (this.mesh.position.distanceTo(pirPosition) <= 0.1) {
       return;
@@ -157,21 +152,21 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     this.animator.play("Idle");
   }
 
-  public earthquakeAlert(magnitude: number, pirs: IOT_Pir[]) {
+  public earthquakeAlert(magnitude: number, pirs: THREE.Object3D[]) {
     if (this.alerted || magnitude <= 0.5) {
       return;
     }
 
-    const sortedDeskByDistance = pirs.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
+    const sortedPirsByDistance = pirs.sort((a, b) => a.position.distanceTo(this.mesh.position) - b.position.distanceTo(this.mesh.position));
 
-    for (const desk of sortedDeskByDistance) {
-      if (desk.isOccupied) continue;
+    for (const pir of sortedPirsByDistance) {
+      if (pir.userData[IOT_DEVICE].isOccupied) continue;
 
-      const deskCoords = this.navMesh.getGridCoordsFromPosition(desk.position);
-      const {x, y} = this.navMesh.findNearestWalkablePoint(deskCoords.x, deskCoords.y, 10);
-      if (this.findPathToDesk(this.mesh.position, {x, y})) {
-        this.iotPir = desk;
-        desk.isOccupied = true;
+      const pirCoords = this.navMesh.getGridCoordsFromPosition(pir.position);
+      const {x, y} = this.navMesh.findNearestWalkablePoint(pirCoords.x, pirCoords.y, 10);
+      if (this.findPathToPir(this.mesh.position, {x, y})) {
+        this.occupiedPir = pir;
+        pir.userData[IOT_DEVICE].isOccupied = true;
         break;
       }
     }
@@ -179,8 +174,7 @@ export class ThreedPersonComponent extends ThreedGameObjectComponent implements 
     this.alerted = true;
   }
 
-
-  public findPathToDesk(startPosition: THREE.Vector3 | { x: number, y: number }, endPosition: THREE.Vector3 | {
+  public findPathToPir(startPosition: THREE.Vector3 | { x: number, y: number }, endPosition: THREE.Vector3 | {
     x: number,
     y: number
   }): boolean {
